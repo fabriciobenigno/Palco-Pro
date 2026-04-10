@@ -456,6 +456,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const CURRENT_KEY = 'palco-pro-current-v1';
 
     const state = {
+      wasPlayingBeforeDrag: false,
       lines: [], flatWords: [], lineWords: [], lineWordStarts: [], currentLine: 0, scrollOffset: 0,
       playing: false, rafId: null, lastFrameTs: 0, baseSpeed: 20, voiceFollowSpeed: 0.62,
       voiceBoostStrength: 30, voiceBoostDuration: 180, manualBoost: 0, temporaryBoostUntil: 0,
@@ -701,7 +702,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.textDragStartY = y;
       state.textDragLastY = y;
       state.textDragMoved = false;
-      pauseScroll();
+      state.wasPlayingBeforeDrag = state.playing;
       promptContent.classList.add('dragging-text');
     }
 
@@ -738,6 +739,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         state.speechCursor = state.lineWords.slice(0, closestIndex).reduce((acc, words) => acc + words.length, 0);
         markLines();
       }
+      if (state.wasPlayingBeforeDrag) {
+        startScroll();
+      }
+      state.wasPlayingBeforeDrag = false;
     }
 
     function bindTextDrag() {
