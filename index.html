@@ -113,7 +113,7 @@
       top: 0;
       width: min(var(--text-width), 1200px);
       padding:
-        calc(var(--safe-top) + 18vh)
+        calc(var(--safe-top) + 8vh)
         24px
         calc(var(--safe-bottom) + 34vh);
       font-size: var(--font-size);
@@ -326,7 +326,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-end;
       min-height: 140px;
     }
 
@@ -353,11 +353,13 @@
     .song-status strong { color: #fff; }
 
     .side-panel {
-      top: calc(var(--safe-top) + 76px);
-      right: 14px;
+      top: 50%;
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, -50%);
       z-index: 40;
       width: min(390px, calc(100vw - 28px));
-      max-height: calc(100vh - 160px);
+      max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 28px);
       overflow: auto;
       border-radius: 26px;
       background: var(--panel);
@@ -367,7 +369,7 @@
       padding: 16px;
       display: none;
       pointer-events: auto;
-      inset: auto 14px auto auto;
+      inset: auto auto auto 50%;
       position: absolute;
     }
 
@@ -565,6 +567,7 @@
       max-width: 430px;
       margin: 0 auto;
       min-height: 100%;
+      max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 4px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -578,6 +581,7 @@
       justify-content: center;
       gap: 18px;
       flex: 1;
+      min-height: 0;
     }
 
     .entry-screen {
@@ -590,6 +594,8 @@
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
       backdrop-filter: blur(22px);
+      max-height: min(78vh, 760px);
+      overflow: auto;
     }
 
     .entry-screen.active { display: flex; }
@@ -893,9 +899,9 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       </div>
       <div class="bottom-center">
         <div class="record-zone">
-          <button class="circle-btn side-dock-btn left" id="prevSongBtn" aria-label="Voltar música">↺</button>
+          <button class="circle-btn side-dock-btn left" id="prevSongBtn" aria-label="Voltar música">←</button>
           <button class="mode-switch-btn clean-toggle-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
-          <button class="circle-btn side-dock-btn right" id="nextSongSideBtn" aria-label="Próxima música">↻</button>
+          <button class="circle-btn side-dock-btn right" id="nextSongSideBtn" aria-label="Próxima música">→</button>
         </div>
       </div>
       <div class="bottom-right"></div>
