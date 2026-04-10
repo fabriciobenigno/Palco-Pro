@@ -108,8 +108,8 @@
     }
 
     .controls-bar {
-      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 14px); transform: translateX(-50%);
-      z-index: 35; display: flex; align-items: center; gap: 12px;
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 10px); transform: translateX(-50%);
+      z-index: 35; display: flex; align-items: flex-end; gap: 12px;
       pointer-events: auto;
     }
 
@@ -124,16 +124,16 @@
     }
 
     .mode-switch-btn {
-      min-width: 70px; height: 48px; padding: 0 18px; border-radius: 18px;
-      background: rgba(14,16,24,0.72); border: 1px solid rgba(255,255,255,0.16);
+      min-width: 88px; height: 58px; padding: 0 20px; border-radius: 22px;
+      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
       backdrop-filter: blur(14px); display: grid; place-items: center;
-      font-size: 22px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      font-size: 24px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
     }
 
     .clean-return-btn {
-      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 70px); transform: translateX(-50%);
-      z-index: 36; min-width: 56px; height: 34px; padding: 0 14px; border-radius: 18px;
-      background: rgba(14,16,24,0.72); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 136px); transform: translateX(-50%);
+      z-index: 38; min-width: 56px; height: 34px; padding: 0 14px; border-radius: 18px;
+      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
       display: none; place-items: center; font-size: 18px; font-weight: 700; line-height: 1;
       box-shadow: 0 10px 24px rgba(0,0,0,0.24); pointer-events: auto;
     }
@@ -179,6 +179,19 @@
     .switch input:checked + .slider::before { transform: translateX(19px); }
     .panel-note { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.6); }
     .hidden { display: none !important; }
+
+    .detail-panel {
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 70px); transform: translateX(-50%);
+      z-index: 37; display: none; align-items: center; justify-content: center; gap: 10px;
+      padding: 10px; border-radius: 22px; background: rgba(8,12,18,0.5);
+      border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(18px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.28); pointer-events: auto;
+      max-width: calc(100vw - 28px);
+    }
+
+    .detail-panel.open { display: flex; }
+
+    .detail-mode .detail-panel { display: flex; }
 
     .browser-entry-gate {
       position: fixed; inset: 0; z-index: 9999; display: none;
@@ -229,7 +242,8 @@
       .script-inner { padding-left: 18px; padding-right: 18px; }
       .controls-bar { gap: 10px; }
       .mini-btn, .circle-btn { width: 46px; height: 46px; }
-      .mode-switch-btn { min-width: 64px; height: 46px; }
+      .mode-switch-btn { min-width: 80px; height: 54px; }
+      .detail-panel { gap: 8px; padding: 8px; }
     }
   </style>
 </head>
@@ -290,6 +304,12 @@
     </div>
 
     <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar ao modo limpo">⌄</button>
+
+    <div class="detail-panel" id="detailPanel">
+      <button class="mini-btn" id="backBlockBtn" aria-label="Voltar bloco">↟</button>
+      <button class="mini-btn" id="playPauseBtn" aria-label="Play ou pause">▶</button>
+      <button class="mini-btn" id="nextBlockBtn" aria-label="Próximo bloco">↡</button>
+    </div>
 
     <div class="side-panel" id="sidePanel">
       <div class="panel-title">
@@ -615,6 +635,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.playing) return;
       state.playing = true;
       state.lastFrameTs = 0;
+      syncPlayPauseIcon();
       state.rafId = requestAnimationFrame(animateScroll);
     }
 
@@ -622,17 +643,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.playing = false;
       if (state.rafId) cancelAnimationFrame(state.rafId);
       state.rafId = null;
+      syncPlayPauseIcon();
     }
 
-    function jumpLine(delta) { setActiveLine(state.currentLine + delta); }
+    function jumpLine(delta) {
+      setActiveLine(state.currentLine + delta);
+    }
 
-    function beginTextDrag(pointerId, y) {
-      state.textDragging = true;
-      state.textDragPointerId = pointerId;
-      state.textDragStartY = y;
-      state.textDragLastY = y;
-      state.textDragMoved = false;
-      promptContent.classList.add('dragging-text');
+    function togglePlayPause() {
+      state.playing ? pauseScroll() : startScroll();
     }
 
     function moveTextDrag(y) {
@@ -906,12 +925,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistSettings();
     }
 
+    function syncPlayPauseIcon() {
+      $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶';
+    }
+
     function toggleCleanMode() {
       if (!state.cleanMode) return;
       state.cleanMode = false;
       app.classList.add('detail-mode');
       app.classList.remove('clean-mode');
       $('cleanReturnBtn').style.display = 'grid';
+      $('detailPanel').classList.add('open');
     }
 
     function returnToCleanMode() {
@@ -919,6 +943,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       app.classList.add('clean-mode');
       app.classList.remove('detail-mode');
       $('cleanReturnBtn').style.display = 'none';
+      $('detailPanel').classList.remove('open');
     }
 
     function openPanel() { sidePanel.classList.add('open'); }
@@ -1064,6 +1089,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('deleteSavedBtn').addEventListener('click', deleteSelectedSong);
       $('backSongBtn').addEventListener('click', previousSong);
       $('nextSongBtn').addEventListener('click', nextSong);
+      $('backBlockBtn').addEventListener('click', () => jumpLine(-1));
+      $('nextBlockBtn').addEventListener('click', () => jumpLine(1));
+      $('playPauseBtn').addEventListener('click', togglePlayPause);
       $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
       $('cleanReturnBtn').addEventListener('click', returnToCleanMode);
       $('openPanelDockBtn').addEventListener('click', togglePanel);
@@ -1150,6 +1178,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       setupBrowserEntryGate();
       app.classList.add('clean-mode');
       $('cleanReturnBtn').style.display = 'none';
+      $('detailPanel').classList.remove('open');
+      syncPlayPauseIcon();
       if (voiceToggle.checked) enableVoice(true);
     }
 
