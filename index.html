@@ -317,6 +317,7 @@
       z-index: 36;
     }
 
+    .side-dock-btn.left-far { left: calc(25% - 86px); }
     .side-dock-btn.left { left: calc(25% - 24px); }
     .side-dock-btn.right { left: calc(75% + 24px); }
 
@@ -329,6 +330,7 @@
       min-height: 140px;
     }
 
+    
     .song-status {
       position: absolute;
       top: calc(var(--safe-top) + 74px);
@@ -699,12 +701,9 @@
     .detail-mode .top-left { display: none !important; }
     .clean-mode .clean-return-btn { display: none !important; }
     .detail-mode .floating-controls { display: flex; }
-    .detail-mode .clean-return-btn { display: grid; }
     .detail-mode #nextSongSideBtn { display: none !important; }
-    .clean-mode .floating-controls,
-    .clean-mode .top-left,
-    .clean-mode .top-center,
-    .clean-mode .song-status { display: none !important; }
+    .detail-mode .clean-return-btn { display: grid; }
+    .clean-mode .floating-controls, .clean-mode .top-left, .clean-mode .top-center, .clean-mode .song-status { display: none !important; }
 
     @media (orientation: landscape) {
       :root {
@@ -720,8 +719,9 @@
       .circle-btn { width: 46px; height: 46px; }
       .floating-controls { gap: 8px; padding: 8px; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
-      .side-dock-btn.left { left: calc(25% - 16px); }
-      .side-dock-btn.right { left: calc(75% + 16px); }
+      .side-dock-btn.left-far { left: calc(25% - 70px); }
+      .side-dock-btn.left { left: calc(25% - 14px); }
+      .side-dock-btn.right { left: calc(75% + 14px); }
     }
   </style>
 </head>
@@ -733,10 +733,10 @@
         <div class="entry-main">
           <section class="entry-screen active" id="entryHomeScreen">
             <h1 class="entry-title">Palco Pro</h1>
-            <p class="entry-subtitle">Instale o app para usar sua experiência completa no palco, com repertório salvo, leitura premium e suporte à apresentação ao vivo.</p>
+            <p class="entry-subtitle">Instale o app para usar a versão completa no celular.</p>
             <div class="entry-actions">
               <button class="entry-nav-btn" type="button" data-entry-target="install">Tutorial de instalação</button>
-              <button class="entry-nav-btn" type="button" data-entry-target="usage">Como usar</button>
+              <button class="entry-nav-btn" type="button" data-entry-target="usage">Tutorial de uso do app</button>
               <a class="entry-link-btn" href="https://instagram.com/fabricio_benigno" target="_blank" rel="noopener noreferrer">
                 <span>@fabricio_benigno</span>
               </a>
@@ -749,18 +749,18 @@
               <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o menu do navegador no seu celular.</span></li>
               <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Toque em <strong>Instalar app</strong>, <strong>Adicionar à tela inicial</strong> ou opção equivalente.</span></li>
               <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Confirme a instalação e aguarde o ícone do app aparecer na tela inicial.</span></li>
-              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o app instalado para usar seu repertório sempre salvo no próprio aplicativo.</span></li>
+              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o aplicativo instalado para usar normalmente.</span></li>
             </ol>
             <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
           </section>
 
           <section class="entry-screen" id="entryUsageScreen">
-            <h2 class="entry-title">Como usar</h2>
+            <h2 class="entry-title">Tutorial de uso do app</h2>
             <ol class="entry-steps">
-              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o aplicativo instalado pela tela inicial do seu celular.</span></li>
-              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Entre nos ajustes, informe o título da música, cole a letra e salve no repertório.</span></li>
-              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Use o reconhecimento por fala, o Bluetooth e os ajustes de leitura conforme sua apresentação.</span></li>
-              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Durante o show, avance a leitura normalmente e use o botão de próxima música para seguir seu repertório.</span></li>
+              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o aplicativo já instalado pela tela inicial do seu celular.</span></li>
+              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Entre nos ajustes, informe o título da música, cole sua letra e salve no repertório.</span></li>
+              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Use o modo limpo para a leitura principal e o modo detalhado quando precisar ajustar o app.</span></li>
+              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Durante a apresentação, use os ícones laterais para voltar ou avançar no repertório.</span></li>
             </ol>
             <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
           </section>
@@ -889,13 +889,13 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
 
     <div class="bottom-bar">
       <div class="bottom-left">
-        <button class="ghost-btn" id="bottomSettingsBtn">Ajustes</button>
+        <button class="circle-btn side-dock-btn left-far" id="bottomSettingsBtn" aria-label="Ajustes">⚙</button>
       </div>
       <div class="bottom-center">
         <div class="record-zone">
-          <button class="ghost-btn side-dock-btn left" id="prevSongBtn">Voltar</button>
+          <button class="circle-btn side-dock-btn left" id="prevSongBtn" aria-label="Voltar música">↺</button>
           <button class="mode-switch-btn clean-toggle-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
-          <button class="ghost-btn side-dock-btn right" id="nextSongSideBtn">Próxima</button>
+          <button class="circle-btn side-dock-btn right" id="nextSongSideBtn" aria-label="Próxima música">↻</button>
         </div>
       </div>
       <div class="bottom-right"></div>
@@ -1597,8 +1597,6 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
         state.playing ? pauseScroll() : startScroll();
       } else if (key === 'MediaTrackNext') {
         goToNextSong();
-      } else if (key === 'MediaTrackPrevious') {
-        goToPrevSong();
       } else {
         handled = false;
       }
@@ -1867,14 +1865,14 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       $('playPauseBtn').addEventListener('click', () => state.playing ? pauseScroll() : startScroll());
       $('backBtn').addEventListener('click', () => jumpLine(-1));
       $('forwardBtn').addEventListener('click', () => jumpLine(1));
-      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
-      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
-      $('openPanelBtn').addEventListener('click', togglePanel);
-      $('hidePanelBtn').addEventListener('click', hidePanel);
-      $('closePanelBtn').addEventListener('click', hidePanel);
       $('bottomSettingsBtn').addEventListener('click', togglePanel);
       $('prevSongBtn').addEventListener('click', goToPrevSong);
       $('nextSongSideBtn').addEventListener('click', goToNextSong);
+      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
+      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
+      $('openPanelBtn').addEventListener('click', togglePanel);
+            $('hidePanelBtn').addEventListener('click', hidePanel);
+      $('closePanelBtn').addEventListener('click', hidePanel);
       songTitleInput.addEventListener('input', updateSongStatus);
       scriptInput.addEventListener('input', updateSongStatus);
       bindTextDrag();
