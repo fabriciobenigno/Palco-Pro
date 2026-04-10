@@ -18,13 +18,12 @@
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --text: #f7f9ff;
-      --panel: rgba(8,12,18,0.84);
+      --panel: rgba(8,12,18,0.82);
+      --bottom-reading-safe: 180px;
+      --detail-top-safe: 82px;
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     html, body {
       margin: 0;
@@ -54,10 +53,11 @@
     .stage-bg,
     .stage-dim,
     .reading-shell,
-    .browser-entry-gate {
-      position: absolute;
-      inset: 0;
-    }
+    .top-bar,
+    .bottom-bar,
+    .side-panel,
+    .browser-entry-gate,
+    .transcript-pill { position: absolute; inset: 0; }
 
     .stage-bg {
       background:
@@ -80,12 +80,13 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      top: calc(var(--safe-top) + 84px);
-      bottom: calc(var(--safe-bottom) + 154px);
+      top: calc(var(--safe-top) + var(--detail-top-safe));
+      bottom: calc(var(--safe-bottom) + var(--bottom-reading-safe));
       width: min(var(--text-width), 1200px);
       border-radius: 30px;
       background: rgba(18,22,34,var(--overlay-opacity));
       border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.18s ease;
@@ -93,27 +94,6 @@
 
     .detail-mode .reading-limit { opacity: 1; }
     .clean-mode .reading-limit { opacity: 0; }
-
-    .song-status {
-      position: absolute;
-      top: calc(var(--safe-top) + 76px);
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 22;
-      max-width: min(92vw, 860px);
-      padding: 10px 15px;
-      border-radius: 18px;
-      background: rgba(10,14,20,0.34);
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(14px);
-      font-size: 13px;
-      line-height: 1.45;
-      color: rgba(255,255,255,0.84);
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .song-status strong { color: #fff; }
 
     .prompt-content {
       position: absolute;
@@ -132,7 +112,10 @@
       transform: translateX(-50%);
       top: 0;
       width: min(var(--text-width), 1200px);
-      padding: calc(var(--safe-top) + 4vh) 24px calc(var(--safe-bottom) + 34vh);
+      padding:
+        calc(var(--safe-top) + 8vh)
+        24px
+        calc(var(--safe-bottom) + 34vh);
       font-size: var(--font-size);
       line-height: var(--line-height);
       color: rgba(255,255,255,0.96);
@@ -162,6 +145,7 @@
       opacity: 0.88;
       margin: 0 0 0.14em;
       transition: opacity 0.14s ease, transform 0.14s ease, filter 0.14s ease;
+      filter: none;
     }
 
     .line.active {
@@ -172,27 +156,46 @@
 
     .line.done { opacity: 0.74; }
 
-    .top-bar {
-      position: absolute;
+    .top-bar,
+    .bottom-bar {
       left: 0;
       right: 0;
-      top: 0;
       z-index: 30;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: calc(var(--safe-top) + 10px) max(14px, env(safe-area-inset-right)) 0 max(14px, env(safe-area-inset-left));
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
       pointer-events: none;
+      inset: auto 0;
+    }
+
+    .top-bar {
+      top: 0;
+      padding-top: calc(var(--safe-top) + 10px);
+      position: absolute;
+    }
+
+    .bottom-bar {
+      bottom: 0;
+      padding-bottom: calc(var(--safe-bottom) + 14px);
+      align-items: flex-end;
+      position: absolute;
     }
 
     .top-left,
     .top-center,
-    .top-right {
+    .top-right,
+    .bottom-left,
+    .bottom-center,
+    .bottom-right {
       display: flex;
       align-items: center;
       gap: 12px;
       pointer-events: auto;
     }
+
+    .bottom-center { width: 100%; justify-content: center; }
 
     .status-time {
       font-size: 15px;
@@ -268,42 +271,10 @@
       box-shadow: 0 10px 24px rgba(0,0,0,0.24);
     }
 
-    .bottom-bar {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 36;
-      min-height: 132px;
-      padding-bottom: calc(var(--safe-bottom) + 16px);
-      pointer-events: none;
-    }
-
-    .record-zone {
-      position: absolute;
-      left: 50%;
-      bottom: calc(var(--safe-bottom) + 16px);
-      transform: translateX(-50%);
-      width: 100%;
-      height: 56px;
-      pointer-events: none;
-    }
-
-    .dock-control {
-      position: absolute;
-      bottom: 0;
-      pointer-events: auto;
-    }
-
-    .dock-settings { left: max(14px, env(safe-area-inset-left)); }
-    .dock-prev { left: calc(50% - 120px); transform: translateX(-50%); }
-    .dock-center { left: 50%; transform: translateX(-50%); bottom: 8px; }
-    .dock-next { left: calc(50% + 120px); transform: translateX(-50%); }
-
     .floating-controls {
       position: absolute;
       left: 50%;
-      bottom: calc(var(--safe-bottom) + 96px);
+      bottom: calc(var(--safe-bottom) + 128px);
       transform: translateX(-50%);
       z-index: 35;
       display: flex;
@@ -321,23 +292,74 @@
       max-width: calc(100vw - 28px);
     }
 
-    .clean-return-btn {
+    .clean-toggle-btn {
       position: absolute;
       left: 50%;
-      bottom: calc(var(--safe-bottom) + 166px);
+      top: calc(50% - 74px);
       transform: translateX(-50%);
       z-index: 36;
       pointer-events: auto;
     }
 
-    .side-panel {
+    .clean-return-btn {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 70px);
+      transform: translateX(-50%);
+      z-index: 37;
+      pointer-events: auto;
+    }
+
+    .side-dock-btn {
       position: absolute;
       top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 36;
+    }
+
+    .side-dock-btn.left-far { left: calc(25% - 86px); }
+    .side-dock-btn.left { left: calc(25% - 24px); }
+    .side-dock-btn.right { left: calc(75% + 24px); }
+
+    .record-zone {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 140px;
+    }
+
+    
+    .song-status {
+      position: absolute;
+      top: calc(var(--safe-top) + 74px);
       left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      max-width: min(92vw, 860px);
+      padding: 11px 16px;
+      border-radius: 18px;
+      background: rgba(10,14,20,0.34);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.84);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .song-status strong { color: #fff; }
+
+    .side-panel {
+      top: 50%;
+      left: 50%;
+      right: auto;
       transform: translate(-50%, -50%);
       z-index: 40;
-      width: min(360px, calc(100vw - 30px));
-      max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 24px);
+      width: min(390px, calc(100vw - 28px));
+      max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 28px);
       overflow: auto;
       border-radius: 26px;
       background: var(--panel);
@@ -347,6 +369,8 @@
       padding: 16px;
       display: none;
       pointer-events: auto;
+      inset: auto auto auto 50%;
+      position: absolute;
     }
 
     .side-panel.open { display: block; }
@@ -399,10 +423,12 @@
     .field label { font-size: 13px; }
 
     .field textarea,
+    .field select,
     .field input[type="text"],
     .field input[type="range"] { width: 100%; }
 
     .field textarea,
+    .field select,
     .field input[type="text"] {
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.06);
@@ -526,6 +552,8 @@
         calc(var(--safe-bottom) + 22px)
         max(20px, env(safe-area-inset-left));
       color: #f7f9ff;
+      inset: 0;
+      position: fixed;
     }
 
     .browser-entry-gate.active {
@@ -655,6 +683,11 @@
       text-transform: uppercase;
     }
 
+    .transcript-pill {
+      display: none !important;
+      z-index: 22;
+    }
+
     .hidden { display: none !important; }
 
     .top-right {
@@ -670,45 +703,35 @@
       pointer-events: auto;
     }
 
-    .detail-mode #nextSongSideBtn { display: none !important; }
+    .detail-mode .clean-toggle-btn { display: none !important; }
+    .detail-mode .top-left { display: none !important; }
+    .clean-mode .clean-return-btn { display: none !important; }
     .detail-mode .floating-controls { display: flex; }
-    .detail-mode .clean-return-btn { display: grid; }
-    .clean-mode .clean-return-btn,
-    .clean-mode .floating-controls,
-    .clean-mode .song-status { display: none !important; }
+        .detail-mode .clean-return-btn { display: grid; }
+    .clean-mode .floating-controls, .clean-mode .top-left, .clean-mode .top-center, .clean-mode .song-status { display: none !important; }
 
     @media (orientation: landscape) {
       :root {
         --font-size: 28px;
+        --bottom-reading-safe: 128px;
       }
-
-      .script-inner {
-        padding-top: calc(var(--safe-top) + 6vh);
-      }
+      .floating-controls { bottom: calc(var(--safe-bottom) + 98px); }
+      .clean-return-btn { bottom: calc(var(--safe-bottom) + 180px); }
     }
 
     @media (max-width: 560px) {
-      :root {
-        --text-width: 92vw;
-      }
-
-      .circle-btn {
-        width: 46px;
-        height: 46px;
-      }
-
-      .script-inner {
-        padding-left: 18px;
-        padding-right: 18px;
-      }
-
-      .dock-prev { left: calc(50% - 108px); }
-      .dock-next { left: calc(50% + 108px); }
+      :root { --text-width: 92vw; }
+      .circle-btn { width: 46px; height: 46px; }
+      .floating-controls { gap: 8px; padding: 8px; }
+      .script-inner { padding-left: 18px; padding-right: 18px; }
+      .side-dock-btn.left-far { left: calc(25% - 70px); }
+      .side-dock-btn.left { left: calc(25% - 14px); }
+      .side-dock-btn.right { left: calc(75% + 14px); }
     }
   </style>
 </head>
 <body>
-  <div class="app clean-mode" id="app">
+  <div class="app" id="app">
     <div class="browser-entry-gate" id="browserEntryGate" aria-hidden="true">
       <div class="entry-shell">
         <div></div>
@@ -765,10 +788,11 @@
     <div class="top-bar">
       <div class="top-left">
         <div class="status-time" id="statusTime">00:00</div>
+        <button class="circle-btn" id="closePanelBtn">×</button>
       </div>
       <div class="top-center"></div>
       <div class="top-right">
-        <button class="circle-btn" id="hidePanelBtnTop">×</button>
+        <button class="circle-btn" id="openPanelBtn">⚙</button>
       </div>
     </div>
 
@@ -869,12 +893,17 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
     </div>
 
     <div class="bottom-bar">
-      <div class="record-zone">
-        <button class="circle-btn dock-control dock-settings" id="bottomSettingsBtn" aria-label="Ajustes">⚙</button>
-        <button class="circle-btn dock-control dock-prev" id="prevSongBtn" aria-label="Voltar música">←</button>
-        <button class="mode-switch-btn dock-control dock-center" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
-        <button class="circle-btn dock-control dock-next" id="nextSongSideBtn" aria-label="Próxima música">→</button>
+      <div class="bottom-left">
+        <button class="circle-btn side-dock-btn left-far" id="bottomSettingsBtn" aria-label="Ajustes">⚙</button>
       </div>
+      <div class="bottom-center">
+        <div class="record-zone">
+          <button class="circle-btn side-dock-btn left" id="prevSongBtn" aria-label="Voltar música">←</button>
+          <button class="mode-switch-btn clean-toggle-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
+          <button class="circle-btn side-dock-btn right" id="nextSongSideBtn" aria-label="Próxima música">→</button>
+        </div>
+      </div>
+      <div class="bottom-right"></div>
     </div>
   </div>
 
@@ -900,19 +929,22 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       voiceFollowSpeed: 0.62,
       voiceBoostStrength: 30,
       voiceBoostDuration: 180,
+      manualBoost: 0,
+      temporaryBoostUntil: 0,
       voiceEnabled: false,
       recognitionReady: false,
       recognitionRunning: false,
       recognition: null,
       speechCursor: 0,
       mirror: false,
-      cleanMode: true,
+      cleanMode: false,
       anchorIndex: 0,
       anchorProgress: 0.5,
       textDragging: false,
       textDragPointerId: null,
       textDragStartY: 0,
       textDragLastY: 0,
+      textDragMoved: false,
       bluetoothBound: false,
       voiceLastProcessed: '',
       voiceLastMatchAt: 0,
@@ -1072,8 +1104,20 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       if (!active) return;
       const contentRect = promptContent.getBoundingClientRect();
       const activeRect = active.getBoundingClientRect();
-      const guideY = contentRect.top + contentRect.height * 0.34;
+      const guideY = contentRect.top + contentRect.height * 0.5;
       state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2);
+      applyScroll();
+      captureAnchor();
+    }
+
+    function placeActiveLineAtStart() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const topGuide = contentRect.top + contentRect.height * 0.26;
+      state.scrollOffset += topGuide - activeRect.top;
       applyScroll();
       captureAnchor();
     }
@@ -1101,7 +1145,7 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       if (!next) return;
       const contentRect = promptContent.getBoundingClientRect();
       const nextRect = next.getBoundingClientRect();
-      const trigger = contentRect.top + contentRect.height * 0.34;
+      const trigger = contentRect.top + contentRect.height * 0.5;
       if ((nextRect.top + nextRect.height / 2) < trigger + 6) {
         state.currentLine += 1;
         markLines();
@@ -1115,7 +1159,9 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       if (!state.lastFrameTs) state.lastFrameTs = ts;
       const dt = (ts - state.lastFrameTs) / 1000;
       state.lastFrameTs = ts;
-      state.scrollOffset -= state.baseSpeed * dt;
+      let speed = state.baseSpeed + state.manualBoost;
+      if (performance.now() < state.temporaryBoostUntil) speed += state.voiceBoostStrength;
+      state.scrollOffset -= speed * dt;
       applyScroll();
       advanceLinesByPosition();
       state.rafId = requestAnimationFrame(animateScroll);
@@ -1142,22 +1188,48 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       setActiveLine(state.currentLine + delta);
     }
 
+    function updateCurrentLineFromViewport() {
+      const lines = getLineElements();
+      if (!lines.length) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const guideY = contentRect.top + contentRect.height * 0.32;
+      let closestIndex = state.currentLine;
+      let closestDistance = Infinity;
+      lines.forEach((line, index) => {
+        const rect = line.getBoundingClientRect();
+        const centerY = rect.top + rect.height / 2;
+        const distance = Math.abs(centerY - guideY);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+      if (closestIndex !== state.currentLine) {
+        state.currentLine = closestIndex;
+        markLines();
+        updateSongStatus();
+      }
+      captureAnchor();
+    }
+
     function beginTextDrag(pointerId, y) {
       pauseScroll();
       state.textDragging = true;
       state.textDragPointerId = pointerId;
       state.textDragStartY = y;
       state.textDragLastY = y;
+      state.textDragMoved = false;
       promptContent.classList.add('dragging-text');
     }
 
     function moveTextDrag(y) {
       if (!state.textDragging) return;
       const delta = y - state.textDragLastY;
+      if (Math.abs(y - state.textDragStartY) > 3) state.textDragMoved = true;
       state.textDragLastY = y;
       state.scrollOffset += delta;
       applyScroll(true);
-      captureAnchor();
+      updateCurrentLineFromViewport();
     }
 
     function endTextDrag() {
@@ -1165,7 +1237,7 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       state.textDragging = false;
       state.textDragPointerId = null;
       promptContent.classList.remove('dragging-text');
-      captureAnchor();
+      updateCurrentLineFromViewport();
     }
 
     function bindTextDrag() {
@@ -1189,6 +1261,156 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       });
     }
 
+    function makeNgrams(words, minSize = 2, maxSize = 5) {
+      const grams = [];
+      const cappedMax = Math.max(minSize, Math.min(maxSize, words.length));
+      for (let size = minSize; size <= cappedMax; size++) {
+        for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size));
+      }
+      return grams;
+    }
+
+    function countOrderedMatches(heardWords, targetWords) {
+      if (!heardWords.length || !targetWords.length) return 0;
+      let cursor = 0;
+      let matched = 0;
+      for (const word of heardWords) {
+        for (let i = cursor; i < targetWords.length; i++) {
+          if (targetWords[i] === word) {
+            matched += 1;
+            cursor = i + 1;
+            break;
+          }
+        }
+      }
+      return matched;
+    }
+
+    function getLineWindowIndices() {
+      const start = Math.max(0, state.currentLine - 1);
+      const end = Math.min(state.lines.length - 1, state.currentLine + 2);
+      const indices = [];
+      for (let i = start; i <= end; i++) indices.push(i);
+      return indices;
+    }
+
+    function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) {
+      if (!heardWords.length || !currentWords.length) return 0;
+      const maxSize = Math.min(5, heardWords.length, currentWords.length);
+      for (let size = maxSize; size >= 2; size--) {
+        const heardTail = heardWords.slice(-size).join(' ');
+        const lineTail = currentWords.slice(-size).join(' ');
+        if (heardTail === lineTail) return size;
+      }
+      return 0;
+    }
+
+    function getLineStartIndex(lineIndex) { return state.lineWordStarts[lineIndex] ?? 0; }
+    function getLineWords(lineIndex) { return state.lineWords[lineIndex] || []; }
+
+    function findBestNearbyVoiceMatch(heardWords) {
+      const candidates = [];
+      const grams = makeNgrams(heardWords, 2, 5);
+      getLineWindowIndices().forEach((lineIndex) => {
+        const lineWords = getLineWords(lineIndex);
+        if (!lineWords.length) return;
+        let bestBlockSize = 0;
+        let bestBlockEnd = -1;
+        grams.forEach((gram) => {
+          const joinedGram = gram.join(' ');
+          for (let start = 0; start <= lineWords.length - gram.length; start++) {
+            if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram) {
+              if (gram.length > bestBlockSize || (gram.length === bestBlockSize && start + gram.length > bestBlockEnd)) {
+                bestBlockSize = gram.length;
+                bestBlockEnd = start + gram.length;
+              }
+            }
+          }
+        });
+        const orderedMatches = countOrderedMatches(heardWords, lineWords);
+        const lineStart = getLineStartIndex(lineIndex);
+        const lineEnd = lineStart + lineWords.length;
+        const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2;
+        const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2);
+        candidates.push({ lineIndex, lineStart, lineEnd, lineWords, bestBlockSize, bestBlockEnd, orderedMatches, reachedLineEnd, score });
+      });
+      candidates.sort((a, b) => b.score - a.score || b.bestBlockSize - a.bestBlockSize || b.orderedMatches - a.orderedMatches || a.lineIndex - b.lineIndex);
+      return candidates[0] || null;
+    }
+
+    function applyNearbyVoiceMatch(match) {
+      if (!match) return false;
+      const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3;
+      const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3);
+      if (!strongEnough) return false;
+      const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd));
+      if (matchedCursor > state.speechCursor) state.speechCursor = matchedCursor;
+      if (match.lineIndex > state.currentLine) {
+        state.currentLine = match.lineIndex;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+        return true;
+      }
+      if (match.reachedLineEnd && match.lineIndex === state.currentLine && state.currentLine < state.lines.length - 1) {
+        state.speechCursor = Math.max(state.speechCursor, match.lineEnd);
+        state.currentLine = match.lineIndex + 1;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+        return true;
+      }
+      moveTowardSpeechCursor();
+      return true;
+    }
+
+    function getCurrentLineSpeechProgress() {
+      const words = getLineWords(state.currentLine);
+      if (!words.length) return 0;
+      const lineStart = getLineStartIndex(state.currentLine);
+      const spokenInsideLine = Math.max(0, state.speechCursor - lineStart);
+      return Math.max(0, Math.min(1, spokenInsideLine / words.length));
+    }
+
+    function followSpeechVisualProgress() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const progress = getCurrentLineSpeechProgress();
+      const startGuide = 0.44;
+      const endGuide = 0.22;
+      const desiredGuide = startGuide - ((startGuide - endGuide) * progress);
+      const desiredY = contentRect.top + (contentRect.height * desiredGuide);
+      const currentY = activeRect.top + (activeRect.height / 2);
+      const delta = desiredY - currentY;
+      const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52);
+      state.scrollOffset += delta * responseStrength;
+      applyScroll();
+      captureAnchor();
+    }
+
+    function moveTowardSpeechCursor() {
+      let matchedLine = state.currentLine;
+      for (let i = 0; i < state.lines.length; i++) {
+        const start = getLineStartIndex(i);
+        const end = start + getLineWords(i).length;
+        if (state.speechCursor < end || i === state.lines.length - 1) {
+          matchedLine = i;
+          break;
+        }
+      }
+      if (matchedLine !== state.currentLine) {
+        state.currentLine = matchedLine;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+      }
+      state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
+      followSpeechVisualProgress();
+    }
+
     function setupVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -1208,16 +1430,70 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
         }
       };
       recognition.onerror = () => {};
-      recognition.onresult = () => {};
+      recognition.onresult = (event) => {
+        let joined = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          joined += ` ${event.results[i][0].transcript}`;
+        }
+        handleVoiceContinuous(joined.trim());
+      };
       state.recognition = recognition;
       state.recognitionReady = true;
     }
 
+    function handleVoiceContinuous(transcript) {
+      const normalizedTranscript = splitWords(transcript).join(' ');
+      if (!normalizedTranscript || normalizedTranscript === state.voiceLastProcessed) return;
+      state.voiceLastProcessed = normalizedTranscript;
+      const heardWords = normalizedTranscript.split(' ').filter(Boolean);
+      if (!heardWords.length) return;
+      const lineBeforeMatch = state.currentLine;
+      const activeWords = getLineWords(lineBeforeMatch);
+      let localCursor = state.speechCursor;
+      let matched = 0;
+      for (const word of heardWords) {
+        const current = state.flatWords[localCursor];
+        const next = state.flatWords[localCursor + 1];
+        if (word === current) {
+          localCursor += 1;
+          matched += 1;
+        } else if (word === next) {
+          localCursor += 2;
+          matched += 1;
+        }
+      }
+      if (matched > 0) {
+        const maxCursor = state.flatWords.length;
+        state.speechCursor = Math.min(localCursor, maxCursor);
+        const lineStart = getLineStartIndex(lineBeforeMatch);
+        const activeLineLastIndex = lineStart + activeWords.length;
+        if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) {
+          state.currentLine = lineBeforeMatch + 1;
+          markLines();
+          placeActiveLineAtStart();
+          state.voiceLastMatchAt = performance.now();
+          updateSongStatus();
+          return;
+        }
+        state.voiceLastMatchAt = performance.now();
+        moveTowardSpeechCursor();
+        return;
+      }
+      const nearbyMatch = findBestNearbyVoiceMatch(heardWords);
+      if (!nearbyMatch) return;
+      const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0);
+      const canAssistNow = timeSinceLastStrongMatch > 120;
+      if (!canAssistNow) return;
+      if (applyNearbyVoiceMatch(nearbyMatch)) state.voiceLastMatchAt = performance.now();
+    }
+
     function enableVoice(enabled) {
       state.voiceEnabled = enabled;
+      state.voiceLastProcessed = '';
+      state.voiceLastMatchAt = 0;
       if (!state.recognitionReady) return;
       if (enabled) {
-        try { state.recognition.start(); } catch (_) {}
+        try { state.recognition.start(); } catch (e) {}
       } else if (state.recognitionRunning) {
         state.recognition.stop();
       }
@@ -1235,26 +1511,38 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       state.cleanMode = !state.cleanMode;
       app.classList.toggle('clean-mode', state.cleanMode);
       app.classList.toggle('detail-mode', !state.cleanMode);
+      sidePanel.classList.toggle('hidden', state.cleanMode);
       $('cleanReturnBtn').classList.toggle('hidden', state.cleanMode);
-      if (state.cleanMode) hidePanel();
     }
 
     function openPanel() {
       sidePanel.classList.add('open');
-      app.classList.add('panel-open');
+      sidePanel.classList.remove('hidden');
+      if (state.cleanMode) {
+        state.cleanMode = false;
+        app.classList.remove('clean-mode');
+        app.classList.add('detail-mode');
+        $('cleanReturnBtn').classList.remove('hidden');
+      }
+      syncPanelButtons();
     }
 
-    function hidePanel() {
-      sidePanel.classList.remove('open');
-      app.classList.remove('panel-open');
+    function syncPanelButtons() {
+      const isOpen = sidePanel.classList.contains('open');
+      app.classList.toggle('panel-open', isOpen);
     }
 
     function togglePanel() {
       if (sidePanel.classList.contains('open')) {
         hidePanel();
-      } else {
-        openPanel();
+        return;
       }
+      openPanel();
+    }
+
+    function hidePanel() {
+      sidePanel.classList.remove('open');
+      syncPanelButtons();
     }
 
     function isStandaloneMode() {
@@ -1282,9 +1570,8 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
     function setupBrowserEntryGate() {
       const gate = $('browserEntryGate');
       if (!gate) return;
-      const show = shouldShowBrowserEntryGate();
-      gate.classList.toggle('active', show);
-      gate.setAttribute('aria-hidden', show ? 'false' : 'true');
+      gate.classList.toggle('active', shouldShowBrowserEntryGate());
+      gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true');
       showEntryScreen('home');
       gate.querySelectorAll('[data-entry-target]').forEach((btn) => {
         btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target')));
@@ -1294,19 +1581,27 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
     function handleBluetoothKey(event) {
       const target = event.target;
       const tag = target?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'INPUT' || target?.isContentEditable) return;
+      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT' || target?.isContentEditable) return;
       const key = event.key;
+      const code = event.code;
       let handled = true;
       if (key === 'ArrowUp' || key === 'PageUp') {
         jumpLine(-1);
       } else if (key === 'ArrowDown' || key === 'PageDown') {
         jumpLine(1);
-      } else if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+      } else if (key === 'Home') {
+        pauseScroll();
+        setActiveLine(0);
+        state.speechCursor = getLineStartIndex(0);
+      } else if (key === 'End') {
+        pauseScroll();
+        setActiveLine(state.lines.length - 1);
+        const lastIndex = Math.max(0, state.lines.length - 1);
+        state.speechCursor = getLineStartIndex(lastIndex);
+      } else if (key === 'Enter' || key === ' ' || key === 'Spacebar' || code === 'Space' || key === 'MediaPlayPause') {
         state.playing ? pauseScroll() : startScroll();
       } else if (key === 'MediaTrackNext') {
         goToNextSong();
-      } else if (key === 'MediaTrackPrevious') {
-        goToPrevSong();
       } else {
         handled = false;
       }
@@ -1537,7 +1832,7 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       });
       $('sampleTextBtn').addEventListener('click', () => {
         songTitleInput.value = 'Exemplo de palco';
-        scriptInput.value = 'Cole aqui a letra da música.\n\nUse os ajustes para deixar a leitura confortável no palco.\n\nO repertório salvo permanece no app quando ele for reaberto.';
+        scriptInput.value = 'Luz no palco, voz segura, respiração no tempo.\n\nToda a letra continua visível para não perder nenhuma informação importante.\n\nO repertório salvo permanece no aplicativo entre uma apresentação e outra.';
         loadScript();
       });
       $('saveSongBtn').addEventListener('click', saveSong);
@@ -1555,7 +1850,10 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       });
       voiceFollowSpeed.addEventListener('input', () => {
         updateValueLabels();
-        state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
+        const raw = Number(voiceFollowSpeed.value);
+        state.voiceFollowSpeed = raw / 100;
+        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
         saveSettings();
       });
       voiceToggle.addEventListener('change', () => {
@@ -1572,13 +1870,14 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       $('playPauseBtn').addEventListener('click', () => state.playing ? pauseScroll() : startScroll());
       $('backBtn').addEventListener('click', () => jumpLine(-1));
       $('forwardBtn').addEventListener('click', () => jumpLine(1));
-      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
-      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
       $('bottomSettingsBtn').addEventListener('click', togglePanel);
       $('prevSongBtn').addEventListener('click', goToPrevSong);
       $('nextSongSideBtn').addEventListener('click', goToNextSong);
-      $('hidePanelBtn').addEventListener('click', hidePanel);
-      $('hidePanelBtnTop').addEventListener('click', hidePanel);
+      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
+      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
+      $('openPanelBtn').addEventListener('click', togglePanel);
+            $('hidePanelBtn').addEventListener('click', hidePanel);
+      $('closePanelBtn').addEventListener('click', hidePanel);
       songTitleInput.addEventListener('input', updateSongStatus);
       scriptInput.addEventListener('input', updateSongStatus);
       bindTextDrag();
@@ -1593,14 +1892,20 @@ O repertório salvo permanece no app quando ele for reaberto.</textarea>
       updateValueLabels();
       state.baseSpeed = Number(baseSpeed.value);
       state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
+      state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+      state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
       applyStyles();
       loadScript();
       setupVoice();
       bindEvents();
       bindBluetoothControls();
       setupBrowserEntryGate();
+      state.cleanMode = true;
+      app.classList.add('clean-mode');
+      sidePanel.classList.add('hidden');
       $('cleanReturnBtn').classList.add('hidden');
       hidePanel();
+      syncPanelButtons();
       $('mirrorBtn').textContent = state.mirror ? 'Espelho on' : 'Espelho off';
       if (voiceToggle.checked) enableVoice(true);
       updateSongStatus();
