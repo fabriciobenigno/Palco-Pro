@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#000000" />
+  <title>Palco Pro</title>
+  <meta name="description" content="App premium para músicos em apresentações ao vivo, com repertório salvo, leitura confortável, reconhecimento por fala e suporte a Bluetooth." />
+  <style>
+    :root {
+      --font-size: 32px;
+      --line-height: 1.48;
+      --text-width: 90vw;
+      --overlay-opacity: 0.18;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --text: #f7f9ff;
+      --panel: rgba(8,12,18,0.82);
+      --bottom-reading-safe: 180px;
+      --detail-top-safe: 82px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top, rgba(79, 140, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.05), transparent 32%),
+        linear-gradient(180deg, #03060c 0%, #070d18 45%, #020409 100%);
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .stage-bg,
+    .stage-dim,
+    .reading-shell,
+    .top-bar,
+    .bottom-bar,
+    .side-panel,
+    .browser-entry-gate,
+    .transcript-pill { position: absolute; inset: 0; }
+
+    .stage-bg {
+      background:
+        radial-gradient(circle at 50% -10%, rgba(90, 141, 255, 0.22), transparent 34%),
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.035), transparent 35%),
+        linear-gradient(180deg, #020409 0%, #09101d 42%, #04070d 100%);
+    }
+
+    .stage-dim {
+      background: rgba(0,0,0,0.18);
+      pointer-events: none;
+    }
+
+    .reading-shell {
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .reading-limit {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: calc(var(--safe-top) + var(--detail-top-safe));
+      bottom: calc(var(--safe-bottom) + var(--bottom-reading-safe));
+      width: min(var(--text-width), 1200px);
+      border-radius: 30px;
+      background: rgba(18,22,34,var(--overlay-opacity));
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    .detail-mode .reading-limit { opacity: 1; }
+    .clean-mode .reading-limit { opacity: 0; }
+
+    .prompt-content {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+      pointer-events: auto;
+      cursor: grab;
+    }
+
+    .prompt-content.dragging-text { cursor: grabbing; }
+
+    .script-inner {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      width: min(var(--text-width), 1200px);
+      padding:
+        calc(var(--safe-top) + 18vh)
+        24px
+        calc(var(--safe-bottom) + 34vh);
+      font-size: var(--font-size);
+      line-height: var(--line-height);
+      color: rgba(255,255,255,0.96);
+      font-weight: 550;
+      letter-spacing: 0.015em;
+      white-space: pre-wrap;
+      text-wrap: pretty;
+      user-select: none;
+      -webkit-user-select: none;
+      will-change: transform;
+      text-shadow: 0 2px 18px rgba(0,0,0,0.55);
+      transition: transform 0.1s linear;
+      pointer-events: none;
+    }
+
+    .script-inner.mirror {
+      transform: translateX(-50%) scaleX(-1) translateY(var(--scroll-offset, 0px));
+      transform-origin: center center;
+    }
+
+    .script-inner:not(.mirror) {
+      transform: translateX(-50%) translateY(var(--scroll-offset, 0px));
+    }
+
+    .line {
+      display: block;
+      opacity: 0.88;
+      margin: 0 0 0.14em;
+      transition: opacity 0.14s ease, transform 0.14s ease, filter 0.14s ease;
+      filter: none;
+    }
+
+    .line.active {
+      opacity: 1;
+      transform: scale(1.008);
+      filter: brightness(1.06);
+    }
+
+    .line.done { opacity: 0.74; }
+
+    .top-bar,
+    .bottom-bar {
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+      pointer-events: none;
+      inset: auto 0;
+    }
+
+    .top-bar {
+      top: 0;
+      padding-top: calc(var(--safe-top) + 10px);
+      position: absolute;
+    }
+
+    .bottom-bar {
+      bottom: 0;
+      padding-bottom: calc(var(--safe-bottom) + 14px);
+      align-items: flex-end;
+      position: absolute;
+    }
+
+    .top-left,
+    .top-center,
+    .top-right,
+    .bottom-left,
+    .bottom-center,
+    .bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .bottom-center { width: 100%; justify-content: center; }
+
+    .status-time {
+      font-size: 15px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+      min-width: 64px;
+    }
+
+    .circle-btn,
+    .ghost-btn,
+    .mini-btn,
+    .mode-switch-btn,
+    .song-chip-btn {
+      border: 0;
+      cursor: pointer;
+      color: white;
+      font: inherit;
+    }
+
+    .circle-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.2);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .ghost-btn,
+    .song-chip-btn {
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(14,16,24,0.58);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px);
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .mini-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(14,16,24,0.58);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .mode-switch-btn {
+      min-width: 46px;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 18px;
+      background: rgba(14,16,24,0.72);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+    }
+
+    .floating-controls {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 128px);
+      transform: translateX(-50%);
+      z-index: 35;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 22px;
+      background: rgba(8,12,18,0.42);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+      pointer-events: auto;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: calc(100vw - 28px);
+    }
+
+    .clean-toggle-btn {
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 74px);
+      transform: translateX(-50%);
+      z-index: 36;
+      pointer-events: auto;
+    }
+
+    .clean-return-btn {
+      position: absolute;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 222px);
+      transform: translateX(-50%);
+      z-index: 36;
+      pointer-events: auto;
+    }
+
+    .side-dock-btn {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 36;
+    }
+
+    .side-dock-btn.left { left: calc(25% - 24px); }
+    .side-dock-btn.right { left: calc(75% + 24px); }
+
+    .record-zone {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 140px;
+    }
+
+    .song-status {
+      position: absolute;
+      top: calc(var(--safe-top) + 74px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      max-width: min(92vw, 860px);
+      padding: 11px 16px;
+      border-radius: 18px;
+      background: rgba(10,14,20,0.34);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+      font-size: 13px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.84);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .song-status strong { color: #fff; }
+
+    .side-panel {
+      top: calc(var(--safe-top) + 76px);
+      right: 14px;
+      z-index: 40;
+      width: min(390px, calc(100vw - 28px));
+      max-height: calc(100vh - 160px);
+      overflow: auto;
+      border-radius: 26px;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.34);
+      padding: 16px;
+      display: none;
+      pointer-events: auto;
+      inset: auto 14px auto auto;
+      position: absolute;
+    }
+
+    .side-panel.open { display: block; }
+
+    .panel-title,
+    .panel-section-title,
+    .value-row,
+    .toggle-row,
+    .song-item-header,
+    .song-item-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-title { margin-bottom: 12px; }
+    .panel-title h2,
+    .panel-section-title h3 { margin: 0; color: white; }
+    .panel-title h2 { font-size: 16px; }
+    .panel-section-title h3 { font-size: 14px; }
+
+    .panel-grid,
+    .field,
+    .song-list,
+    .entry-main,
+    .entry-screen,
+    .entry-actions,
+    .entry-steps { display: grid; gap: 14px; }
+
+    .panel-block {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .field label,
+    .toggle-row span,
+    .panel-note,
+    .song-item-sub,
+    .entry-subtitle,
+    .entry-footer {
+      color: rgba(255,255,255,0.72);
+    }
+
+    .field { gap: 8px; }
+    .field label { font-size: 13px; }
+
+    .field textarea,
+    .field select,
+    .field input[type="text"],
+    .field input[type="range"] { width: 100%; }
+
+    .field textarea,
+    .field select,
+    .field input[type="text"] {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      border-radius: 18px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .field textarea {
+      min-height: 190px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .value-row { color: rgba(255,255,255,0.72); font-size: 12px; }
+
+    .small-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-row .ghost-btn,
+    .small-row .song-chip-btn { flex: 1; min-width: 110px; }
+
+    .toggle-row {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 30px;
+      display: inline-block;
+    }
+
+    .switch input { display: none; }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: rgba(255,255,255,0.12);
+      transition: 0.25s;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 4px;
+      top: 3px;
+      border-radius: 50%;
+      background: white;
+      transition: 0.25s;
+    }
+
+    .switch input:checked + .slider {
+      background: linear-gradient(135deg, #4f8cff, #7cb0ff);
+    }
+
+    .switch input:checked + .slider::before { transform: translateX(19px); }
+
+    .panel-note { font-size: 12px; line-height: 1.5; }
+
+    .song-list { gap: 10px; }
+
+    .song-item {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: rgba(255,255,255,0.04);
+      display: grid;
+      gap: 10px;
+    }
+
+    .song-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .song-item-sub { font-size: 12px; }
+
+    .song-item-actions { justify-content: flex-start; flex-wrap: wrap; }
+
+    .song-mini-btn {
+      min-height: 34px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(14,16,24,0.58);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .browser-entry-gate {
+      z-index: 9999;
+      display: none;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
+        linear-gradient(180deg, #020409 0%, #09101d 45%, #04070d 100%);
+      padding:
+        calc(var(--safe-top) + 24px)
+        max(20px, env(safe-area-inset-right))
+        calc(var(--safe-bottom) + 22px)
+        max(20px, env(safe-area-inset-left));
+      color: #f7f9ff;
+      inset: 0;
+      position: fixed;
+    }
+
+    .browser-entry-gate.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .entry-shell {
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+      position: relative;
+    }
+
+    .entry-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      flex: 1;
+    }
+
+    .entry-screen {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      padding: 26px 22px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(13, 19, 31, 0.84), rgba(7, 11, 19, 0.76));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(22px);
+    }
+
+    .entry-screen.active { display: flex; }
+
+    .entry-title {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.18;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      text-align: center;
+      text-shadow: 0 10px 28px rgba(0,0,0,0.34);
+    }
+
+    .entry-subtitle {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.72;
+      text-align: center;
+    }
+
+    .entry-nav-btn,
+    .entry-link-btn,
+    .entry-back-btn {
+      width: 100%;
+      min-height: 60px;
+      border: 0;
+      border-radius: 20px;
+      padding: 16px 18px;
+      color: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(18px);
+    }
+
+    .entry-step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 15px 15px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.11);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .entry-step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(79,140,255,0.96), rgba(124,176,255,0.88));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      flex: 0 0 28px;
+      margin-top: 1px;
+      box-shadow: 0 8px 18px rgba(79,140,255,0.26);
+    }
+
+    .entry-step-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .entry-footer {
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.5;
+      padding-bottom: 2px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .transcript-pill {
+      display: none !important;
+      z-index: 22;
+    }
+
+    .hidden { display: none !important; }
+
+    .top-right {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+    }
+
+    .panel-open .top-right {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .detail-mode .clean-toggle-btn { display: none !important; }
+    .detail-mode .top-left { display: none !important; }
+    .clean-mode .clean-return-btn { display: none !important; }
+    .detail-mode .floating-controls { display: flex; }
+    .detail-mode .clean-return-btn { display: grid; }
+    .detail-mode #nextSongSideBtn { display: none !important; }
+    .clean-mode .floating-controls,
+    .clean-mode .top-left,
+    .clean-mode .top-center,
+    .clean-mode .song-status { display: none !important; }
+
+    @media (orientation: landscape) {
+      :root {
+        --font-size: 28px;
+        --bottom-reading-safe: 128px;
+      }
+      .floating-controls { bottom: calc(var(--safe-bottom) + 98px); }
+      .clean-return-btn { bottom: calc(var(--safe-bottom) + 180px); }
+    }
+
+    @media (max-width: 560px) {
+      :root { --text-width: 92vw; }
+      .circle-btn { width: 46px; height: 46px; }
+      .floating-controls { gap: 8px; padding: 8px; }
+      .script-inner { padding-left: 18px; padding-right: 18px; }
+      .side-dock-btn.left { left: calc(25% - 16px); }
+      .side-dock-btn.right { left: calc(75% + 16px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="browser-entry-gate" id="browserEntryGate" aria-hidden="true">
+      <div class="entry-shell">
+        <div></div>
+        <div class="entry-main">
+          <section class="entry-screen active" id="entryHomeScreen">
+            <h1 class="entry-title">Palco Pro</h1>
+            <p class="entry-subtitle">Instale o app para usar sua experiência completa no palco, com repertório salvo, leitura premium e suporte à apresentação ao vivo.</p>
+            <div class="entry-actions">
+              <button class="entry-nav-btn" type="button" data-entry-target="install">Tutorial de instalação</button>
+              <button class="entry-nav-btn" type="button" data-entry-target="usage">Como usar</button>
+              <a class="entry-link-btn" href="https://instagram.com/fabricio_benigno" target="_blank" rel="noopener noreferrer">
+                <span>@fabricio_benigno</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="entry-screen" id="entryInstallScreen">
+            <h2 class="entry-title">Tutorial de instalação</h2>
+            <ol class="entry-steps">
+              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o menu do navegador no seu celular.</span></li>
+              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Toque em <strong>Instalar app</strong>, <strong>Adicionar à tela inicial</strong> ou opção equivalente.</span></li>
+              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Confirme a instalação e aguarde o ícone do app aparecer na tela inicial.</span></li>
+              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o app instalado para usar seu repertório sempre salvo no próprio aplicativo.</span></li>
+            </ol>
+            <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
+          </section>
+
+          <section class="entry-screen" id="entryUsageScreen">
+            <h2 class="entry-title">Como usar</h2>
+            <ol class="entry-steps">
+              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o aplicativo instalado pela tela inicial do seu celular.</span></li>
+              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Entre nos ajustes, informe o título da música, cole a letra e salve no repertório.</span></li>
+              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Use o reconhecimento por fala, o Bluetooth e os ajustes de leitura conforme sua apresentação.</span></li>
+              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Durante o show, avance a leitura normalmente e use o botão de próxima música para seguir seu repertório.</span></li>
+            </ol>
+            <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
+          </section>
+        </div>
+        <div class="entry-footer">aplicativo desenvolvido por Fabricio Benigno</div>
+      </div>
+    </div>
+
+    <div class="stage-bg"></div>
+    <div class="stage-dim"></div>
+
+    <div class="reading-shell">
+      <div class="song-status" id="songStatus">Repertório pronto para o palco.</div>
+      <div class="reading-limit"></div>
+      <div class="prompt-content" id="promptContent">
+        <div class="script-inner" id="scriptInner"></div>
+      </div>
+    </div>
+
+    <div class="top-bar">
+      <div class="top-left">
+        <div class="status-time" id="statusTime">00:00</div>
+        <button class="circle-btn" id="closePanelBtn">×</button>
+      </div>
+      <div class="top-center"></div>
+      <div class="top-right">
+        <button class="circle-btn" id="openPanelBtn">⚙</button>
+      </div>
+    </div>
+
+    <div class="floating-controls" id="floatingControls">
+      <button class="mini-btn" id="backBtn">↟</button>
+      <button class="mini-btn" id="playPauseBtn">▶</button>
+      <button class="mini-btn" id="forwardBtn">↡</button>
+      <button class="ghost-btn" id="mirrorBtn">Espelho off</button>
+    </div>
+
+    <button class="mode-switch-btn clean-return-btn hidden" id="cleanReturnBtn" aria-label="Voltar ao modo limpo">⌄</button>
+
+    <div class="side-panel" id="sidePanel">
+      <div class="panel-title">
+        <h2>Configurações</h2>
+        <button class="mini-btn" id="hidePanelBtn">×</button>
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel-block">
+          <div class="panel-section-title"><h3>Música atual</h3></div>
+          <div class="field">
+            <label for="songTitleInput">Título da música</label>
+            <input id="songTitleInput" type="text" placeholder="Ex.: Aleluia" />
+          </div>
+          <div class="field">
+            <label for="scriptInput">Letra da música</label>
+            <textarea id="scriptInput">Cole aqui a letra da música.
+
+Use os ajustes para deixar a leitura confortável no palco.
+
+O repertório salvo permanece no app quando ele for reaberto.</textarea>
+          </div>
+          <div class="small-row">
+            <button class="ghost-btn" id="loadTextBtn">Carregar letra</button>
+            <button class="ghost-btn" id="sampleTextBtn">Exemplo</button>
+          </div>
+          <div class="small-row">
+            <button class="song-chip-btn" id="saveSongBtn">Salvar no repertório</button>
+          </div>
+        </div>
+
+        <div class="panel-block">
+          <div class="panel-section-title"><h3>Repertório</h3></div>
+          <div class="panel-note">As músicas ficam salvas no próprio app e continuam disponíveis quando você entrar novamente.</div>
+          <div class="song-list" id="songList"></div>
+        </div>
+
+        <div class="panel-block">
+          <div class="panel-section-title"><h3>Leitura</h3></div>
+          <div class="toggle-row">
+            <span>Ligar fala</span>
+            <label class="switch"><input id="voiceToggle" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <span>Espelhar texto</span>
+            <label class="switch"><input id="mirrorToggle" type="checkbox" /><span class="slider"></span></label>
+          </div>
+          <div class="field">
+            <label for="fontSize">Tamanho da letra</label>
+            <input id="fontSize" type="range" min="20" max="72" value="32" />
+            <div class="value-row"><span>Menor</span><strong id="fontSizeValue">32 px</strong><span>Maior</span></div>
+          </div>
+          <div class="field">
+            <label for="lineHeight">Altura das linhas</label>
+            <input id="lineHeight" type="range" min="1.15" max="2.1" step="0.05" value="1.48" />
+            <div class="value-row"><span>Fechado</span><strong id="lineHeightValue">1.48</strong><span>Aberto</span></div>
+          </div>
+          <div class="field">
+            <label for="textWidth">Largura da leitura</label>
+            <input id="textWidth" type="range" min="58" max="96" value="90" />
+            <div class="value-row"><span>Menor</span><strong id="textWidthValue">90 vw</strong><span>Maior</span></div>
+          </div>
+          <div class="field">
+            <label for="overlayOpacity">Fundo da letra</label>
+            <input id="overlayOpacity" type="range" min="0" max="70" value="18" />
+            <div class="value-row"><span>Mais limpo</span><strong id="overlayOpacityValue">18%</strong><span>Mais forte</span></div>
+          </div>
+          <div class="field">
+            <label for="baseSpeed">Velocidade</label>
+            <input id="baseSpeed" type="range" min="4" max="90" value="20" />
+            <div class="value-row"><span>Lenta</span><strong id="baseSpeedValue">20 px/s</strong><span>Rápida</span></div>
+          </div>
+          <div class="field">
+            <label for="voiceFollowSpeed">Velocidade do reconhecimento</label>
+            <input id="voiceFollowSpeed" type="range" min="20" max="100" value="62" />
+            <div class="value-row"><span>Suave</span><strong id="voiceFollowSpeedValue">62%</strong><span>Rápida</span></div>
+          </div>
+          <div class="panel-note">Toda a letra permanece visualmente presente. O foco atual continua ajudando na leitura, sem apagar o restante da música.</div>
+        </div>
+
+        <div class="panel-block">
+          <div class="panel-section-title"><h3>Apresentação</h3></div>
+          <div class="panel-note">Suporte a Bluetooth permanece ativo para navegação por teclado e controles remotos compatíveis.</div>
+          <div class="panel-note">Setas para cima e para baixo movem a leitura. Espaço ou Enter iniciam e pausam o avanço.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bottom-left">
+        <button class="ghost-btn" id="bottomSettingsBtn">Ajustes</button>
+      </div>
+      <div class="bottom-center">
+        <div class="record-zone">
+          <button class="ghost-btn side-dock-btn left" id="prevSongBtn">Voltar</button>
+          <button class="mode-switch-btn clean-toggle-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
+          <button class="ghost-btn side-dock-btn right" id="nextSongSideBtn">Próxima</button>
+        </div>
+      </div>
+      <div class="bottom-right"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const STORAGE_KEYS = {
+      songs: 'palco-pro-repertorio-v1',
+      settings: 'palco-pro-settings-v1',
+      currentSongId: 'palco-pro-current-song-id-v1'
+    };
+
+    const state = {
+      lines: [],
+      flatWords: [],
+      lineWords: [],
+      lineWordStarts: [],
+      currentLine: 0,
+      scrollOffset: 0,
+      playing: false,
+      rafId: null,
+      lastFrameTs: 0,
+      baseSpeed: 20,
+      voiceFollowSpeed: 0.62,
+      voiceBoostStrength: 30,
+      voiceBoostDuration: 180,
+      manualBoost: 0,
+      temporaryBoostUntil: 0,
+      voiceEnabled: false,
+      recognitionReady: false,
+      recognitionRunning: false,
+      recognition: null,
+      speechCursor: 0,
+      mirror: false,
+      cleanMode: false,
+      anchorIndex: 0,
+      anchorProgress: 0.5,
+      textDragging: false,
+      textDragPointerId: null,
+      textDragStartY: 0,
+      textDragLastY: 0,
+      textDragMoved: false,
+      bluetoothBound: false,
+      voiceLastProcessed: '',
+      voiceLastMatchAt: 0,
+      songs: [],
+      currentSongId: null
+    };
+
+    const app = $('app');
+    const promptContent = $('promptContent');
+    const scriptInner = $('scriptInner');
+    const sidePanel = $('sidePanel');
+    const scriptInput = $('scriptInput');
+    const songTitleInput = $('songTitleInput');
+    const fontSize = $('fontSize');
+    const lineHeight = $('lineHeight');
+    const textWidth = $('textWidth');
+    const overlayOpacity = $('overlayOpacity');
+    const baseSpeed = $('baseSpeed');
+    const voiceFollowSpeed = $('voiceFollowSpeed');
+    const mirrorToggle = $('mirrorToggle');
+    const voiceToggle = $('voiceToggle');
+    const songStatus = $('songStatus');
+    const songList = $('songList');
+
+    const fontSizeValue = $('fontSizeValue');
+    const lineHeightValue = $('lineHeightValue');
+    const textWidthValue = $('textWidthValue');
+    const overlayOpacityValue = $('overlayOpacityValue');
+    const baseSpeedValue = $('baseSpeedValue');
+    const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
+
+    function updateClock() {
+      const now = new Date();
+      $('statusTime').textContent = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function normalizeWord(word) {
+      return word.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/gi, '').trim();
+    }
+
+    function splitWords(text) {
+      return text.split(/\s+/).map(normalizeWord).filter(Boolean);
+    }
+
+    function compactLyrics(text) {
+      return (text || '')
+        .replace(/\r/g, '')
+        .split('\n')
+        .map(line => line.replace(/[ \t]+/g, ' ').trim())
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function updateValueLabels() {
+      fontSizeValue.textContent = `${fontSize.value} px`;
+      lineHeightValue.textContent = Number(lineHeight.value).toFixed(2);
+      textWidthValue.textContent = `${textWidth.value} vw`;
+      overlayOpacityValue.textContent = `${overlayOpacity.value}%`;
+      baseSpeedValue.textContent = `${baseSpeed.value} px/s`;
+      voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
+    }
+
+    function applyStyles() {
+      document.documentElement.style.setProperty('--font-size', `${fontSize.value}px`);
+      document.documentElement.style.setProperty('--line-height', lineHeight.value);
+      document.documentElement.style.setProperty('--text-width', `${textWidth.value}vw`);
+      document.documentElement.style.setProperty('--overlay-opacity', (Number(overlayOpacity.value) / 100).toString());
+      scriptInner.classList.toggle('mirror', state.mirror);
+    }
+
+    function getLineElements() {
+      return [...scriptInner.querySelectorAll('.line')];
+    }
+
+    function captureAnchor() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const progress = (activeRect.top + activeRect.height / 2 - contentRect.top) / contentRect.height;
+      state.anchorIndex = state.currentLine;
+      state.anchorProgress = Math.max(0, Math.min(1, progress));
+    }
+
+    function restoreAnchor() {
+      const lines = getLineElements();
+      const target = lines[state.anchorIndex] || lines[state.currentLine];
+      if (!target) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const desiredY = contentRect.top + contentRect.height * state.anchorProgress;
+      const currentY = targetRect.top + targetRect.height / 2;
+      state.scrollOffset += desiredY - currentY;
+      applyScroll(true);
+    }
+
+    function renderScript() {
+      scriptInner.innerHTML = '';
+      state.lines.forEach((line, index) => {
+        const span = document.createElement('span');
+        span.className = 'line';
+        if (index === state.currentLine) span.classList.add('active');
+        if (index < state.currentLine) span.classList.add('done');
+        span.textContent = line;
+        scriptInner.appendChild(span);
+      });
+      applyScroll(true);
+    }
+
+    function markLines() {
+      const lines = getLineElements();
+      lines.forEach((line, i) => {
+        line.classList.toggle('active', i === state.currentLine);
+        line.classList.toggle('done', i < state.currentLine);
+      });
+    }
+
+    function loadScript() {
+      const raw = compactLyrics(scriptInput.value);
+      scriptInput.value = raw;
+      const parts = (raw || 'Cole uma letra no painel.').split(/\n+/).map(v => v.trim());
+      state.lines = parts.filter(Boolean);
+      if (!state.lines.length) state.lines = ['Cole uma letra no painel.'];
+      state.lineWords = state.lines.map(splitWords);
+      state.lineWordStarts = [];
+      let runningWordIndex = 0;
+      state.lineWords.forEach((words) => {
+        state.lineWordStarts.push(runningWordIndex);
+        runningWordIndex += words.length;
+      });
+      state.flatWords = state.lineWords.flat();
+      state.currentLine = 0;
+      state.speechCursor = 0;
+      state.scrollOffset = 0;
+      state.anchorIndex = 0;
+      state.anchorProgress = 0.5;
+      renderScript();
+      centerActiveLine();
+      updateSongStatus();
+    }
+
+    function applyScroll(immediate = false) {
+      scriptInner.style.transition = immediate ? 'none' : 'transform 0.1s linear';
+      scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`);
+      if (immediate) {
+        requestAnimationFrame(() => {
+          scriptInner.style.transition = 'transform 0.1s linear';
+        });
+      }
+    }
+
+    function centerActiveLine() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const guideY = contentRect.top + contentRect.height * 0.5;
+      state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2);
+      applyScroll();
+      captureAnchor();
+    }
+
+    function placeActiveLineAtStart() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const topGuide = contentRect.top + contentRect.height * 0.26;
+      state.scrollOffset += topGuide - activeRect.top;
+      applyScroll();
+      captureAnchor();
+    }
+
+    function setActiveLine(index) {
+      const lines = getLineElements();
+      if (!lines.length) return;
+      state.currentLine = Math.max(0, Math.min(index, lines.length - 1));
+      markLines();
+      centerActiveLine();
+      updateSongStatus();
+    }
+
+    function refreshLayoutPreservingPoint() {
+      captureAnchor();
+      applyStyles();
+      renderScript();
+      restoreAnchor();
+      markLines();
+    }
+
+    function advanceLinesByPosition() {
+      const lines = getLineElements();
+      const next = lines[state.currentLine + 1];
+      if (!next) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const nextRect = next.getBoundingClientRect();
+      const trigger = contentRect.top + contentRect.height * 0.5;
+      if ((nextRect.top + nextRect.height / 2) < trigger + 6) {
+        state.currentLine += 1;
+        markLines();
+        captureAnchor();
+        updateSongStatus();
+      }
+    }
+
+    function animateScroll(ts) {
+      if (!state.playing) return;
+      if (!state.lastFrameTs) state.lastFrameTs = ts;
+      const dt = (ts - state.lastFrameTs) / 1000;
+      state.lastFrameTs = ts;
+      let speed = state.baseSpeed + state.manualBoost;
+      if (performance.now() < state.temporaryBoostUntil) speed += state.voiceBoostStrength;
+      state.scrollOffset -= speed * dt;
+      applyScroll();
+      advanceLinesByPosition();
+      state.rafId = requestAnimationFrame(animateScroll);
+    }
+
+    function startScroll() {
+      if (state.playing) return;
+      state.playing = true;
+      state.lastFrameTs = 0;
+      $('playPauseBtn').textContent = '⏸';
+      state.rafId = requestAnimationFrame(animateScroll);
+    }
+
+    function pauseScroll() {
+      state.playing = false;
+      $('playPauseBtn').textContent = '▶';
+      if (state.rafId) cancelAnimationFrame(state.rafId);
+      state.rafId = null;
+      state.lastFrameTs = 0;
+    }
+
+    function jumpLine(delta) {
+      pauseScroll();
+      setActiveLine(state.currentLine + delta);
+    }
+
+    function updateCurrentLineFromViewport() {
+      const lines = getLineElements();
+      if (!lines.length) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const guideY = contentRect.top + contentRect.height * 0.32;
+      let closestIndex = state.currentLine;
+      let closestDistance = Infinity;
+      lines.forEach((line, index) => {
+        const rect = line.getBoundingClientRect();
+        const centerY = rect.top + rect.height / 2;
+        const distance = Math.abs(centerY - guideY);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+      if (closestIndex !== state.currentLine) {
+        state.currentLine = closestIndex;
+        markLines();
+        updateSongStatus();
+      }
+      captureAnchor();
+    }
+
+    function beginTextDrag(pointerId, y) {
+      pauseScroll();
+      state.textDragging = true;
+      state.textDragPointerId = pointerId;
+      state.textDragStartY = y;
+      state.textDragLastY = y;
+      state.textDragMoved = false;
+      promptContent.classList.add('dragging-text');
+    }
+
+    function moveTextDrag(y) {
+      if (!state.textDragging) return;
+      const delta = y - state.textDragLastY;
+      if (Math.abs(y - state.textDragStartY) > 3) state.textDragMoved = true;
+      state.textDragLastY = y;
+      state.scrollOffset += delta;
+      applyScroll(true);
+      updateCurrentLineFromViewport();
+    }
+
+    function endTextDrag() {
+      if (!state.textDragging) return;
+      state.textDragging = false;
+      state.textDragPointerId = null;
+      promptContent.classList.remove('dragging-text');
+      updateCurrentLineFromViewport();
+    }
+
+    function bindTextDrag() {
+      promptContent.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        promptContent.setPointerCapture(e.pointerId);
+        beginTextDrag(e.pointerId, e.clientY);
+      });
+      promptContent.addEventListener('pointermove', (e) => {
+        if (!state.textDragging || e.pointerId !== state.textDragPointerId) return;
+        e.preventDefault();
+        moveTextDrag(e.clientY);
+      });
+      promptContent.addEventListener('pointerup', (e) => {
+        if (e.pointerId !== state.textDragPointerId) return;
+        endTextDrag();
+      });
+      promptContent.addEventListener('pointercancel', (e) => {
+        if (e.pointerId !== state.textDragPointerId) return;
+        endTextDrag();
+      });
+    }
+
+    function makeNgrams(words, minSize = 2, maxSize = 5) {
+      const grams = [];
+      const cappedMax = Math.max(minSize, Math.min(maxSize, words.length));
+      for (let size = minSize; size <= cappedMax; size++) {
+        for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size));
+      }
+      return grams;
+    }
+
+    function countOrderedMatches(heardWords, targetWords) {
+      if (!heardWords.length || !targetWords.length) return 0;
+      let cursor = 0;
+      let matched = 0;
+      for (const word of heardWords) {
+        for (let i = cursor; i < targetWords.length; i++) {
+          if (targetWords[i] === word) {
+            matched += 1;
+            cursor = i + 1;
+            break;
+          }
+        }
+      }
+      return matched;
+    }
+
+    function getLineWindowIndices() {
+      const start = Math.max(0, state.currentLine - 1);
+      const end = Math.min(state.lines.length - 1, state.currentLine + 2);
+      const indices = [];
+      for (let i = start; i <= end; i++) indices.push(i);
+      return indices;
+    }
+
+    function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) {
+      if (!heardWords.length || !currentWords.length) return 0;
+      const maxSize = Math.min(5, heardWords.length, currentWords.length);
+      for (let size = maxSize; size >= 2; size--) {
+        const heardTail = heardWords.slice(-size).join(' ');
+        const lineTail = currentWords.slice(-size).join(' ');
+        if (heardTail === lineTail) return size;
+      }
+      return 0;
+    }
+
+    function getLineStartIndex(lineIndex) { return state.lineWordStarts[lineIndex] ?? 0; }
+    function getLineWords(lineIndex) { return state.lineWords[lineIndex] || []; }
+
+    function findBestNearbyVoiceMatch(heardWords) {
+      const candidates = [];
+      const grams = makeNgrams(heardWords, 2, 5);
+      getLineWindowIndices().forEach((lineIndex) => {
+        const lineWords = getLineWords(lineIndex);
+        if (!lineWords.length) return;
+        let bestBlockSize = 0;
+        let bestBlockEnd = -1;
+        grams.forEach((gram) => {
+          const joinedGram = gram.join(' ');
+          for (let start = 0; start <= lineWords.length - gram.length; start++) {
+            if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram) {
+              if (gram.length > bestBlockSize || (gram.length === bestBlockSize && start + gram.length > bestBlockEnd)) {
+                bestBlockSize = gram.length;
+                bestBlockEnd = start + gram.length;
+              }
+            }
+          }
+        });
+        const orderedMatches = countOrderedMatches(heardWords, lineWords);
+        const lineStart = getLineStartIndex(lineIndex);
+        const lineEnd = lineStart + lineWords.length;
+        const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2;
+        const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2);
+        candidates.push({ lineIndex, lineStart, lineEnd, lineWords, bestBlockSize, bestBlockEnd, orderedMatches, reachedLineEnd, score });
+      });
+      candidates.sort((a, b) => b.score - a.score || b.bestBlockSize - a.bestBlockSize || b.orderedMatches - a.orderedMatches || a.lineIndex - b.lineIndex);
+      return candidates[0] || null;
+    }
+
+    function applyNearbyVoiceMatch(match) {
+      if (!match) return false;
+      const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3;
+      const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3);
+      if (!strongEnough) return false;
+      const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd));
+      if (matchedCursor > state.speechCursor) state.speechCursor = matchedCursor;
+      if (match.lineIndex > state.currentLine) {
+        state.currentLine = match.lineIndex;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+        return true;
+      }
+      if (match.reachedLineEnd && match.lineIndex === state.currentLine && state.currentLine < state.lines.length - 1) {
+        state.speechCursor = Math.max(state.speechCursor, match.lineEnd);
+        state.currentLine = match.lineIndex + 1;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+        return true;
+      }
+      moveTowardSpeechCursor();
+      return true;
+    }
+
+    function getCurrentLineSpeechProgress() {
+      const words = getLineWords(state.currentLine);
+      if (!words.length) return 0;
+      const lineStart = getLineStartIndex(state.currentLine);
+      const spokenInsideLine = Math.max(0, state.speechCursor - lineStart);
+      return Math.max(0, Math.min(1, spokenInsideLine / words.length));
+    }
+
+    function followSpeechVisualProgress() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const progress = getCurrentLineSpeechProgress();
+      const startGuide = 0.44;
+      const endGuide = 0.22;
+      const desiredGuide = startGuide - ((startGuide - endGuide) * progress);
+      const desiredY = contentRect.top + (contentRect.height * desiredGuide);
+      const currentY = activeRect.top + (activeRect.height / 2);
+      const delta = desiredY - currentY;
+      const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52);
+      state.scrollOffset += delta * responseStrength;
+      applyScroll();
+      captureAnchor();
+    }
+
+    function moveTowardSpeechCursor() {
+      let matchedLine = state.currentLine;
+      for (let i = 0; i < state.lines.length; i++) {
+        const start = getLineStartIndex(i);
+        const end = start + getLineWords(i).length;
+        if (state.speechCursor < end || i === state.lines.length - 1) {
+          matchedLine = i;
+          break;
+        }
+      }
+      if (matchedLine !== state.currentLine) {
+        state.currentLine = matchedLine;
+        markLines();
+        placeActiveLineAtStart();
+        updateSongStatus();
+      }
+      state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
+      followSpeechVisualProgress();
+    }
+
+    function setupVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        state.recognitionReady = false;
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => { state.recognitionRunning = true; };
+      recognition.onend = () => {
+        state.recognitionRunning = false;
+        if (state.voiceEnabled) {
+          try { recognition.start(); } catch (_) {}
+        }
+      };
+      recognition.onerror = () => {};
+      recognition.onresult = (event) => {
+        let joined = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          joined += ` ${event.results[i][0].transcript}`;
+        }
+        handleVoiceContinuous(joined.trim());
+      };
+      state.recognition = recognition;
+      state.recognitionReady = true;
+    }
+
+    function handleVoiceContinuous(transcript) {
+      const normalizedTranscript = splitWords(transcript).join(' ');
+      if (!normalizedTranscript || normalizedTranscript === state.voiceLastProcessed) return;
+      state.voiceLastProcessed = normalizedTranscript;
+      const heardWords = normalizedTranscript.split(' ').filter(Boolean);
+      if (!heardWords.length) return;
+      const lineBeforeMatch = state.currentLine;
+      const activeWords = getLineWords(lineBeforeMatch);
+      let localCursor = state.speechCursor;
+      let matched = 0;
+      for (const word of heardWords) {
+        const current = state.flatWords[localCursor];
+        const next = state.flatWords[localCursor + 1];
+        if (word === current) {
+          localCursor += 1;
+          matched += 1;
+        } else if (word === next) {
+          localCursor += 2;
+          matched += 1;
+        }
+      }
+      if (matched > 0) {
+        const maxCursor = state.flatWords.length;
+        state.speechCursor = Math.min(localCursor, maxCursor);
+        const lineStart = getLineStartIndex(lineBeforeMatch);
+        const activeLineLastIndex = lineStart + activeWords.length;
+        if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) {
+          state.currentLine = lineBeforeMatch + 1;
+          markLines();
+          placeActiveLineAtStart();
+          state.voiceLastMatchAt = performance.now();
+          updateSongStatus();
+          return;
+        }
+        state.voiceLastMatchAt = performance.now();
+        moveTowardSpeechCursor();
+        return;
+      }
+      const nearbyMatch = findBestNearbyVoiceMatch(heardWords);
+      if (!nearbyMatch) return;
+      const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0);
+      const canAssistNow = timeSinceLastStrongMatch > 120;
+      if (!canAssistNow) return;
+      if (applyNearbyVoiceMatch(nearbyMatch)) state.voiceLastMatchAt = performance.now();
+    }
+
+    function enableVoice(enabled) {
+      state.voiceEnabled = enabled;
+      state.voiceLastProcessed = '';
+      state.voiceLastMatchAt = 0;
+      if (!state.recognitionReady) return;
+      if (enabled) {
+        try { state.recognition.start(); } catch (e) {}
+      } else if (state.recognitionRunning) {
+        state.recognition.stop();
+      }
+    }
+
+    function toggleMirror() {
+      state.mirror = !state.mirror;
+      mirrorToggle.checked = state.mirror;
+      $('mirrorBtn').textContent = state.mirror ? 'Espelho on' : 'Espelho off';
+      refreshLayoutPreservingPoint();
+      saveSettings();
+    }
+
+    function toggleCleanMode() {
+      state.cleanMode = !state.cleanMode;
+      app.classList.toggle('clean-mode', state.cleanMode);
+      app.classList.toggle('detail-mode', !state.cleanMode);
+      sidePanel.classList.toggle('hidden', state.cleanMode);
+      $('cleanReturnBtn').classList.toggle('hidden', state.cleanMode);
+    }
+
+    function openPanel() {
+      sidePanel.classList.add('open');
+      sidePanel.classList.remove('hidden');
+      if (state.cleanMode) {
+        state.cleanMode = false;
+        app.classList.remove('clean-mode');
+        app.classList.add('detail-mode');
+        $('cleanReturnBtn').classList.remove('hidden');
+      }
+      syncPanelButtons();
+    }
+
+    function syncPanelButtons() {
+      const isOpen = sidePanel.classList.contains('open');
+      app.classList.toggle('panel-open', isOpen);
+    }
+
+    function togglePanel() {
+      if (sidePanel.classList.contains('open')) {
+        hidePanel();
+        return;
+      }
+      openPanel();
+    }
+
+    function hidePanel() {
+      sidePanel.classList.remove('open');
+      syncPanelButtons();
+    }
+
+    function isStandaloneMode() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function isMobilePhoneBrowser() {
+      const ua = navigator.userAgent || '';
+      return /Android|iPhone|iPod/i.test(ua);
+    }
+
+    function shouldShowBrowserEntryGate() {
+      return isMobilePhoneBrowser() && !isStandaloneMode();
+    }
+
+    function showEntryScreen(target) {
+      const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' };
+      const activeId = map[target] || map.home;
+      ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => {
+        const screen = $(id);
+        if (screen) screen.classList.toggle('active', id === activeId);
+      });
+    }
+
+    function setupBrowserEntryGate() {
+      const gate = $('browserEntryGate');
+      if (!gate) return;
+      gate.classList.toggle('active', shouldShowBrowserEntryGate());
+      gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true');
+      showEntryScreen('home');
+      gate.querySelectorAll('[data-entry-target]').forEach((btn) => {
+        btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target')));
+      });
+    }
+
+    function handleBluetoothKey(event) {
+      const target = event.target;
+      const tag = target?.tagName;
+      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT' || target?.isContentEditable) return;
+      const key = event.key;
+      const code = event.code;
+      let handled = true;
+      if (key === 'ArrowUp' || key === 'PageUp') {
+        jumpLine(-1);
+      } else if (key === 'ArrowDown' || key === 'PageDown') {
+        jumpLine(1);
+      } else if (key === 'Home') {
+        pauseScroll();
+        setActiveLine(0);
+        state.speechCursor = getLineStartIndex(0);
+      } else if (key === 'End') {
+        pauseScroll();
+        setActiveLine(state.lines.length - 1);
+        const lastIndex = Math.max(0, state.lines.length - 1);
+        state.speechCursor = getLineStartIndex(lastIndex);
+      } else if (key === 'Enter' || key === ' ' || key === 'Spacebar' || code === 'Space' || key === 'MediaPlayPause') {
+        state.playing ? pauseScroll() : startScroll();
+      } else if (key === 'MediaTrackNext') {
+        goToNextSong();
+      } else if (key === 'MediaTrackPrevious') {
+        goToPrevSong();
+      } else {
+        handled = false;
+      }
+      if (handled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
+
+    function bindBluetoothControls() {
+      if (state.bluetoothBound) return;
+      window.addEventListener('keydown', handleBluetoothKey, { passive: false });
+      state.bluetoothBound = true;
+    }
+
+    function createSongId() {
+      return `song-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function readSongsFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.songs);
+        const parsed = JSON.parse(raw || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveSongsToStorage() {
+      localStorage.setItem(STORAGE_KEYS.songs, JSON.stringify(state.songs));
+    }
+
+    function saveCurrentSongId() {
+      if (state.currentSongId) localStorage.setItem(STORAGE_KEYS.currentSongId, state.currentSongId);
+    }
+
+    function readCurrentSongId() {
+      return localStorage.getItem(STORAGE_KEYS.currentSongId) || null;
+    }
+
+    function readSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.settings);
+        return JSON.parse(raw || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveSettings() {
+      const payload = {
+        fontSize: fontSize.value,
+        lineHeight: lineHeight.value,
+        textWidth: textWidth.value,
+        overlayOpacity: overlayOpacity.value,
+        baseSpeed: baseSpeed.value,
+        voiceFollowSpeed: voiceFollowSpeed.value,
+        mirror: state.mirror,
+        voiceEnabled: voiceToggle.checked
+      };
+      localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(payload));
+    }
+
+    function updateSongStatus() {
+      const song = state.songs.find(item => item.id === state.currentSongId);
+      if (!song) {
+        songStatus.textContent = 'Repertório pronto para o palco.';
+        return;
+      }
+      songStatus.innerHTML = `<strong>${song.title || 'Música sem título'}</strong> · linha ${Math.min(state.currentLine + 1, state.lines.length)} de ${state.lines.length}`;
+    }
+
+    function renderSongList() {
+      songList.innerHTML = '';
+      if (!state.songs.length) {
+        songList.innerHTML = '<div class="panel-note">Nenhuma música salva ainda.</div>';
+        return;
+      }
+      state.songs.forEach((song, index) => {
+        const item = document.createElement('div');
+        item.className = 'song-item';
+        item.innerHTML = `
+          <div class="song-item-header">
+            <div>
+              <div class="song-item-title">${escapeHtml(song.title || 'Música sem título')}</div>
+              <div class="song-item-sub">${index + 1}ª do repertório · ${song.lyrics.split(/\n+/).filter(Boolean).length} blocos</div>
+            </div>
+          </div>
+          <div class="song-item-actions">
+            <button class="song-mini-btn" data-action="load" data-id="${song.id}">Abrir</button>
+            <button class="song-mini-btn" data-action="delete" data-id="${song.id}">Excluir</button>
+          </div>`;
+        songList.appendChild(item);
+      });
+      songList.querySelectorAll('[data-action="load"]').forEach((btn) => {
+        btn.addEventListener('click', () => loadSongById(btn.getAttribute('data-id')));
+      });
+      songList.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+        btn.addEventListener('click', () => deleteSongById(btn.getAttribute('data-id')));
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function getPreparedSongFromInputs() {
+      const title = (songTitleInput.value || '').trim();
+      const lyrics = compactLyrics(scriptInput.value);
+      return { title: title || 'Música sem título', lyrics };
+    }
+
+    function saveSong() {
+      const prepared = getPreparedSongFromInputs();
+      if (!prepared.lyrics) {
+        alert('Cole a letra da música antes de salvar.');
+        return;
+      }
+      const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+      if (existingIndex >= 0) {
+        state.songs[existingIndex] = { ...state.songs[existingIndex], title: prepared.title, lyrics: prepared.lyrics, updatedAt: Date.now() };
+      } else {
+        const song = { id: createSongId(), title: prepared.title, lyrics: prepared.lyrics, createdAt: Date.now(), updatedAt: Date.now() };
+        state.songs.push(song);
+        state.currentSongId = song.id;
+      }
+      saveSongsToStorage();
+      saveCurrentSongId();
+      renderSongList();
+      updateSongStatus();
+    }
+
+    function loadSongById(songId) {
+      const song = state.songs.find(item => item.id === songId);
+      if (!song) return;
+      state.currentSongId = song.id;
+      saveCurrentSongId();
+      songTitleInput.value = song.title || '';
+      scriptInput.value = song.lyrics || '';
+      pauseScroll();
+      loadScript();
+      hidePanel();
+      updateSongStatus();
+    }
+
+    function deleteSongById(songId) {
+      const songIndex = state.songs.findIndex(item => item.id === songId);
+      if (songIndex < 0) return;
+      const wasCurrent = state.currentSongId === songId;
+      state.songs.splice(songIndex, 1);
+      if (wasCurrent) {
+        state.currentSongId = state.songs[songIndex]?.id || state.songs[songIndex - 1]?.id || null;
+        if (state.currentSongId) {
+          const nextSong = state.songs.find(item => item.id === state.currentSongId);
+          if (nextSong) {
+            songTitleInput.value = nextSong.title || '';
+            scriptInput.value = nextSong.lyrics || '';
+            loadScript();
+          }
+        }
+      }
+      saveSongsToStorage();
+      if (state.currentSongId) saveCurrentSongId();
+      else localStorage.removeItem(STORAGE_KEYS.currentSongId);
+      renderSongList();
+      updateSongStatus();
+    }
+
+    function goToNextSong() {
+      if (!state.songs.length) return;
+      const index = state.songs.findIndex(song => song.id === state.currentSongId);
+      if (index < 0) {
+        loadSongById(state.songs[0].id);
+        return;
+      }
+      const nextSong = state.songs[index + 1];
+      if (!nextSong) return;
+      loadSongById(nextSong.id);
+    }
+
+    function goToPrevSong() {
+      if (!state.songs.length) return;
+      const index = state.songs.findIndex(song => song.id === state.currentSongId);
+      if (index < 0) {
+        loadSongById(state.songs[0].id);
+        return;
+      }
+      const prevSong = state.songs[index - 1];
+      if (!prevSong) return;
+      loadSongById(prevSong.id);
+    }
+
+    function restoreSongsAndCurrent() {
+      state.songs = readSongsFromStorage().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      state.currentSongId = readCurrentSongId();
+      renderSongList();
+      const currentSong = state.songs.find(song => song.id === state.currentSongId) || state.songs[0];
+      if (currentSong) {
+        state.currentSongId = currentSong.id;
+        songTitleInput.value = currentSong.title || '';
+        scriptInput.value = currentSong.lyrics || '';
+      }
+    }
+
+    function restoreSettings() {
+      const settings = readSettings();
+      if (settings.fontSize) fontSize.value = settings.fontSize;
+      if (settings.lineHeight) lineHeight.value = settings.lineHeight;
+      if (settings.textWidth) textWidth.value = settings.textWidth;
+      if (settings.overlayOpacity) overlayOpacity.value = settings.overlayOpacity;
+      if (settings.baseSpeed) baseSpeed.value = settings.baseSpeed;
+      if (settings.voiceFollowSpeed) voiceFollowSpeed.value = settings.voiceFollowSpeed;
+      state.mirror = Boolean(settings.mirror);
+      mirrorToggle.checked = state.mirror;
+      voiceToggle.checked = Boolean(settings.voiceEnabled);
+    }
+
+    function bindEvents() {
+      $('loadTextBtn').addEventListener('click', () => {
+        loadScript();
+        saveSettings();
+      });
+      $('sampleTextBtn').addEventListener('click', () => {
+        songTitleInput.value = 'Exemplo de palco';
+        scriptInput.value = 'Luz no palco, voz segura, respiração no tempo.\n\nToda a letra continua visível para não perder nenhuma informação importante.\n\nO repertório salvo permanece no aplicativo entre uma apresentação e outra.';
+        loadScript();
+      });
+      $('saveSongBtn').addEventListener('click', saveSong);
+      [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => {
+        input.addEventListener('input', () => {
+          updateValueLabels();
+          refreshLayoutPreservingPoint();
+          saveSettings();
+        });
+      });
+      baseSpeed.addEventListener('input', () => {
+        updateValueLabels();
+        state.baseSpeed = Number(baseSpeed.value);
+        saveSettings();
+      });
+      voiceFollowSpeed.addEventListener('input', () => {
+        updateValueLabels();
+        const raw = Number(voiceFollowSpeed.value);
+        state.voiceFollowSpeed = raw / 100;
+        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
+        saveSettings();
+      });
+      voiceToggle.addEventListener('change', () => {
+        enableVoice(voiceToggle.checked);
+        saveSettings();
+      });
+      mirrorToggle.addEventListener('change', () => {
+        state.mirror = mirrorToggle.checked;
+        $('mirrorBtn').textContent = state.mirror ? 'Espelho on' : 'Espelho off';
+        refreshLayoutPreservingPoint();
+        saveSettings();
+      });
+      $('mirrorBtn').addEventListener('click', toggleMirror);
+      $('playPauseBtn').addEventListener('click', () => state.playing ? pauseScroll() : startScroll());
+      $('backBtn').addEventListener('click', () => jumpLine(-1));
+      $('forwardBtn').addEventListener('click', () => jumpLine(1));
+      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
+      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
+      $('openPanelBtn').addEventListener('click', togglePanel);
+      $('hidePanelBtn').addEventListener('click', hidePanel);
+      $('closePanelBtn').addEventListener('click', hidePanel);
+      $('bottomSettingsBtn').addEventListener('click', togglePanel);
+      $('prevSongBtn').addEventListener('click', goToPrevSong);
+      $('nextSongSideBtn').addEventListener('click', goToNextSong);
+      songTitleInput.addEventListener('input', updateSongStatus);
+      scriptInput.addEventListener('input', updateSongStatus);
+      bindTextDrag();
+      window.addEventListener('resize', () => refreshLayoutPreservingPoint());
+    }
+
+    function init() {
+      restoreSongsAndCurrent();
+      restoreSettings();
+      updateClock();
+      setInterval(updateClock, 1000);
+      updateValueLabels();
+      state.baseSpeed = Number(baseSpeed.value);
+      state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
+      state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+      state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
+      applyStyles();
+      loadScript();
+      setupVoice();
+      bindEvents();
+      bindBluetoothControls();
+      setupBrowserEntryGate();
+      state.cleanMode = true;
+      app.classList.add('clean-mode');
+      sidePanel.classList.add('hidden');
+      $('cleanReturnBtn').classList.add('hidden');
+      hidePanel();
+      syncPanelButtons();
+      $('mirrorBtn').textContent = state.mirror ? 'Espelho on' : 'Espelho off';
+      if (voiceToggle.checked) enableVoice(true);
+      updateSongStatus();
+    }
+
+    init();
+  </script>
+</body>
+</html>
