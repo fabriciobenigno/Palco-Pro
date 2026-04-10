@@ -108,7 +108,7 @@
     }
 
     .controls-bar {
-      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 10px); transform: translateX(-50%);
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 22px); transform: translateX(-50%);
       z-index: 35; display: flex; align-items: flex-end; gap: 12px;
       pointer-events: auto;
     }
@@ -128,10 +128,11 @@
       background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
       backdrop-filter: blur(14px); display: grid; place-items: center;
       font-size: 24px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      position: relative; top: 0;
     }
 
     .clean-return-btn {
-      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 136px); transform: translateX(-50%);
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 148px); transform: translateX(-50%);
       z-index: 38; min-width: 56px; height: 34px; padding: 0 14px; border-radius: 18px;
       background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
       display: none; place-items: center; font-size: 18px; font-weight: 700; line-height: 1;
@@ -181,7 +182,7 @@
     .hidden { display: none !important; }
 
     .detail-panel {
-      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 70px); transform: translateX(-50%);
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 82px); transform: translateX(-50%);
       z-index: 37; display: none; align-items: center; justify-content: center; gap: 10px;
       padding: 10px; border-radius: 22px; background: rgba(8,12,18,0.5);
       border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(18px);
@@ -240,10 +241,11 @@
     @media (max-width: 560px) {
       :root { --text-width: 90vw; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
-      .controls-bar { gap: 10px; }
+      .controls-bar { gap: 10px; bottom: calc(var(--safe-bottom) + 18px); }
       .mini-btn, .circle-btn { width: 46px; height: 46px; }
       .mode-switch-btn { min-width: 80px; height: 54px; }
-      .detail-panel { gap: 8px; padding: 8px; }
+      .detail-panel { gap: 8px; padding: 8px; bottom: calc(var(--safe-bottom) + 78px); }
+      .clean-return-btn { bottom: calc(var(--safe-bottom) + 140px); }
     }
   </style>
 </head>
