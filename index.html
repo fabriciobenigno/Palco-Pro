@@ -318,7 +318,8 @@
           <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
         </div>
         <div class="field">
-          <label for="libraryList">Resultados</label>
+          <label>Lista completa do repertório</label>
+          <div class="panel-note">Busque por nome da música, cantor ou estilo, ou escolha diretamente na lista completa abaixo.</div>
           <div id="libraryList" style="display:grid; gap:8px;"></div>
         </div>
       </div>
@@ -440,7 +441,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
       <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
       <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">↠</button>
-      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">𝑻</button>
+      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">☰</button>
     </div>
   </div>
 
@@ -689,6 +690,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.playing ? pauseScroll() : startScroll();
     }
 
+    function beginTextDrag(pointerId, y) {
+      state.textDragging = true;
+      state.textDragPointerId = pointerId;
+      state.textDragStartY = y;
+      state.textDragLastY = y;
+      state.textDragMoved = false;
+      pauseScroll();
+      promptContent.classList.add('dragging-text');
+    }
+
     function moveTextDrag(y) {
       if (!state.textDragging) return;
       const delta = y - state.textDragLastY;
@@ -699,29 +710,34 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function endTextDrag() {
+      if (!state.textDragging) return;
       state.textDragging = false;
       state.textDragPointerId = null;
       promptContent.classList.remove('dragging-text');
       const lines = getLineElements();
       if (lines.length) {
         const contentRect = promptContent.getBoundingClientRect();
-        const guideY = contentRect.top + contentRect.height * 0.28;
+        const guideY = contentRect.top + contentRect.height * 0.24;
         let closestIndex = state.currentLine;
         let closestDistance = Infinity;
         lines.forEach((line, index) => {
           const rect = line.getBoundingClientRect();
           const centerY = rect.top + rect.height / 2;
           const distance = Math.abs(centerY - guideY);
-          if (distance < closestDistance) { closestDistance = distance; closestIndex = index; }
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
         });
         state.currentLine = closestIndex;
+        state.speechCursor = state.lineWords.slice(0, closestIndex).reduce((acc, words) => acc + words.length, 0);
         markLines();
       }
     }
 
     function bindTextDrag() {
       promptContent.addEventListener('pointerdown', (e) => {
-        if (sidePanel.classList.contains('open')) return;
+        if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open')) return;
         promptContent.setPointerCapture(e.pointerId);
         beginTextDrag(e.pointerId, e.clientY);
       });
@@ -1157,10 +1173,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
             return hay.includes(query);
           });
       libraryList.innerHTML = '';
+      if (!state.songs.length) {
+        const emptyAll = document.createElement('div');
+        emptyAll.className = 'panel-note';
+        emptyAll.textContent = 'Nenhuma música salva no repertório.';
+        libraryList.appendChild(emptyAll);
+        return;
+      }
       if (!filtered.length) {
         const empty = document.createElement('div');
         empty.className = 'panel-note';
-        empty.textContent = 'Nenhuma música encontrada.';
+        empty.textContent = 'Nenhuma música encontrada para essa busca.';
         libraryList.appendChild(empty);
         return;
       }
