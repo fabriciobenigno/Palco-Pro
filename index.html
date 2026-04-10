@@ -307,6 +307,23 @@
 
     <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar ao modo limpo">⌄</button>
 
+    <div class="side-panel" id="libraryPanel" style="display:none;">
+      <div class="panel-title">
+        <h2>Repertório</h2>
+        <button class="mini-btn" id="hideLibraryBtn">×</button>
+      </div>
+      <div class="panel-grid">
+        <div class="field">
+          <label for="librarySearchInput">Buscar no repertório</label>
+          <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
+        </div>
+        <div class="field">
+          <label for="libraryList">Resultados</label>
+          <div id="libraryList" style="display:grid; gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="detail-panel" id="detailPanel">
       <button class="mini-btn" id="backBlockBtn" aria-label="Voltar bloco">↟</button>
       <button class="mini-btn" id="playPauseBtn" aria-label="Play ou pause">▶</button>
@@ -323,6 +340,16 @@
         <div class="field">
           <label for="songTitleInput">Título da música</label>
           <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
+        </div>
+
+        <div class="field">
+          <label for="artistInput">Cantor / artista</label>
+          <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
+        </div>
+
+        <div class="field">
+          <label for="styleInput">Estilo musical</label>
+          <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
         </div>
 
         <div class="field">
@@ -413,6 +440,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
       <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
       <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">↠</button>
+      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">𝑻</button>
     </div>
   </div>
 
@@ -441,6 +469,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const scriptInput = $('scriptInput');
     const songTitleInput = $('songTitleInput');
     const repertoireSelect = $('repertoireSelect');
+    const artistInput = $('artistInput');
+    const styleInput = $('styleInput');
+    const libraryPanel = $('libraryPanel');
+    const librarySearchInput = $('librarySearchInput');
+    const libraryList = $('libraryList');
     const fontSize = $('fontSize');
     const lineHeight = $('lineHeight');
     const textWidth = $('textWidth');
@@ -948,8 +981,25 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('detailPanel').classList.remove('open');
     }
 
-    function openPanel() { sidePanel.classList.add('open'); }
-    function hidePanel() { sidePanel.classList.remove('open'); }
+    function openPanel() {
+      libraryPanel.style.display = 'none';
+      sidePanel.classList.add('open');
+    }
+    function hidePanel() {
+      sidePanel.classList.remove('open');
+    }
+
+    function openLibraryPanel() {
+      hidePanel();
+      libraryPanel.style.display = 'block';
+      libraryPanel.classList.add('open');
+      renderLibraryList(librarySearchInput.value || '');
+    }
+
+    function hideLibraryPanel() {
+      libraryPanel.classList.remove('open');
+      libraryPanel.style.display = 'none';
+    }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
 
     function persistSettings() {
@@ -960,7 +1010,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function persistCurrentDraft() {
-      localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), lyrics: scriptInput.value }));
+      localStorage.setItem(CURRENT_KEY, JSON.stringify({
+        title: songTitleInput.value.trim(),
+        artist: artistInput.value.trim(),
+        style: styleInput.value.trim(),
+        lyrics: scriptInput.value
+      }));
     }
 
     function loadSettings() {
@@ -982,6 +1037,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       try {
         const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}');
         if (saved.title) songTitleInput.value = saved.title;
+        if (saved.artist) artistInput.value = saved.artist;
+        if (saved.style) styleInput.value = saved.style;
         if (saved.lyrics) scriptInput.value = saved.lyrics;
       } catch (_) {}
     }
@@ -1018,12 +1075,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.value = lyrics;
       if (!lyrics) return;
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
-      const payload = { id: existingIndex >= 0 ? state.currentSongId : `song-${Date.now()}`, title, lyrics };
+      const payload = {
+        id: existingIndex >= 0 ? state.currentSongId : `song-${Date.now()}`,
+        title,
+        artist: artistInput.value.trim(),
+        style: styleInput.value.trim(),
+        lyrics
+      };
       if (existingIndex >= 0) state.songs[existingIndex] = payload;
       else state.songs.push(payload);
       state.currentSongId = payload.id;
       saveSongs();
       renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
       repertoireSelect.value = payload.id;
       persistCurrentDraft();
     }
@@ -1034,6 +1098,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!song) return;
       state.currentSongId = song.id;
       songTitleInput.value = song.title || '';
+      artistInput.value = song.artist || '';
+      styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       loadScript();
       persistCurrentDraft();
@@ -1046,6 +1112,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.currentSongId === id) state.currentSongId = null;
       saveSongs();
       renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
     }
 
     function getCurrentSongIndex() {
@@ -1062,6 +1129,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.currentSongId = song.id;
       repertoireSelect.value = song.id;
       songTitleInput.value = song.title || '';
+      artistInput.value = song.artist || '';
+      styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       loadScript();
       persistCurrentDraft();
@@ -1077,6 +1146,43 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const currentIndex = getCurrentSongIndex();
       if (currentIndex < 0) return;
       loadSongByIndex(currentIndex + 1);
+    }
+
+    function renderLibraryList(term = '') {
+      const query = (term || '').toLowerCase().trim();
+      const filtered = !query
+        ? state.songs
+        : state.songs.filter(song => {
+            const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
+            return hay.includes(query);
+          });
+      libraryList.innerHTML = '';
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'panel-note';
+        empty.textContent = 'Nenhuma música encontrada.';
+        libraryList.appendChild(empty);
+        return;
+      }
+      filtered.forEach(song => {
+        const btn = document.createElement('button');
+        btn.className = 'ghost-btn';
+        btn.style.width = '100%';
+        btn.style.textAlign = 'left';
+        btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
+        btn.addEventListener('click', () => {
+          state.currentSongId = song.id;
+          songTitleInput.value = song.title || '';
+          artistInput.value = song.artist || '';
+          styleInput.value = song.style || '';
+          scriptInput.value = song.lyrics || '';
+          loadScript();
+          repertoireSelect.value = song.id;
+          persistCurrentDraft();
+          hideLibraryPanel();
+        });
+        libraryList.appendChild(btn);
+      });
     }
 
     function bindEvents() {
@@ -1097,6 +1203,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
       $('cleanReturnBtn').addEventListener('click', returnToCleanMode);
       $('openPanelDockBtn').addEventListener('click', togglePanel);
+      $('openLibraryBtn').addEventListener('click', openLibraryPanel);
+      $('hideLibraryBtn').addEventListener('click', hideLibraryPanel);
+      librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value));
       $('hidePanelBtn').addEventListener('click', hidePanel);
       repertoireSelect.addEventListener('change', openSelectedSong);
 
@@ -1126,6 +1235,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); });
       mirrorToggle.addEventListener('change', toggleMirror);
       songTitleInput.addEventListener('input', persistCurrentDraft);
+      artistInput.addEventListener('input', persistCurrentDraft);
+      styleInput.addEventListener('input', persistCurrentDraft);
       scriptInput.addEventListener('input', persistCurrentDraft);
 
       window.addEventListener('resize', () => refreshLayoutPreservingPoint());
