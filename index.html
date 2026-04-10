@@ -329,6 +329,10 @@
       <button class="mini-btn" id="backBlockBtn" aria-label="Voltar bloco">↟</button>
       <button class="mini-btn" id="playPauseBtn" aria-label="Play ou pause">▶</button>
       <button class="mini-btn" id="nextBlockBtn" aria-label="Próximo bloco">↡</button>
+      <div style="display:grid; gap:4px; min-width:120px; padding:0 6px;">
+        <span style="font-size:11px; color:rgba(255,255,255,0.72); text-align:center;">Velocidade</span>
+        <input id="detailSpeedSlider" type="range" min="4" max="80" value="20" style="width:100%;" />
+      </div>
     </div>
 
     <div class="side-panel" id="sidePanel">
@@ -480,6 +484,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const textWidth = $('textWidth');
     const overlayOpacity = $('overlayOpacity');
     const baseSpeed = $('baseSpeed');
+    const detailSpeedSlider = $('detailSpeedSlider');
     const voiceFollowSpeed = $('voiceFollowSpeed');
     const mirrorToggle = $('mirrorToggle');
     const voiceToggle = $('voiceToggle');
@@ -1243,8 +1248,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       baseSpeed.addEventListener('input', () => {
         updateValueLabels();
         state.baseSpeed = Number(baseSpeed.value);
+      if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value;
+        if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value;
         persistSettings();
       });
+
+      if (detailSpeedSlider) {
+        detailSpeedSlider.addEventListener('input', () => {
+          baseSpeed.value = detailSpeedSlider.value;
+          updateValueLabels();
+          state.baseSpeed = Number(detailSpeedSlider.value);
+          persistSettings();
+        });
+      }
 
       voiceFollowSpeed.addEventListener('input', () => {
         updateValueLabels();
