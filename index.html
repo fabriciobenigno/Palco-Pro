@@ -440,9 +440,7 @@
       </div>
     </div>
 
-    <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar ao modo limpo">⌄</button>
-
-    <div class="library-screen" id="libraryPanel">
+        <div class="library-screen" id="libraryPanel">
       <div class="library-shell">
         <div class="library-header">
           <div class="library-title-wrap">
@@ -1137,8 +1135,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function enableVoice(enabled) { state.voiceEnabled = enabled; state.voiceLastProcessed = ''; state.voiceLastMatchAt = 0; if (!state.recognitionReady) return; if (enabled) { updateTranscript('Reconhecimento de voz ligado. Comece a falar.'); try { state.recognition.start(); } catch (e) {} } else if (state.recognitionRunning) { state.recognition.stop(); updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.'); } }
     function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
     function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
-    function toggleCleanMode() { if (!state.cleanMode) return; state.cleanMode = false; app.classList.add('detail-mode'); app.classList.remove('clean-mode'); $('cleanReturnBtn').style.display = 'grid'; $('detailPanel').classList.add('open'); }
-    function returnToCleanMode() { state.cleanMode = true; app.classList.add('clean-mode'); app.classList.remove('detail-mode'); $('cleanReturnBtn').style.display = 'none'; $('detailPanel').classList.remove('open'); }
+    function toggleCleanMode() {
+      if (state.cleanMode) {
+        state.cleanMode = false;
+        app.classList.add('detail-mode');
+        app.classList.remove('clean-mode');
+        $('detailPanel').classList.add('open');
+      } else {
+        returnToCleanMode();
+      }
+    }
+    function returnToCleanMode() {
+      state.cleanMode = true;
+      app.classList.add('clean-mode');
+      app.classList.remove('detail-mode');
+      $('detailPanel').classList.remove('open');
+    }
     function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
     function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
@@ -1197,14 +1209,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
       $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('cleanReturnBtn').addEventListener('click', returnToCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
     function showEntryScreen(target) { const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' }; const activeId = map[target] || map.home; ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => { const screen = $(id); if (screen) screen.classList.toggle('active', id === activeId); }); }
     function setupBrowserEntryGate() { const gate = $('browserEntryGate'); if (!gate) return; gate.classList.toggle('active', shouldShowBrowserEntryGate()); gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true'); showEntryScreen('home'); gate.querySelectorAll('[data-entry-target]').forEach((btn) => { btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target'))); }); }
-    function init() { createSupabaseClient(); loadSettings(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('cleanReturnBtn').style.display = 'none'; $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
+    function init() { createSupabaseClient(); loadSettings(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
     init();
   </script>
 </body>
