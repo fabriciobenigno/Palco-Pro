@@ -694,6 +694,33 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
 
+    function createSongId() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function ensureSongIdsAreValid() {
+      let changed = false;
+      state.songs = state.songs.map((song) => {
+        const validId = typeof song.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(song.id);
+        if (validId) return song;
+        changed = true;
+        return { ...song, id: createSongId() };
+      });
+      if (changed) {
+        if (state.currentSongId && !state.songs.some(song => song.id === state.currentSongId)) {
+          state.currentSongId = null;
+        }
+        saveSongs();
+      }
+    }
+
     function createSupabaseClient() {
       if (!window.supabase || state.supabase) return;
       state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -788,6 +815,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function syncSongsToCloud(options = {}) {
+      ensureSongIdsAreValid();
       const manual = !!options.manual;
       if (!state.supabase || !state.currentUser || state.syncInFlight) {
         if (manual && !state.currentUser) updateSyncStatus('Faça login para sincronizar com a nuvem.');
@@ -1002,7 +1030,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
-    function loadSongs() { try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) { state.songs = []; } renderRepertoire(); }
+    function loadSongs() { try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) { state.songs = []; } ensureSongIdsAreValid(); renderRepertoire(); }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
     function saveCurrentSong() {
       const title = songTitleInput.value.trim() || 'Sem título';
@@ -1015,7 +1043,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const payload = {
-        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : `song-${Date.now()}`,
+        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(),
         title,
         artist,
         style,
