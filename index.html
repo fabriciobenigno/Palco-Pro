@@ -1004,12 +1004,115 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) { const maxSize = Math.min(5, heardWords.length, currentWords.length); for (let size = maxSize; size >= 2; size--) { const heardTail = heardWords.slice(-size).join(' '); const lineTail = currentWords.slice(-size).join(' '); if (heardTail === lineTail) return size; } return 0; }
     function getLineStartIndex(lineIndex) { return state.lineWordStarts[lineIndex] || 0; }
     function getLineWords(lineIndex) { return state.lineWords[lineIndex] || []; }
-    function findBestNearbyVoiceMatch(heardWords) { const candidates = []; const grams = makeNgrams(heardWords, 2, 5); getLineWindowIndices().forEach((lineIndex) => { const lineWords = getLineWords(lineIndex); let bestBlockSize = 0; let bestBlockEnd = -1; grams.forEach((gram) => { const joinedGram = gram.join(' '); for (let start = 0; start <= lineWords.length - gram.length; start++) { if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram && gram.length >= bestBlockSize) { bestBlockSize = gram.length; bestBlockEnd = start + gram.length; } } }); const orderedMatches = countOrderedMatches(heardWords, lineWords); const lineStart = getLineStartIndex(lineIndex); const lineEnd = lineStart + lineWords.length; const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2; const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2); if (bestBlockSize >= 2 || orderedMatches >= 3) { candidates.push({ lineIndex, bestBlockSize, bestBlockEnd, orderedMatches, lineStart, lineEnd, reachedLineEnd, score }); } }); candidates.sort((a, b) => b.score - a.score); return candidates[0] || null; }
-    function applyNearbyVoiceMatch(match) { if (!match) return false; const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3; const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3); if (!strongEnough) return false; state.currentLine = match.lineIndex; const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd)); if (matchedCursor > state.speechCursor) state.speechCursor = matchedCursor; if (match.reachedLineEnd && match.lineIndex < state.lines.length - 1) { state.currentLine = match.lineIndex + 1; state.speechCursor = Math.max(state.speechCursor, match.lineEnd); } state.voiceLastMatchAt = performance.now(); markLines(); followSpeechVisualProgress(); return true; }
+
+    function findBestNearbyVoiceMatch(heardWords) {
+      const candidates = [];
+      const grams = makeNgrams(heardWords, 2, 5);
+
+      getLineWindowIndices().forEach((lineIndex) => {
+        const lineWords = getLineWords(lineIndex);
+        if (!lineWords.length) return;
+
+        let bestBlockSize = 0;
+        let bestBlockEnd = -1;
+        grams.forEach((gram) => {
+          const joinedGram = gram.join(' ');
+          for (let start = 0; start <= lineWords.length - gram.length; start++) {
+            if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram) {
+              if (gram.length > bestBlockSize || (gram.length === bestBlockSize && start + gram.length > bestBlockEnd)) {
+                bestBlockSize = gram.length;
+                bestBlockEnd = start + gram.length;
+              }
+            }
+          }
+        });
+
+        const orderedMatches = countOrderedMatches(heardWords, lineWords);
+        const lineStart = getLineStartIndex(lineIndex);
+        const lineEnd = lineStart + lineWords.length;
+        const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2;
+        const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2);
+
+        candidates.push({
+          lineIndex,
+          lineStart,
+          lineEnd,
+          lineWords,
+          bestBlockSize,
+          bestBlockEnd,
+          orderedMatches,
+          reachedLineEnd,
+          score
+        });
+      });
+
+      candidates.sort((a, b) => b.score - a.score || b.bestBlockSize - a.bestBlockSize || b.orderedMatches - a.orderedMatches || a.lineIndex - b.lineIndex);
+      return candidates[0] || null;
+    }
+
+    function applyNearbyVoiceMatch(match) {
+      if (!match) return false;
+      const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3;
+      const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3);
+      if (!strongEnough) return false;
+
+      const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd));
+      if (matchedCursor > state.speechCursor) {
+        state.speechCursor = matchedCursor;
+      }
+
+      if (match.lineIndex > state.currentLine) {
+        state.currentLine = match.lineIndex;
+        markLines();
+        placeActiveLineAtStart();
+        return true;
+      }
+
+      if (match.reachedLineEnd && match.lineIndex === state.currentLine && state.currentLine < state.lines.length - 1) {
+        state.speechCursor = Math.max(state.speechCursor, match.lineEnd);
+        state.currentLine = match.lineIndex + 1;
+        markLines();
+        placeActiveLineAtStart();
+        return true;
+      }
+
+      moveTowardSpeechCursor();
+      return true;
+    }
+
     function handleBluetoothKey(event) { const target = event.target; const tag = target?.tagName; if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return; const key = event.key; const code = event.code; let handled = true; if (key === 'ArrowLeft') previousSong(); else if (key === 'ArrowRight') nextSong(); else if (key === 'ArrowUp') jumpLine(-1); else if (key === 'ArrowDown') jumpLine(1); else if (key === ' ' || code === 'Space') state.playing ? pauseScroll() : startScroll(); else if (key === 'Enter') togglePanel(); else handled = false; if (handled) event.preventDefault(); }
     function bindBluetoothControls() { if (state.bluetoothBound) return; state.bluetoothBound = true; window.addEventListener('keydown', handleBluetoothKey, { passive: false }); }
-    function getCurrentLineSpeechProgress() { const words = getLineWords(state.currentLine); const lineStart = getLineStartIndex(state.currentLine); const spokenInsideLine = Math.max(0, state.speechCursor - lineStart); return words.length ? Math.min(1, spokenInsideLine / words.length) : 0; }
-    function followSpeechVisualProgress() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const progress = getCurrentLineSpeechProgress(); const startGuide = 0.4; const endGuide = 0.16; const desiredGuide = startGuide - ((startGuide - endGuide) * progress); const desiredY = contentRect.top + (contentRect.height * desiredGuide); const currentY = activeRect.top + (activeRect.height / 2); const delta = desiredY - currentY; const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52); state.scrollOffset += delta * responseStrength; applyScroll(); markLines(); }
+
+    function getCurrentLineSpeechProgress() {
+      const words = getLineWords(state.currentLine);
+      if (!words.length) return 0;
+      const lineStart = getLineStartIndex(state.currentLine);
+      const spokenInsideLine = Math.max(0, state.speechCursor - lineStart);
+      return Math.max(0, Math.min(1, spokenInsideLine / words.length));
+    }
+
+    function followSpeechVisualProgress() {
+      const lines = getLineElements();
+      const active = lines[state.currentLine];
+      if (!active) return;
+
+      const contentRect = promptContent.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      const progress = getCurrentLineSpeechProgress();
+
+      const startGuide = 0.44;
+      const endGuide = 0.16;
+      const desiredGuide = startGuide - ((startGuide - endGuide) * progress);
+      const desiredY = contentRect.top + (contentRect.height * desiredGuide);
+      const currentY = activeRect.top + (activeRect.height / 2);
+      const delta = desiredY - currentY;
+
+      const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52);
+      state.scrollOffset += delta * responseStrength;
+      applyScroll();
+      captureAnchor();
+    }
+
     function moveTowardSpeechCursor() {
       let matchedLine = state.currentLine;
       for (let i = 0; i < state.lines.length; i++) {
@@ -1132,7 +1235,20 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }
     }
 
-    function enableVoice(enabled) { state.voiceEnabled = enabled; state.voiceLastProcessed = ''; state.voiceLastMatchAt = 0; if (!state.recognitionReady) return; if (enabled) { updateTranscript('Reconhecimento de voz ligado. Comece a falar.'); try { state.recognition.start(); } catch (e) {} } else if (state.recognitionRunning) { state.recognition.stop(); updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.'); } }
+    function enableVoice(enabled) {
+      state.voiceEnabled = enabled;
+      state.voiceLastProcessed = '';
+      state.voiceLastMatchAt = 0;
+      if (!state.recognitionReady) return;
+      if (enabled) {
+        updateTranscript('Reconhecimento de voz ligado. Comece a falar.');
+        try { state.recognition.start(); } catch (e) {}
+      } else if (state.recognitionRunning) {
+        state.recognition.stop();
+        updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.');
+      }
+    }
+
     function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
     function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
     function toggleCleanMode() {
