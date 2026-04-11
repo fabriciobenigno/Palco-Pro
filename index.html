@@ -335,7 +335,6 @@
     .entry-step-text { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.9); }
     .entry-footer { text-align: center; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.58); padding-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
-
     .auth-panel {
       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 46;
       width: var(--panel-w); max-height: min(84vh, 720px); overflow: auto;
@@ -495,6 +494,7 @@
 
         <div class="sync-status-note" id="syncStatusNote">Sincronização local ativa.</div>
 
+
         <div class="toggle-row">
           <span>Reconhecimento por fala</span>
           <label class="switch"><input id="voiceToggle" type="checkbox" /><span class="slider"></span></label>
@@ -581,6 +581,7 @@
 
         <div class="auth-actions-row">
           <button class="ghost-btn" id="signOutBtn">Sair</button>
+          <button class="ghost-btn" id="recoverPasswordBtn">Recuperar senha</button>
         </div>
 
         <div class="sync-status-note" id="authStatusNote">Nenhuma conta conectada.</div>
@@ -629,9 +630,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     <div class="controls-bar">
       <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
-      <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Modo detalhado">⌃</button>
+      <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Modo limpo">☰</button>
       <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">↠</button>
-      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">☰</button>
+      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">♫</button>
     </div>
   </div>
 
@@ -689,7 +690,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const authStatusNote = $('authStatusNote');
     const syncStatusNote = $('syncStatusNote');
     const songEditorPanel = $('songEditorPanel');
-
 
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
@@ -883,6 +883,21 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       setSyncStatusFromState('Sincronização online pausada.');
     }
 
+    async function recoverPasswordWithSupabase() {
+      const email = (authEmailInput?.value || '').trim();
+      if (!email) {
+        updateAuthStatus('Informe seu e-mail para recuperar a senha.');
+        return;
+      }
+      try {
+        const { error } = await state.supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        updateAuthStatus('Enviamos a recuperação de senha para o e-mail informado.');
+      } catch (error) {
+        updateAuthStatus(`Não foi possível enviar a recuperação. ${error.message || 'Tente novamente.'}`.trim());
+      }
+    }
+
     async function restoreSupabaseSession() {
       if (!state.supabase) return;
       try {
@@ -935,834 +950,79 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function getLineElements() { return Array.from(scriptInner.querySelectorAll('.line')); }
-
-    function captureAnchor() {
-      const lines = getLineElements();
-      const active = lines[state.currentLine];
-      if (!active) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const progress = (activeRect.top + activeRect.height / 2 - contentRect.top) / contentRect.height;
-      state.anchorIndex = state.currentLine;
-      state.anchorProgress = Math.max(0.05, Math.min(0.9, progress));
-    }
-
-    function restoreAnchor() {
-      const lines = getLineElements();
-      const target = lines[state.anchorIndex] || lines[state.currentLine];
-      if (!target) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const desiredY = contentRect.top + contentRect.height * state.anchorProgress;
-      const currentY = targetRect.top + targetRect.height / 2;
-      state.scrollOffset += desiredY - currentY;
-      applyScroll(true);
-    }
-
-    function sanitizeLyrics(raw) {
-      return (raw || '')
-        .replace(/\r/g, '')
-        .replace(/[ \t]+\n/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .split('\n')
-        .map(v => v.replace(/[ \t]{2,}/g, ' ').trimEnd())
-        .join('\n')
-        .trim();
-    }
-
-    function renderScript() {
-      scriptInner.innerHTML = '';
-      state.lines.forEach((line) => {
-        const span = document.createElement('span');
-        span.className = 'line';
-        span.textContent = line || ' ';
-        scriptInner.appendChild(span);
-      });
-      markLines();
-      placeActiveLineAtStart();
-    }
-
-    function markLines() {
-      const lines = getLineElements();
-      lines.forEach((line, index) => {
-        line.classList.toggle('active', index === state.currentLine);
-        line.classList.toggle('done', index < state.currentLine);
-      });
-    }
-
-    function loadScript() {
-      const raw = sanitizeLyrics(scriptInput.value);
-      scriptInput.value = raw;
-      const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean);
-      state.lines = parts.length ? parts : ['Cole a letra da música no painel.'];
-      state.lineWords = state.lines.map(splitWords);
-      state.lineWordStarts = [];
-      let runningWordIndex = 0;
-      state.flatWords = [];
-      state.lineWords.forEach(words => {
-        state.lineWordStarts.push(runningWordIndex);
-        state.flatWords.push(...words);
-        runningWordIndex += words.length;
-      });
-      state.currentLine = 0;
-      state.speechCursor = 0;
-      state.scrollOffset = 0;
-      renderScript();
-      persistCurrentDraft();
-      syncSongsToCloud();
-      hideSongEditor();
-      hideLibraryPanel();
-    }
-
-    function applyScroll(immediate = false) {
-      if (immediate) scriptInner.style.transition = 'none';
-      scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`);
-      if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; });
-    }
-
-    function placeActiveLineAtStart() {
-      const lines = getLineElements();
-      const active = lines[state.currentLine];
-      if (!active) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const topGuide = contentRect.top + contentRect.height * 0.18;
-      state.scrollOffset += topGuide - activeRect.top;
-      applyScroll(true);
-      markLines();
-    }
-
-    function centerActiveLine() {
-      const lines = getLineElements();
-      const active = lines[state.currentLine];
-      if (!active) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const guideY = contentRect.top + contentRect.height * 0.42;
-      state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2);
-      applyScroll(true);
-      markLines();
-    }
-
-    function setActiveLine(index) {
-      const lines = getLineElements();
-      if (!lines.length) return;
-      state.currentLine = Math.max(0, Math.min(index, lines.length - 1));
-      markLines();
-      centerActiveLine();
-    }
-
-    function refreshLayoutPreservingPoint() {
-      captureAnchor();
-      applyStyles();
-      restoreAnchor();
-    }
-
-    function advanceLinesByPosition() {
-      const lines = getLineElements();
-      const next = lines[state.currentLine + 1];
-      if (!next) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const nextRect = next.getBoundingClientRect();
-      const trigger = contentRect.top + contentRect.height * 0.44;
-      if (nextRect.top <= trigger) {
-        state.currentLine += 1;
-        markLines();
-      }
-    }
-
-    function animateScroll(ts) {
-      if (!state.playing) return;
-      if (!state.lastFrameTs) state.lastFrameTs = ts;
-      const dt = (ts - state.lastFrameTs) / 1000;
-      state.lastFrameTs = ts;
-      let speed = state.baseSpeed + state.manualBoost;
-      if (performance.now() < state.temporaryBoostUntil) speed += state.voiceBoostStrength;
-      state.scrollOffset -= speed * dt;
-      applyScroll();
-      advanceLinesByPosition();
-      state.rafId = requestAnimationFrame(animateScroll);
-    }
-
-    function startScroll() {
-      if (state.playing) return;
-      state.playing = true;
-      state.lastFrameTs = 0;
-      syncPlayPauseIcon();
-      state.rafId = requestAnimationFrame(animateScroll);
-    }
-
-    function pauseScroll() {
-      state.playing = false;
-      if (state.rafId) cancelAnimationFrame(state.rafId);
-      state.rafId = null;
-      syncPlayPauseIcon();
-    }
-
-    function jumpLine(delta) {
-      setActiveLine(state.currentLine + delta);
-    }
-
-    function togglePlayPause() {
-      state.playing ? pauseScroll() : startScroll();
-    }
-
-    function beginTextDrag(pointerId, y) {
-      state.textDragging = true;
-      state.textDragPointerId = pointerId;
-      state.textDragStartY = y;
-      state.textDragLastY = y;
-      state.textDragMoved = false;
-      state.wasPlayingBeforeDrag = state.playing;
-      promptContent.classList.add('dragging-text');
-    }
-
-    function moveTextDrag(y) {
-      if (!state.textDragging) return;
-      const delta = y - state.textDragLastY;
-      state.textDragLastY = y;
-      if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true;
-      state.scrollOffset += delta;
-      applyScroll(true);
-    }
-
-    function endTextDrag() {
-      if (!state.textDragging) return;
-      state.textDragging = false;
-      state.textDragPointerId = null;
-      promptContent.classList.remove('dragging-text');
-      const lines = getLineElements();
-      if (lines.length) {
-        const contentRect = promptContent.getBoundingClientRect();
-        const guideY = contentRect.top + contentRect.height * 0.24;
-        let closestIndex = state.currentLine;
-        let closestDistance = Infinity;
-        lines.forEach((line, index) => {
-          const rect = line.getBoundingClientRect();
-          const centerY = rect.top + rect.height / 2;
-          const distance = Math.abs(centerY - guideY);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestIndex = index;
-          }
-        });
-        state.currentLine = closestIndex;
-        state.speechCursor = state.lineWords.slice(0, closestIndex).reduce((acc, words) => acc + words.length, 0);
-        markLines();
-      }
-      if (state.wasPlayingBeforeDrag) {
-        startScroll();
-      }
-      state.wasPlayingBeforeDrag = false;
-    }
-
-    function bindTextDrag() {
-      promptContent.addEventListener('pointerdown', (e) => {
-        if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open')) return;
-        promptContent.setPointerCapture(e.pointerId);
-        beginTextDrag(e.pointerId, e.clientY);
-      });
-      promptContent.addEventListener('pointermove', (e) => {
-        if (e.pointerId !== state.textDragPointerId) return;
-        moveTextDrag(e.clientY);
-      });
-      promptContent.addEventListener('pointerup', endTextDrag);
-      promptContent.addEventListener('pointercancel', endTextDrag);
-    }
-
+    function captureAnchor() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const progress = (activeRect.top + activeRect.height / 2 - contentRect.top) / contentRect.height; state.anchorIndex = state.currentLine; state.anchorProgress = Math.max(0.05, Math.min(0.9, progress)); }
+    function restoreAnchor() { const lines = getLineElements(); const target = lines[state.anchorIndex] || lines[state.currentLine]; if (!target) return; const contentRect = promptContent.getBoundingClientRect(); const targetRect = target.getBoundingClientRect(); const desiredY = contentRect.top + contentRect.height * state.anchorProgress; const currentY = targetRect.top + targetRect.height / 2; state.scrollOffset += desiredY - currentY; applyScroll(true); }
+    function sanitizeLyrics(raw) { return (raw || '').replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').split('\n').map(v => v.replace(/[ \t]{2,}/g, ' ').trimEnd()).join('\n').trim(); }
+    function renderScript() { scriptInner.innerHTML = ''; state.lines.forEach((line) => { const span = document.createElement('span'); span.className = 'line'; span.textContent = line || ' '; scriptInner.appendChild(span); }); markLines(); placeActiveLineAtStart(); }
+    function markLines() { const lines = getLineElements(); lines.forEach((line, index) => { line.classList.toggle('active', index === state.currentLine); line.classList.toggle('done', index < state.currentLine); }); }
+    function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
+    function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
+    function placeActiveLineAtStart() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + contentRect.height * 0.18; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
+    function centerActiveLine() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.42; state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2); applyScroll(true); markLines(); }
+    function setActiveLine(index) { const lines = getLineElements(); if (!lines.length) return; state.currentLine = Math.max(0, Math.min(index, lines.length - 1)); markLines(); centerActiveLine(); }
+    function refreshLayoutPreservingPoint() { captureAnchor(); applyStyles(); restoreAnchor(); }
+    function advanceLinesByPosition() { const lines = getLineElements(); const next = lines[state.currentLine + 1]; if (!next) return; const contentRect = promptContent.getBoundingClientRect(); const nextRect = next.getBoundingClientRect(); const trigger = contentRect.top + contentRect.height * 0.44; if (nextRect.top <= trigger) { state.currentLine += 1; markLines(); } }
+    function animateScroll(ts) { if (!state.playing) return; if (!state.lastFrameTs) state.lastFrameTs = ts; const dt = (ts - state.lastFrameTs) / 1000; state.lastFrameTs = ts; let speed = state.baseSpeed + state.manualBoost; if (performance.now() < state.temporaryBoostUntil) speed += state.voiceBoostStrength; state.scrollOffset -= speed * dt; applyScroll(); advanceLinesByPosition(); state.rafId = requestAnimationFrame(animateScroll); }
+    function startScroll() { if (state.playing) return; state.playing = true; state.lastFrameTs = 0; syncPlayPauseIcon(); state.rafId = requestAnimationFrame(animateScroll); }
+    function pauseScroll() { state.playing = false; if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; syncPlayPauseIcon(); }
+    function jumpLine(delta) { setActiveLine(state.currentLine + delta); }
+    function togglePlayPause() { state.playing ? pauseScroll() : startScroll(); }
+    function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
+    function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
+    function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; } }); state.currentLine = closestIndex; state.speechCursor = state.lineWords.slice(0, closestIndex).reduce((acc, words) => acc + words.length, 0); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
+    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || songEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
     function updateTranscript(text) { transcriptPill.textContent = text; }
-
-    function makeNgrams(words, minSize = 2, maxSize = 5) {
-      const grams = [];
-      const cappedMax = Math.max(minSize, Math.min(maxSize, words.length));
-      for (let size = minSize; size <= cappedMax; size++) {
-        for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size));
-      }
-      return grams;
-    }
-
-    function countOrderedMatches(heardWords, targetWords) {
-      let cursor = 0, matched = 0;
-      for (const word of heardWords) {
-        for (let i = cursor; i < targetWords.length; i++) {
-          if (targetWords[i] === word) { matched++; cursor = i + 1; break; }
-        }
-      }
-      return matched;
-    }
-
-    function getLineWindowIndices() {
-      const start = Math.max(0, state.currentLine - 1);
-      const end = Math.min(state.lines.length - 1, state.currentLine + 2);
-      const indices = [];
-      for (let i = start; i <= end; i++) indices.push(i);
-      return indices;
-    }
-
-    function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) {
-      const maxSize = Math.min(5, heardWords.length, currentWords.length);
-      for (let size = maxSize; size >= 2; size--) {
-        const heardTail = heardWords.slice(-size).join(' ');
-        const lineTail = currentWords.slice(-size).join(' ');
-        if (heardTail === lineTail) return size;
-      }
-      return 0;
-    }
-
+    function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
+    function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
+    function getLineWindowIndices() { const start = Math.max(0, state.currentLine - 1); const end = Math.min(state.lines.length - 1, state.currentLine + 2); const indices = []; for (let i = start; i <= end; i++) indices.push(i); return indices; }
+    function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) { const maxSize = Math.min(5, heardWords.length, currentWords.length); for (let size = maxSize; size >= 2; size--) { const heardTail = heardWords.slice(-size).join(' '); const lineTail = currentWords.slice(-size).join(' '); if (heardTail === lineTail) return size; } return 0; }
     function getLineStartIndex(lineIndex) { return state.lineWordStarts[lineIndex] || 0; }
     function getLineWords(lineIndex) { return state.lineWords[lineIndex] || []; }
-
-    function findBestNearbyVoiceMatch(heardWords) {
-      const candidates = [];
-      const grams = makeNgrams(heardWords, 2, 5);
-      getLineWindowIndices().forEach((lineIndex) => {
-        const lineWords = getLineWords(lineIndex);
-        let bestBlockSize = 0;
-        let bestBlockEnd = -1;
-        grams.forEach((gram) => {
-          const joinedGram = gram.join(' ');
-          for (let start = 0; start <= lineWords.length - gram.length; start++) {
-            if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram && gram.length >= bestBlockSize) {
-              bestBlockSize = gram.length;
-              bestBlockEnd = start + gram.length;
-            }
-          }
-        });
-        const orderedMatches = countOrderedMatches(heardWords, lineWords);
-        const lineStart = getLineStartIndex(lineIndex);
-        const lineEnd = lineStart + lineWords.length;
-        const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2;
-        const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2);
-        if (bestBlockSize >= 2 || orderedMatches >= 3) {
-          candidates.push({ lineIndex, bestBlockSize, bestBlockEnd, orderedMatches, lineStart, lineEnd, reachedLineEnd, score });
-        }
-      });
-      candidates.sort((a, b) => b.score - a.score);
-      return candidates[0] || null;
-    }
-
-    function applyNearbyVoiceMatch(match) {
-      if (!match) return false;
-      const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3;
-      const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3);
-      if (!strongEnough) return false;
-      state.currentLine = match.lineIndex;
-      const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd));
-      if (matchedCursor > state.speechCursor) state.speechCursor = matchedCursor;
-      if (match.reachedLineEnd && match.lineIndex < state.lines.length - 1) {
-        state.currentLine = match.lineIndex + 1;
-        state.speechCursor = Math.max(state.speechCursor, match.lineEnd);
-      }
-      state.voiceLastMatchAt = performance.now();
-      markLines();
-      followSpeechVisualProgress();
-      return true;
-    }
-
-    function handleBluetoothKey(event) {
-      const target = event.target;
-      const tag = target?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
-      const key = event.key;
-      const code = event.code;
-      let handled = true;
-      if (key === 'ArrowLeft') previousSong();
-      else if (key === 'ArrowRight') nextSong();
-      else if (key === 'ArrowUp') jumpLine(-1);
-      else if (key === 'ArrowDown') jumpLine(1);
-      else if (key === ' ' || code === 'Space') state.playing ? pauseScroll() : startScroll();
-      else if (key === 'Enter') togglePanel();
-      else handled = false;
-      if (handled) event.preventDefault();
-    }
-
-    function bindBluetoothControls() {
-      if (state.bluetoothBound) return;
-      state.bluetoothBound = true;
-      window.addEventListener('keydown', handleBluetoothKey, { passive: false });
-    }
-
-    function getCurrentLineSpeechProgress() {
-      const words = getLineWords(state.currentLine);
-      const lineStart = getLineStartIndex(state.currentLine);
-      const spokenInsideLine = Math.max(0, state.speechCursor - lineStart);
-      return words.length ? Math.min(1, spokenInsideLine / words.length) : 0;
-    }
-
-    function followSpeechVisualProgress() {
-      const lines = getLineElements();
-      const active = lines[state.currentLine];
-      if (!active) return;
-      const contentRect = promptContent.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const progress = getCurrentLineSpeechProgress();
-      const startGuide = 0.4;
-      const endGuide = 0.16;
-      const desiredGuide = startGuide - ((startGuide - endGuide) * progress);
-      const desiredY = contentRect.top + (contentRect.height * desiredGuide);
-      const currentY = activeRect.top + (activeRect.height / 2);
-      const delta = desiredY - currentY;
-      const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52);
-      state.scrollOffset += delta * responseStrength;
-      applyScroll();
-      markLines();
-    }
-
-    function moveTowardSpeechCursor() {
-      let matchedLine = state.currentLine;
-      for (let i = 0; i < state.lines.length; i++) {
-        const start = getLineStartIndex(i);
-        const end = start + getLineWords(i).length;
-        if (state.speechCursor < end || i === state.lines.length - 1) { matchedLine = i; break; }
-      }
-      if (matchedLine !== state.currentLine) {
-        state.currentLine = matchedLine;
-        markLines();
-      }
-      followSpeechVisualProgress();
-    }
-
-    function setupVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.interimResults = true;
-      recognition.continuous = true;
-      recognition.maxAlternatives = 1;
-      recognition.onstart = () => { state.recognitionRunning = true; };
-      recognition.onend = () => {
-        state.recognitionRunning = false;
-        if (state.voiceEnabled) { try { recognition.start(); } catch (e) {} }
-      };
-      recognition.onresult = (event) => {
-        let joined = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) joined += ` ${event.results[i][0].transcript}`;
-        handleVoiceContinuous(joined.trim());
-      };
-      state.recognition = recognition;
-      state.recognitionReady = true;
-    }
-
-    function handleVoiceContinuous(transcript) {
-      const normalizedTranscript = splitWords(transcript).join(' ');
-      if (!normalizedTranscript || normalizedTranscript === state.voiceLastProcessed) return;
-      state.voiceLastProcessed = normalizedTranscript;
-      updateTranscript(transcript);
-      const heardWords = normalizedTranscript.split(' ').filter(Boolean);
-      const lineBeforeMatch = state.currentLine;
-      const activeWords = getLineWords(lineBeforeMatch);
-      let localCursor = state.speechCursor;
-      let matched = 0;
-      for (const word of heardWords) {
-        const current = state.flatWords[localCursor];
-        const next = state.flatWords[localCursor + 1];
-        if (word === current) { localCursor += 1; matched += 1; }
-        else if (word === next) { localCursor += 2; matched += 1; }
-      }
-      if (matched >= 2) {
-        const maxCursor = state.flatWords.length;
-        state.speechCursor = Math.min(localCursor, maxCursor);
-        const lineStart = getLineStartIndex(lineBeforeMatch);
-        const activeLineLastIndex = lineStart + activeWords.length;
-        if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) state.currentLine = lineBeforeMatch + 1;
-        state.voiceLastMatchAt = performance.now();
-        moveTowardSpeechCursor();
-        return;
-      }
-      const nearbyMatch = findBestNearbyVoiceMatch(heardWords);
-      const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0);
-      const canAssistNow = timeSinceLastStrongMatch > 120;
-      if (nearbyMatch && canAssistNow && applyNearbyVoiceMatch(nearbyMatch)) return;
-    }
-
-    function enableVoice(enabled) {
-      state.voiceEnabled = enabled;
-      state.voiceLastProcessed = '';
-      state.voiceLastMatchAt = 0;
-      if (!state.recognitionReady) return;
-      if (enabled) {
-        updateTranscript('Reconhecimento de voz ligado. Comece a falar.');
-        try { state.recognition.start(); } catch (e) {}
-      } else if (state.recognitionRunning) {
-        state.recognition.stop();
-        updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.');
-      }
-    }
-
-    function toggleMirror() {
-      state.mirror = !state.mirror;
-      mirrorToggle.checked = state.mirror;
-      refreshLayoutPreservingPoint();
-      persistSettings();
-    }
-
-    function syncPlayPauseIcon() {
-      $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶';
-    }
-
-    function toggleCleanMode() {
-      if (!state.cleanMode) return;
-      state.cleanMode = false;
-      app.classList.add('detail-mode');
-      app.classList.remove('clean-mode');
-      $('cleanReturnBtn').style.display = 'grid';
-      $('detailPanel').classList.add('open');
-    }
-
-    function returnToCleanMode() {
-      state.cleanMode = true;
-      app.classList.add('clean-mode');
-      app.classList.remove('detail-mode');
-      $('cleanReturnBtn').style.display = 'none';
-      $('detailPanel').classList.remove('open');
-    }
-
-    function openPanel() {
-      libraryPanel.classList.remove('open');
-      sidePanel.classList.add('open');
-    }
-    function hidePanel() {
-      sidePanel.classList.remove('open');
-    }
-
-    function openLibraryPanel() {
-      hidePanel();
-      libraryPanel.classList.add('open');
-      renderLibraryList(librarySearchInput.value || '');
-    }
-
-    function hideLibraryPanel() {
-      libraryPanel.classList.remove('open');
-    }
+    function findBestNearbyVoiceMatch(heardWords) { const candidates = []; const grams = makeNgrams(heardWords, 2, 5); getLineWindowIndices().forEach((lineIndex) => { const lineWords = getLineWords(lineIndex); let bestBlockSize = 0; let bestBlockEnd = -1; grams.forEach((gram) => { const joinedGram = gram.join(' '); for (let start = 0; start <= lineWords.length - gram.length; start++) { if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram && gram.length >= bestBlockSize) { bestBlockSize = gram.length; bestBlockEnd = start + gram.length; } } }); const orderedMatches = countOrderedMatches(heardWords, lineWords); const lineStart = getLineStartIndex(lineIndex); const lineEnd = lineStart + lineWords.length; const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2; const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2); if (bestBlockSize >= 2 || orderedMatches >= 3) { candidates.push({ lineIndex, bestBlockSize, bestBlockEnd, orderedMatches, lineStart, lineEnd, reachedLineEnd, score }); } }); candidates.sort((a, b) => b.score - a.score); return candidates[0] || null; }
+    function applyNearbyVoiceMatch(match) { if (!match) return false; const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3; const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3); if (!strongEnough) return false; state.currentLine = match.lineIndex; const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd)); if (matchedCursor > state.speechCursor) state.speechCursor = matchedCursor; if (match.reachedLineEnd && match.lineIndex < state.lines.length - 1) { state.currentLine = match.lineIndex + 1; state.speechCursor = Math.max(state.speechCursor, match.lineEnd); } state.voiceLastMatchAt = performance.now(); markLines(); followSpeechVisualProgress(); return true; }
+    function handleBluetoothKey(event) { const target = event.target; const tag = target?.tagName; if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return; const key = event.key; const code = event.code; let handled = true; if (key === 'ArrowLeft') previousSong(); else if (key === 'ArrowRight') nextSong(); else if (key === 'ArrowUp') jumpLine(-1); else if (key === 'ArrowDown') jumpLine(1); else if (key === ' ' || code === 'Space') state.playing ? pauseScroll() : startScroll(); else if (key === 'Enter') togglePanel(); else handled = false; if (handled) event.preventDefault(); }
+    function bindBluetoothControls() { if (state.bluetoothBound) return; state.bluetoothBound = true; window.addEventListener('keydown', handleBluetoothKey, { passive: false }); }
+    function getCurrentLineSpeechProgress() { const words = getLineWords(state.currentLine); const lineStart = getLineStartIndex(state.currentLine); const spokenInsideLine = Math.max(0, state.speechCursor - lineStart); return words.length ? Math.min(1, spokenInsideLine / words.length) : 0; }
+    function followSpeechVisualProgress() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const progress = getCurrentLineSpeechProgress(); const startGuide = 0.4; const endGuide = 0.16; const desiredGuide = startGuide - ((startGuide - endGuide) * progress); const desiredY = contentRect.top + (contentRect.height * desiredGuide); const currentY = activeRect.top + (activeRect.height / 2); const delta = desiredY - currentY; const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52); state.scrollOffset += delta * responseStrength; applyScroll(); markLines(); }
+    function moveTowardSpeechCursor() { let matchedLine = state.currentLine; for (let i = 0; i < state.lines.length; i++) { const start = getLineStartIndex(i); const end = start + getLineWords(i).length; if (state.speechCursor < end || i === state.lines.length - 1) { matchedLine = i; break; } } if (matchedLine !== state.currentLine) { state.currentLine = matchedLine; markLines(); } followSpeechVisualProgress(); }
+    function setupVoice() { const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SpeechRecognition) return; const recognition = new SpeechRecognition(); recognition.lang = 'pt-BR'; recognition.interimResults = true; recognition.continuous = true; recognition.maxAlternatives = 1; recognition.onstart = () => { state.recognitionRunning = true; }; recognition.onend = () => { state.recognitionRunning = false; if (state.voiceEnabled) { try { recognition.start(); } catch (e) {} } }; recognition.onresult = (event) => { let joined = ''; for (let i = event.resultIndex; i < event.results.length; i++) joined += ` ${event.results[i][0].transcript}`; handleVoiceContinuous(joined.trim()); }; state.recognition = recognition; state.recognitionReady = true; }
+    function handleVoiceContinuous(transcript) { const normalizedTranscript = splitWords(transcript).join(' '); if (!normalizedTranscript || normalizedTranscript === state.voiceLastProcessed) return; state.voiceLastProcessed = normalizedTranscript; updateTranscript(transcript); const heardWords = normalizedTranscript.split(' ').filter(Boolean); const lineBeforeMatch = state.currentLine; const activeWords = getLineWords(lineBeforeMatch); let localCursor = state.speechCursor; let matched = 0; for (const word of heardWords) { const current = state.flatWords[localCursor]; const next = state.flatWords[localCursor + 1]; if (word === current) { localCursor += 1; matched += 1; } else if (word === next) { localCursor += 2; matched += 1; } } if (matched >= 2) { const maxCursor = state.flatWords.length; state.speechCursor = Math.min(localCursor, maxCursor); const lineStart = getLineStartIndex(lineBeforeMatch); const activeLineLastIndex = lineStart + activeWords.length; if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) state.currentLine = lineBeforeMatch + 1; state.voiceLastMatchAt = performance.now(); moveTowardSpeechCursor(); return; } const nearbyMatch = findBestNearbyVoiceMatch(heardWords); const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0); const canAssistNow = timeSinceLastStrongMatch > 120; if (nearbyMatch && canAssistNow && applyNearbyVoiceMatch(nearbyMatch)) return; }
+    function enableVoice(enabled) { state.voiceEnabled = enabled; state.voiceLastProcessed = ''; state.voiceLastMatchAt = 0; if (!state.recognitionReady) return; if (enabled) { updateTranscript('Reconhecimento de voz ligado. Comece a falar.'); try { state.recognition.start(); } catch (e) {} } else if (state.recognitionRunning) { state.recognition.stop(); updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.'); } }
+    function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
+    function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
+    function toggleCleanMode() { if (!state.cleanMode) return; state.cleanMode = false; app.classList.add('detail-mode'); app.classList.remove('clean-mode'); $('cleanReturnBtn').style.display = 'grid'; $('detailPanel').classList.add('open'); }
+    function returnToCleanMode() { state.cleanMode = true; app.classList.add('clean-mode'); app.classList.remove('detail-mode'); $('cleanReturnBtn').style.display = 'none'; $('detailPanel').classList.remove('open'); }
+    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
+    function hidePanel() { sidePanel.classList.remove('open'); }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
+    function hideLibraryPanel() { libraryPanel.classList.remove('open'); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-
-    function persistSettings() {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value,
-        baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked
-      }));
-    }
-
-    function persistCurrentDraft() {
-      localStorage.setItem(CURRENT_KEY, JSON.stringify({
-        title: songTitleInput.value.trim(),
-        artist: artistInput.value.trim(),
-        style: styleInput.value.trim(),
-        lyrics: scriptInput.value
-      }));
-    }
-
-    function loadSettings() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-        if (saved.fontSize) fontSize.value = saved.fontSize;
-        if (saved.lineHeight) lineHeight.value = saved.lineHeight;
-        if (saved.textWidth) textWidth.value = saved.textWidth;
-        if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity;
-        if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed;
-        if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed;
-        state.mirror = !!saved.mirror;
-        mirrorToggle.checked = state.mirror;
-        voiceToggle.checked = !!saved.voiceEnabled;
-      } catch (_) {}
-    }
-
-    function loadCurrentDraft() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}');
-        if (saved.title) songTitleInput.value = saved.title;
-        if (saved.artist) artistInput.value = saved.artist;
-        if (saved.style) styleInput.value = saved.style;
-        if (saved.lyrics) scriptInput.value = saved.lyrics;
-      } catch (_) {}
-    }
-
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked })); }
+    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
-
-    function loadSongs() {
-      try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-      catch (_) { state.songs = []; }
-      renderRepertoire();
-    }
-
-    function renderRepertoire() {
-      repertoireSelect.innerHTML = '';
-      if (!state.songs.length) {
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'Nenhuma música salva';
-        repertoireSelect.appendChild(option);
-        return;
-      }
-      state.songs.forEach(song => {
-        const option = document.createElement('option');
-        option.value = song.id;
-        option.textContent = song.title || 'Sem título';
-        repertoireSelect.appendChild(option);
-      });
-      if (state.currentSongId) repertoireSelect.value = state.currentSongId;
-    }
-
-    function saveCurrentSong() {
-      const title = songTitleInput.value.trim() || 'Sem título';
-      const lyrics = sanitizeLyrics(scriptInput.value);
-      scriptInput.value = lyrics;
-      if (!lyrics) return;
-      const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
-      const payload = {
-        id: existingIndex >= 0 ? state.currentSongId : `song-${Date.now()}`,
-        title,
-        artist: artistInput.value.trim(),
-        style: styleInput.value.trim(),
-        lyrics
-      };
-      if (existingIndex >= 0) state.songs[existingIndex] = payload;
-      else state.songs.push(payload);
-      state.currentSongId = payload.id;
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      repertoireSelect.value = payload.id;
-      persistCurrentDraft();
-    }
-
-    function openSelectedSong() {
-      const id = repertoireSelect.value;
-      const song = state.songs.find(item => item.id === id);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      loadScript();
-      persistCurrentDraft();
-    }
-
-    function deleteSelectedSong() {
-      const id = repertoireSelect.value;
-      if (!id) return;
-      state.songs = state.songs.filter(song => song.id !== id);
-      if (state.currentSongId === id) state.currentSongId = null;
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      syncSongsToCloud();
-    }
-
-    function getCurrentSongIndex() {
-      if (!state.songs.length) return -1;
-      const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id;
-      return state.songs.findIndex(song => song.id === selectedId);
-    }
-
-    function loadSongByIndex(index) {
-      if (!state.songs.length) return;
-      const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length;
-      const song = state.songs[normalized];
-      if (!song) return;
-      state.currentSongId = song.id;
-      repertoireSelect.value = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      loadScript();
-      persistCurrentDraft();
-    }
-
-    function previousSong() {
-      const currentIndex = getCurrentSongIndex();
-      if (currentIndex < 0) return;
-      loadSongByIndex(currentIndex - 1);
-    }
-
-    function nextSong() {
-      const currentIndex = getCurrentSongIndex();
-      if (currentIndex < 0) return;
-      loadSongByIndex(currentIndex + 1);
-    }
-
-    function renderLibraryList(term = '') {
-      const query = (term || '').toLowerCase().trim();
-      const filtered = !query
-        ? state.songs
-        : state.songs.filter(song => {
-            const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-            return hay.includes(query);
-          });
-      libraryList.innerHTML = '';
-      if (!state.songs.length) {
-        const emptyAll = document.createElement('div');
-        emptyAll.className = 'panel-note';
-        emptyAll.textContent = 'Nenhuma música salva no repertório.';
-        libraryList.appendChild(emptyAll);
-        return;
-      }
-      if (!filtered.length) {
-        const empty = document.createElement('div');
-        empty.className = 'panel-note';
-        empty.textContent = 'Nenhuma música encontrada para essa busca.';
-        libraryList.appendChild(empty);
-        return;
-      }
-      filtered.forEach(song => {
-        const btn = document.createElement('button');
-        btn.className = 'ghost-btn';
-        btn.style.width = '100%';
-        btn.style.textAlign = 'left';
-        btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
-        btn.addEventListener('click', () => {
-          state.currentSongId = song.id;
-          songTitleInput.value = song.title || '';
-          artistInput.value = song.artist || '';
-          styleInput.value = song.style || '';
-          scriptInput.value = song.lyrics || '';
-          loadScript();
-          repertoireSelect.value = song.id;
-          persistCurrentDraft();
-          hideSongEditor();
-          hideLibraryPanel();
-        });
-        libraryList.appendChild(btn);
-      });
-    }
-
-    function bindEvents() {
-      $('loadTextBtn').addEventListener('click', loadScript);
-      $('sampleTextBtn').addEventListener('click', () => {
-        songTitleInput.value = 'Exemplo';
-        scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou';
-        loadScript();
-      });
-      $('saveSongBtn').addEventListener('click', saveCurrentSong);
+    function loadSongs() { try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) { state.songs = []; } renderRepertoire(); }
+    function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
+    function saveCurrentSong() {$1syncSongsToCloud(); hideSongEditor(); hideLibraryPanel(); }
+    function openSelectedSong() { const id = repertoireSelect.value; const song = state.songs.find(item => item.id === id); if (!song) return; state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
+    function deleteSelectedSong() { const id = repertoireSelect.value; if (!id) return; state.songs = state.songs.filter(song => song.id !== id); if (state.currentSongId === id) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); syncSongsToCloud(); }
+    function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
+    function loadSongByIndex(index) { if (!state.songs.length) return; const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length; const song = state.songs[normalized]; if (!song) return; state.currentSongId = song.id; repertoireSelect.value = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
+    function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
+    function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
+    function renderLibraryList(term = '') { const query = (term || '').toLowerCase().trim(); const filtered = !query ? state.songs : state.songs.filter(song => { const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase(); return hay.includes(query); }); libraryList.innerHTML = ''; if (!state.songs.length) { const emptyAll = document.createElement('div'); emptyAll.className = 'panel-note'; emptyAll.textContent = 'Nenhuma música salva no repertório.'; libraryList.appendChild(emptyAll); return; } if (!filtered.length) { const empty = document.createElement('div'); empty.className = 'panel-note'; empty.textContent = 'Nenhuma música encontrada para essa busca.'; libraryList.appendChild(empty); return; } filtered.forEach(song => { const btn = document.createElement('button'); btn.className = 'ghost-btn'; btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`; btn.addEventListener('click', () => { state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); repertoireSelect.value = song.id; persistCurrentDraft(); hideSongEditor(); hideLibraryPanel(); }); libraryList.appendChild(btn); }); }
+    function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
       $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
-      $('showPasswordToggle').addEventListener('change', (e) => {
-        authPasswordInput.type = e.target.checked ? 'text' : 'password';
-      });
-      $('backSongBtn').addEventListener('click', previousSong);
-      $('nextSongBtn').addEventListener('click', nextSong);
-      $('backBlockBtn').addEventListener('click', () => jumpLine(-1));
-      $('nextBlockBtn').addEventListener('click', () => jumpLine(1));
-      $('playPauseBtn').addEventListener('click', togglePlayPause);
-      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
-      $('cleanReturnBtn').addEventListener('click', returnToCleanMode);
-      $('openPanelDockBtn').addEventListener('click', togglePanel);
-      $('openLibraryBtn').addEventListener('click', openLibraryPanel);
-      $('hideLibraryBtn').addEventListener('click', hideLibraryPanel);
-      librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value));
-      $('hidePanelBtn').addEventListener('click', hidePanel);
-      $('openLoginBtn').addEventListener('click', openAuthPanel);
-      $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel);
-      $('signInBtn').addEventListener('click', signInWithSupabase);
-      $('signUpBtn').addEventListener('click', signUpWithSupabase);
-      $('signOutBtn').addEventListener('click', signOutFromSupabase);
-      $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true }));
-      repertoireSelect.addEventListener('change', openSelectedSong);
-
-      [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => {
-        input.addEventListener('input', () => {
-          updateValueLabels();
-          refreshLayoutPreservingPoint();
-          persistSettings();
-        });
-      });
-
-      baseSpeed.addEventListener('input', () => {
-        updateValueLabels();
-        state.baseSpeed = Number(baseSpeed.value);
-      if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value;
-        if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value;
-        persistSettings();
-      });
-
-      if (detailSpeedSlider) {
-        detailSpeedSlider.addEventListener('input', () => {
-          baseSpeed.value = detailSpeedSlider.value;
-          updateValueLabels();
-          state.baseSpeed = Number(detailSpeedSlider.value);
-          persistSettings();
-        });
-      }
-
-      voiceFollowSpeed.addEventListener('input', () => {
-        updateValueLabels();
-        const raw = Number(voiceFollowSpeed.value);
-        state.voiceFollowSpeed = raw / 100;
-        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
-        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
-        persistSettings();
-      });
-
-      voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); });
-      mirrorToggle.addEventListener('change', toggleMirror);
-      songTitleInput.addEventListener('input', persistCurrentDraft);
-      artistInput.addEventListener('input', persistCurrentDraft);
-      styleInput.addEventListener('input', persistCurrentDraft);
-      scriptInput.addEventListener('input', persistCurrentDraft);
-
-      window.addEventListener('resize', () => refreshLayoutPreservingPoint());
-      window.addEventListener('online', () => syncSongsToCloud());
-    }
-
-    function isStandaloneMode() {
-      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    }
-
-    function isMobilePhoneBrowser() {
-      const ua = navigator.userAgent || '';
-      return /Android|iPhone|iPod/i.test(ua);
-    }
-
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('cleanReturnBtn').addEventListener('click', returnToCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
+    function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+    function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
-
-    function showEntryScreen(target) {
-      const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' };
-      const activeId = map[target] || map.home;
-      ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => {
-        const screen = $(id);
-        if (screen) screen.classList.toggle('active', id === activeId);
-      });
-    }
-
-    function setupBrowserEntryGate() {
-      const gate = $('browserEntryGate');
-      if (!gate) return;
-      gate.classList.toggle('active', shouldShowBrowserEntryGate());
-      gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true');
-      showEntryScreen('home');
-      gate.querySelectorAll('[data-entry-target]').forEach((btn) => {
-        btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target')));
-      });
-    }
-
-    function init() {
-      createSupabaseClient();
-      loadSettings();
-      loadCurrentDraft();
-      loadSongs();
-      updateValueLabels();
-      state.baseSpeed = Number(baseSpeed.value);
-      state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
-      state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
-      state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
-      applyStyles();
-      loadScript();
-      setupVoice();
-      bindEvents();
-      bindBluetoothControls();
-      bindTextDrag();
-      setupBrowserEntryGate();
-      app.classList.add('clean-mode');
-      $('cleanReturnBtn').style.display = 'none';
-      $('detailPanel').classList.remove('open');
-      syncPlayPauseIcon();
-      if (voiceToggle.checked) enableVoice(true);
-      restoreSupabaseSession();
-    }
-
+    function showEntryScreen(target) { const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' }; const activeId = map[target] || map.home; ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => { const screen = $(id); if (screen) screen.classList.toggle('active', id === activeId); }); }
+    function setupBrowserEntryGate() { const gate = $('browserEntryGate'); if (!gate) return; gate.classList.toggle('active', shouldShowBrowserEntryGate()); gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true'); showEntryScreen('home'); gate.querySelectorAll('[data-entry-target]').forEach((btn) => { btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target'))); }); }
+    function init() { createSupabaseClient(); loadSettings(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('cleanReturnBtn').style.display = 'none'; $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
     init();
   </script>
 </body>
