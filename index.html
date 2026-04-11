@@ -250,8 +250,8 @@
     .panel-grid { display: grid; gap: 14px; }
     .field { display: grid; gap: 8px; }
     .field label { font-size: 13px; color: rgba(255,255,255,0.72); }
-    .field textarea, .field input[type="text"], .field select, .field input[type="range"] { width: 100%; }
-    .field textarea, .field input[type="text"], .field select {
+    .field textarea, .field input[type="text"], .field input[type="password"], .field select, .field input[type="range"] { width: 100%; }
+    .field textarea, .field input[type="text"], .field input[type="password"], .field select {
       border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: white;
       border-radius: 18px; padding: 12px 14px; outline: none; font-size: 14px;
     }
@@ -335,6 +335,45 @@
     .entry-step-text { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.9); }
     .entry-footer { text-align: center; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.58); padding-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
+
+    .auth-panel {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 46;
+      width: var(--panel-w); max-height: min(84vh, 720px); overflow: auto;
+      border-radius: 26px; background: rgba(8,12,18,0.92); border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,0.34); padding: 16px; display: none;
+      pointer-events: auto;
+    }
+
+    .auth-panel.open { display: block; }
+    .auth-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .auth-actions-row .ghost-btn { flex: 1; min-width: 110px; }
+    .sync-status-note {
+      padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.5;
+    }
+    .library-actions-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .library-actions-row .ghost-btn {
+      flex: 1;
+      min-width: 140px;
+    }
+    .song-editor-panel {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 56;
+      width: min(420px, calc(100vw - 28px)); max-height: min(86vh, 760px); overflow: auto;
+      border-radius: 26px; background: rgba(8,12,18,0.94); border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,0.34); padding: 16px; display: none;
+      pointer-events: auto;
+    }
+    .song-editor-panel.open { display: block; }
+    .password-visibility-row {
+      display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.76); font-size: 13px;
+      margin-top: -2px;
+    }
+    .password-visibility-row input { width: 16px; height: 16px; accent-color: #7cb0ff; }
+
     @media (max-width: 560px) {
       :root { --text-width: 90vw; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
@@ -415,6 +454,9 @@
         </div>
 
         <div class="library-card">
+          <div class="library-actions-row">
+            <button class="ghost-btn" id="newSongBtn">Cadastrar música</button>
+          </div>
           <div class="field">
             <label for="librarySearchInput">Buscar no repertório</label>
             <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
@@ -424,6 +466,7 @@
             <div class="panel-note">Busque por nome da música, cantor ou estilo, ou escolha diretamente na lista completa abaixo.</div>
             <div id="libraryList" class="library-results"></div>
           </div>
+          <select id="repertoireSelect" class="hidden"></select>
         </div>
       </div>
     </div>
@@ -445,45 +488,12 @@
       </div>
 
       <div class="panel-grid">
-        <div class="field">
-          <label for="songTitleInput">Título da música</label>
-          <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
-        </div>
-
-        <div class="field">
-          <label for="artistInput">Cantor / artista</label>
-          <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
-        </div>
-
-        <div class="field">
-          <label for="styleInput">Estilo musical</label>
-          <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
-        </div>
-
-        <div class="field">
-          <label for="scriptInput">Letra da música</label>
-          <textarea id="scriptInput">Cole aqui a letra da sua música.
-
-Use uma estrofe por bloco para facilitar a leitura no palco.
-
-O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
-        </div>
-
         <div class="small-row">
-          <button class="ghost-btn" id="loadTextBtn">Carregar música</button>
-          <button class="ghost-btn" id="sampleTextBtn">Exemplo</button>
-          <button class="ghost-btn" id="saveSongBtn">Salvar no repertório</button>
+          <button class="ghost-btn" id="openLoginBtn">Login</button>
+          <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
         </div>
 
-        <div class="field">
-          <label for="repertoireSelect">Músicas salvas</label>
-          <select id="repertoireSelect"></select>
-        </div>
-
-        <div class="small-row">
-          <button class="ghost-btn" id="openSavedBtn">Abrir música salva</button>
-          <button class="ghost-btn" id="deleteSavedBtn">Excluir música salva</button>
-        </div>
+        <div class="sync-status-note" id="syncStatusNote">Sincronização local ativa.</div>
 
         <div class="toggle-row">
           <span>Reconhecimento por fala</span>
@@ -543,6 +553,79 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       </div>
     </div>
 
+    <div class="auth-panel" id="authPanel">
+      <div class="panel-title">
+        <h2>Login</h2>
+        <button class="mini-btn" id="hideAuthPanelBtn">×</button>
+      </div>
+
+      <div class="panel-grid">
+        <div class="field">
+          <label for="authEmailInput">Login</label>
+          <input id="authEmailInput" type="text" placeholder="Seu e-mail" />
+        </div>
+
+        <div class="field">
+          <label for="authPasswordInput">Senha</label>
+          <input id="authPasswordInput" type="password" placeholder="Sua senha" />
+          <label class="password-visibility-row" for="showPasswordToggle">
+            <input id="showPasswordToggle" type="checkbox" />
+            <span>Visualizar senha</span>
+          </label>
+        </div>
+
+        <div class="auth-actions-row">
+          <button class="ghost-btn" id="signInBtn">Entrar</button>
+          <button class="ghost-btn" id="signUpBtn">Cadastrar</button>
+        </div>
+
+        <div class="auth-actions-row">
+          <button class="ghost-btn" id="signOutBtn">Sair</button>
+        </div>
+
+        <div class="sync-status-note" id="authStatusNote">Nenhuma conta conectada.</div>
+      </div>
+    </div>
+
+    <div class="song-editor-panel" id="songEditorPanel">
+      <div class="panel-title">
+        <h2>Nova música</h2>
+        <button class="mini-btn" id="hideSongEditorBtn">×</button>
+      </div>
+
+      <div class="panel-grid">
+        <div class="field">
+          <label for="songTitleInput">Título da música</label>
+          <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
+        </div>
+
+        <div class="field">
+          <label for="artistInput">Cantor / artista</label>
+          <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
+        </div>
+
+        <div class="field">
+          <label for="styleInput">Estilo musical</label>
+          <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
+        </div>
+
+        <div class="field">
+          <label for="scriptInput">Letra da música</label>
+          <textarea id="scriptInput">Cole aqui a letra da sua música.
+
+Use uma estrofe por bloco para facilitar a leitura no palco.
+
+O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
+        </div>
+
+        <div class="small-row">
+          <button class="ghost-btn" id="loadTextBtn">Carregar música</button>
+          <button class="ghost-btn" id="sampleTextBtn">Exemplo</button>
+          <button class="ghost-btn" id="saveSongBtn">Salvar no repertório</button>
+        </div>
+      </div>
+    </div>
+
     <div class="controls-bar">
       <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
@@ -552,6 +635,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const $ = (id) => document.getElementById(id);
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
@@ -567,7 +651,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       speechCursor: 0, mirror: false, cleanMode: true, anchorIndex: 0, anchorProgress: 0.5,
       textDragging: false, textDragPointerId: null, textDragStartY: 0, textDragLastY: 0, textDragMoved: false,
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
-      songs: [], currentSongId: null
+      songs: [], currentSongId: null,
+      supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0
     };
 
     const app = $('app');
@@ -598,6 +683,226 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const overlayOpacityValue = $('overlayOpacityValue');
     const baseSpeedValue = $('baseSpeedValue');
     const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
+    const authPanel = $('authPanel');
+    const authEmailInput = $('authEmailInput');
+    const authPasswordInput = $('authPasswordInput');
+    const authStatusNote = $('authStatusNote');
+    const syncStatusNote = $('syncStatusNote');
+    const songEditorPanel = $('songEditorPanel');
+
+
+    const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
+
+    function createSupabaseClient() {
+      if (!window.supabase || state.supabase) return;
+      state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    }
+
+    function formatSyncTime(ts) {
+      if (!ts) return '';
+      try {
+        return new Date(ts).toLocaleString('pt-BR');
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function updateAuthStatus(message) {
+      if (authStatusNote) authStatusNote.textContent = message;
+    }
+
+    function updateSyncStatus(message) {
+      if (syncStatusNote) syncStatusNote.textContent = message;
+    }
+
+    function setSyncStatusFromState(extraMessage = '') {
+      const base = state.currentUser
+        ? `Conta conectada: ${state.currentUser.email || 'usuário logado'}.`
+        : 'Sincronização local ativa.';
+      const time = state.lastSyncAt ? ` Última sincronização: ${formatSyncTime(state.lastSyncAt)}.` : '';
+      updateSyncStatus(`${base}${time}${extraMessage ? ` ${extraMessage}` : ''}`.trim());
+    }
+
+    function openAuthPanel() {
+      hidePanel();
+      hideLibraryPanel();
+      hideSongEditor();
+      authPanel.classList.add('open');
+    }
+
+    function hideAuthPanel() {
+      authPanel.classList.remove('open');
+    }
+
+    function openSongEditor() {
+      hidePanel();
+      hideAuthPanel();
+      songEditorPanel.classList.add('open');
+      songTitleInput.focus();
+    }
+
+    function hideSongEditor() {
+      songEditorPanel.classList.remove('open');
+    }
+
+    function prepareNewSong() {
+      state.currentSongId = null;
+      songTitleInput.value = '';
+      artistInput.value = '';
+      styleInput.value = '';
+      scriptInput.value = '';
+      persistCurrentDraft();
+      openSongEditor();
+    }
+
+    function getAuthCredentials() {
+      return {
+        email: (authEmailInput?.value || '').trim(),
+        password: authPasswordInput?.value || ''
+      };
+    }
+
+    function sanitizeCloudSong(song) {
+      return {
+        id: song.id,
+        title: song.song_title || 'Sem título',
+        artist: song.artist || '',
+        style: song.style || '',
+        lyrics: sanitizeLyrics(song.lyrics || '')
+      };
+    }
+
+    async function pullSongsFromCloud() {
+      if (!state.supabase || !state.currentUser) return;
+      const { data, error } = await state.supabase
+        .from('songs')
+        .select('id, song_title, artist, style, lyrics, updated_at')
+        .eq('user_id', state.currentUser.id)
+        .order('updated_at', { ascending: true });
+      if (error) throw error;
+      state.songs = (data || []).map(sanitizeCloudSong);
+      saveSongs();
+      renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+    }
+
+    async function syncSongsToCloud(options = {}) {
+      const manual = !!options.manual;
+      if (!state.supabase || !state.currentUser || state.syncInFlight) {
+        if (manual && !state.currentUser) updateSyncStatus('Faça login para sincronizar com a nuvem.');
+        return;
+      }
+      if (!navigator.onLine) {
+        updateSyncStatus('Sem internet no momento. Seus dados continuam salvos localmente.');
+        return;
+      }
+      state.syncInFlight = true;
+      updateSyncStatus(manual ? 'Sincronizando repertório...' : 'Sincronização automática em andamento...');
+      try {
+        const payload = state.songs.map(song => ({
+          id: song.id,
+          user_id: state.currentUser.id,
+          song_title: song.title || 'Sem título',
+          artist: song.artist || '',
+          style: song.style || '',
+          lyrics: sanitizeLyrics(song.lyrics || ''),
+          updated_at: new Date().toISOString()
+        }));
+
+        const { error: deleteError } = await state.supabase
+          .from('songs')
+          .delete()
+          .eq('user_id', state.currentUser.id);
+        if (deleteError) throw deleteError;
+
+        if (payload.length) {
+          const { error: insertError } = await state.supabase
+            .from('songs')
+            .insert(payload);
+          if (insertError) throw insertError;
+        }
+
+        await pullSongsFromCloud();
+        state.lastSyncAt = Date.now();
+        setSyncStatusFromState('Tudo salvo na nuvem.');
+      } catch (error) {
+        updateSyncStatus(`Falha na sincronização. ${error.message || 'Tente novamente.'}`.trim());
+      } finally {
+        state.syncInFlight = false;
+      }
+    }
+
+    async function signUpWithSupabase() {
+      const { email, password } = getAuthCredentials();
+      if (!email || !password) {
+        updateAuthStatus('Preencha login e senha para cadastrar.');
+        return;
+      }
+      try {
+        const { data, error } = await state.supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        state.currentUser = data.user || null;
+        updateAuthStatus(state.currentUser
+          ? `Cadastro concluído para ${state.currentUser.email || email}.`
+          : 'Cadastro enviado. Verifique o e-mail da conta, se necessário.');
+        setSyncStatusFromState();
+        if (state.currentUser) await syncSongsToCloud({ manual: true });
+      } catch (error) {
+        updateAuthStatus(`Não foi possível cadastrar. ${error.message || 'Tente novamente.'}`.trim());
+      }
+    }
+
+    async function signInWithSupabase() {
+      const { email, password } = getAuthCredentials();
+      if (!email || !password) {
+        updateAuthStatus('Preencha login e senha para entrar.');
+        return;
+      }
+      try {
+        const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        state.currentUser = data.user || null;
+        updateAuthStatus(`Conta conectada: ${state.currentUser?.email || email}.`);
+        await pullSongsFromCloud();
+        state.lastSyncAt = Date.now();
+        setSyncStatusFromState('Repertório carregado da nuvem.');
+        hideAuthPanel();
+      } catch (error) {
+        updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
+      }
+    }
+
+    async function signOutFromSupabase() {
+      if (!state.supabase) return;
+      try {
+        await state.supabase.auth.signOut();
+      } catch (_) {}
+      state.currentUser = null;
+      updateAuthStatus('Nenhuma conta conectada.');
+      setSyncStatusFromState('Sincronização online pausada.');
+    }
+
+    async function restoreSupabaseSession() {
+      if (!state.supabase) return;
+      try {
+        const { data } = await state.supabase.auth.getSession();
+        state.currentUser = data?.session?.user || null;
+        if (state.currentUser) {
+          updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
+          setSyncStatusFromState();
+          await pullSongsFromCloud();
+          state.lastSyncAt = Date.now();
+          setSyncStatusFromState('Repertório carregado da nuvem.');
+        } else {
+          updateAuthStatus('Nenhuma conta conectada.');
+          setSyncStatusFromState();
+        }
+      } catch (_) {
+        updateAuthStatus('Nenhuma conta conectada.');
+        setSyncStatusFromState();
+      }
+    }
 
     function normalizeWord(word) {
       return (word || '')
@@ -704,6 +1009,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.scrollOffset = 0;
       renderScript();
       persistCurrentDraft();
+      syncSongsToCloud();
+      hideSongEditor();
+      hideLibraryPanel();
     }
 
     function applyScroll(immediate = false) {
@@ -1240,6 +1548,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       saveSongs();
       renderRepertoire();
       renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      syncSongsToCloud();
     }
 
     function getCurrentSongIndex() {
@@ -1313,6 +1622,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           loadScript();
           repertoireSelect.value = song.id;
           persistCurrentDraft();
+          hideSongEditor();
           hideLibraryPanel();
         });
         libraryList.appendChild(btn);
@@ -1327,8 +1637,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         loadScript();
       });
       $('saveSongBtn').addEventListener('click', saveCurrentSong);
-      $('openSavedBtn').addEventListener('click', openSelectedSong);
-      $('deleteSavedBtn').addEventListener('click', deleteSelectedSong);
+      $('newSongBtn').addEventListener('click', prepareNewSong);
+      $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
+      $('showPasswordToggle').addEventListener('change', (e) => {
+        authPasswordInput.type = e.target.checked ? 'text' : 'password';
+      });
       $('backSongBtn').addEventListener('click', previousSong);
       $('nextSongBtn').addEventListener('click', nextSong);
       $('backBlockBtn').addEventListener('click', () => jumpLine(-1));
@@ -1341,6 +1654,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideLibraryBtn').addEventListener('click', hideLibraryPanel);
       librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value));
       $('hidePanelBtn').addEventListener('click', hidePanel);
+      $('openLoginBtn').addEventListener('click', openAuthPanel);
+      $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel);
+      $('signInBtn').addEventListener('click', signInWithSupabase);
+      $('signUpBtn').addEventListener('click', signUpWithSupabase);
+      $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true }));
       repertoireSelect.addEventListener('change', openSelectedSong);
 
       [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => {
@@ -1385,6 +1704,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.addEventListener('input', persistCurrentDraft);
 
       window.addEventListener('resize', () => refreshLayoutPreservingPoint());
+      window.addEventListener('online', () => syncSongsToCloud());
     }
 
     function isStandaloneMode() {
@@ -1419,6 +1739,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function init() {
+      createSupabaseClient();
       loadSettings();
       loadCurrentDraft();
       loadSongs();
@@ -1439,6 +1760,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('detailPanel').classList.remove('open');
       syncPlayPauseIcon();
       if (voiceToggle.checked) enableVoice(true);
+      restoreSupabaseSession();
     }
 
     init();
