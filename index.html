@@ -373,6 +373,62 @@
     }
     .password-visibility-row input { width: 16px; height: 16px; accent-color: #7cb0ff; }
 
+
+    .app-toast {
+      position: absolute;
+      left: 50%;
+      top: calc(var(--safe-top) + 18px);
+      transform: translateX(-50%) translateY(-12px);
+      z-index: 80;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(8,12,18,0.92);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .app-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .song-actions-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 70;
+      width: min(340px, calc(100vw - 28px));
+      border-radius: 24px;
+      background: rgba(8,12,18,0.94);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.34);
+      padding: 16px;
+      display: none;
+      pointer-events: auto;
+    }
+
+    .song-actions-panel.open { display: block; }
+    .song-actions-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+    }
+    .song-actions-subtitle {
+      margin: 0 0 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.72);
+    }
+
     @media (max-width: 560px) {
       :root { --text-width: 90vw; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
@@ -632,6 +688,21 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">↠</button>
       <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">♫</button>
     </div>
+
+    <div class="app-toast" id="appToast" aria-live="polite"></div>
+
+    <div class="song-actions-panel" id="songActionsPanel">
+      <div class="panel-title">
+        <h2>Ações da música</h2>
+        <button class="mini-btn" id="hideSongActionsBtn">×</button>
+      </div>
+      <p class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer.</p>
+      <div class="panel-grid">
+        <button class="ghost-btn" id="editSongActionBtn">Editar música</button>
+        <button class="ghost-btn" id="deleteSongActionBtn">Excluir música</button>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -652,7 +723,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
-      toastTimer: null
+      toastTimer: null, selectedSongActionId: null
     };
 
     const app = $('app');
@@ -689,6 +760,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const authStatusNote = $('authStatusNote');
     const syncStatusNote = $('syncStatusNote');
     const songEditorPanel = $('songEditorPanel');
+    const appToast = $('appToast');
+    const songActionsPanel = $('songActionsPanel');
+    const songActionsSubtitle = $('songActionsSubtitle');
 
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
@@ -764,6 +838,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hidePanel();
       hideLibraryPanel();
       hideSongEditor();
+      hideSongActions();
       authPanel.classList.add('open');
     }
 
@@ -780,6 +855,36 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function hideSongEditor() {
       songEditorPanel.classList.remove('open');
+    }
+
+    function openSongActions(songId) {
+      const song = state.songs.find(item => item.id === songId);
+      if (!song || !songActionsPanel) return;
+      state.selectedSongActionId = song.id;
+      if (songActionsSubtitle) songActionsSubtitle.textContent = song.title || 'Sem título';
+      songActionsPanel.classList.add('open');
+    }
+
+    function hideSongActions() {
+      if (!songActionsPanel) return;
+      songActionsPanel.classList.remove('open');
+      state.selectedSongActionId = null;
+    }
+
+    function editSongById(songId) {
+      const song = state.songs.find(item => item.id === songId);
+      if (!song) return;
+      state.currentSongId = song.id;
+      songTitleInput.value = song.title || '';
+      artistInput.value = song.artist || '';
+      styleInput.value = song.style || '';
+      scriptInput.value = song.lyrics || '';
+      loadScript();
+      repertoireSelect.value = song.id;
+      persistCurrentDraft();
+      hideSongActions();
+      hideLibraryPanel();
+      openSongEditor();
     }
 
     function prepareNewSong() {
@@ -901,13 +1006,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         if (error) throw error;
         state.currentUser = data.user || null;
         updateAuthStatus(`Conta conectada: ${state.currentUser?.email || email}.`);
-        await pullSongsFromCloud();
-        state.lastSyncAt = Date.now();
-        setSyncStatusFromState('Repertório carregado da nuvem.');
         showToast('Login realizado');
         setTimeout(() => {
           hideAuthPanel();
         }, 900);
+
+        try {
+          await pullSongsFromCloud();
+          state.lastSyncAt = Date.now();
+          setSyncStatusFromState('Repertório carregado da nuvem.');
+        } catch (cloudError) {
+          state.lastSyncAt = Date.now();
+          setSyncStatusFromState('Login concluído. Não foi possível atualizar o repertório da nuvem agora.');
+        }
       } catch (error) {
         updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
       }
@@ -1141,7 +1252,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (matchedLine > state.currentLine) {
         state.currentLine = matchedLine;
         markLines();
-        placeActiveLineAtStart();
       }
 
       state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
@@ -1150,15 +1260,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function advanceSpeechCursorForward(heardWords) {
       if (!heardWords.length || !state.flatWords.length) return 0;
-      const maxLookAheadPerWord = 3;
-      const hardAdvanceLimit = Math.min(state.flatWords.length, state.speechCursor + 8);
+      const hardAdvanceLimit = Math.min(state.flatWords.length, state.speechCursor + 4);
       let cursor = state.speechCursor;
       let matched = 0;
 
       for (const word of heardWords) {
-        const searchEnd = Math.min(hardAdvanceLimit, cursor + maxLookAheadPerWord + 1);
         let foundIndex = -1;
-        for (let i = cursor; i < searchEnd; i++) {
+        for (let i = cursor; i < hardAdvanceLimit; i++) {
           if (state.flatWords[i] === word) {
             foundIndex = i;
             break;
@@ -1171,7 +1279,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }
 
       if (matched > 0 && cursor > state.speechCursor) {
-        const advance = Math.min(4, cursor - state.speechCursor);
+        const advance = Math.min(2, cursor - state.speechCursor);
         state.speechCursor = Math.min(state.flatWords.length, state.speechCursor + advance);
         return advance;
       }
@@ -1272,7 +1380,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
     function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
-    function hideLibraryPanel() { libraryPanel.classList.remove('open'); }
+    function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
     function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
@@ -1317,17 +1425,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       syncSongsToCloud();
     }
 
-    function openSelectedSong() { const id = repertoireSelect.value; const song = state.songs.find(item => item.id === id); if (!song) return; state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
-    function deleteSelectedSong() { const id = repertoireSelect.value; if (!id) return; state.songs = state.songs.filter(song => song.id !== id); if (state.currentSongId === id) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); syncSongsToCloud(); }
+    function openSelectedSong() { const id = repertoireSelect.value; const song = state.songs.find(item => item.id === id); if (!song) return; state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; placeActiveLineAtStart(); persistCurrentDraft(); }
+    function deleteSongById(songId) { if (!songId) return; state.songs = state.songs.filter(song => song.id !== songId); if (state.currentSongId === songId) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); hideSongActions(); syncSongsToCloud(); }
     function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
     function loadSongByIndex(index) { if (!state.songs.length) return; const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length; const song = state.songs[normalized]; if (!song) return; state.currentSongId = song.id; repertoireSelect.value = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; placeActiveLineAtStart(); persistCurrentDraft(); }
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
     function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
-    function renderLibraryList(term = '') { const query = (term || '').toLowerCase().trim(); const filtered = !query ? state.songs : state.songs.filter(song => { const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase(); return hay.includes(query); }); libraryList.innerHTML = ''; if (!state.songs.length) { const emptyAll = document.createElement('div'); emptyAll.className = 'panel-note'; emptyAll.textContent = 'Nenhuma música salva no repertório.'; libraryList.appendChild(emptyAll); return; } if (!filtered.length) { const empty = document.createElement('div'); empty.className = 'panel-note'; empty.textContent = 'Nenhuma música encontrada para essa busca.'; libraryList.appendChild(empty); return; } filtered.forEach(song => { const btn = document.createElement('button'); btn.className = 'ghost-btn'; btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`; btn.addEventListener('click', () => { state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); repertoireSelect.value = song.id; persistCurrentDraft(); hideSongEditor(); hideLibraryPanel(); }); libraryList.appendChild(btn); }); }
+    function renderLibraryList(term = '') { const query = (term || '').toLowerCase().trim(); const filtered = !query ? state.songs : state.songs.filter(song => { const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase(); return hay.includes(query); }); libraryList.innerHTML = ''; if (!state.songs.length) { const emptyAll = document.createElement('div'); emptyAll.className = 'panel-note'; emptyAll.textContent = 'Nenhuma música salva no repertório.'; libraryList.appendChild(emptyAll); return; } if (!filtered.length) { const empty = document.createElement('div'); empty.className = 'panel-note'; empty.textContent = 'Nenhuma música encontrada para essa busca.'; libraryList.appendChild(empty); return; } filtered.forEach(song => { const btn = document.createElement('button'); btn.className = 'ghost-btn'; btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`; btn.addEventListener('click', () => openSongActions(song.id)); libraryList.appendChild(btn); }); }
     function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
       $('newSongBtn').addEventListener('click', prepareNewSong);
-      $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
