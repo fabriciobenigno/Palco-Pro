@@ -1020,72 +1020,51 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           break;
         }
       }
-
       if (matchedLine !== state.currentLine) {
         state.currentLine = matchedLine;
         markLines();
-        placeActiveLineAtStart();
       }
-
-      state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
       followSpeechVisualProgress();
     }
 
     function setupVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        updateTranscript('Reconhecimento de voz não disponível neste navegador.');
-        voiceToggle.disabled = true;
-        return;
-      }
-
+function setupVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
       const recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.interimResults = true;
       recognition.continuous = true;
       recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        state.recognitionRunning = true;
-      };
-
+      recognition.onstart = () => { state.recognitionRunning = true; };
       recognition.onend = () => {
         state.recognitionRunning = false;
         if (state.voiceEnabled) {
-          setTimeout(() => {
-            try { recognition.start(); } catch (e) {}
-          }, 250);
+          try { recognition.start(); } catch (e) {}
         }
       };
-
       recognition.onresult = (event) => {
         let joined = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          joined += event.results[i][0].transcript + ' ';
-        }
-        joined = joined.trim();
-        if (!joined) return;
-        updateTranscript(`Você disse: ${joined}`);
-        handleVoiceContinuous(joined);
+        for (let i = event.resultIndex; i < event.results.length; i++) joined += ` ${event.results[i][0].transcript}`;
+        handleVoiceContinuous(joined.trim());
       };
-
       state.recognition = recognition;
       state.recognitionReady = true;
     }
 
-    function handleVoiceContinuous(transcript) {
-      const normalizedTranscript = splitWords(transcript).join(' ');
-      if (!normalizedTranscript || !state.flatWords.length) return;
+    function handleVoiceContinuous|| !state.flatWords.length) return;
       if (normalizedTranscript === state.voiceLastProcessed) return;
       state.voiceLastProcessed = normalizedTranscript;
 
+      const heardWords = nofunction handleVoiceContinuous(transcript) {
+      const normalizedTranscript = splitWords(transcript).join(' ');
+      if (!normalizedTranscript || normalizedTranscript === state.voiceLastProcessed) return;
+      state.voiceLastProcessed = normalizedTranscript;
+      updateTranscript(transcript);
       const heardWords = normalizedTranscript.split(' ').filter(Boolean);
-      if (!heardWords.length) return;
-
       const lineBeforeMatch = state.currentLine;
       const activeWords = getLineWords(lineBeforeMatch);
-      if (!activeWords.length) return;
-
       let localCursor = state.speechCursor;
       let matched = 0;
       for (const word of heardWords) {
@@ -1099,14 +1078,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           matched += 1;
         }
       }
-
       if (matched > 0) {
         const maxCursor = state.flatWords.length;
         state.speechCursor = Math.min(localCursor, maxCursor);
-
         const lineStart = getLineStartIndex(lineBeforeMatch);
         const activeLineLastIndex = lineStart + activeWords.length;
-
         if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) {
           state.currentLine = lineBeforeMatch + 1;
           markLines();
@@ -1114,25 +1090,21 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           state.voiceLastMatchAt = performance.now();
           return;
         }
-
         state.voiceLastMatchAt = performance.now();
         moveTowardSpeechCursor();
         return;
       }
-
       const nearbyMatch = findBestNearbyVoiceMatch(heardWords);
       if (!nearbyMatch) return;
-
       const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0);
       const canAssistNow = timeSinceLastStrongMatch > 120;
       if (!canAssistNow) return;
-
       if (applyNearbyVoiceMatch(nearbyMatch)) {
         state.voiceLastMatchAt = performance.now();
       }
     }
 
-    function enableVoice(enabled) { state.voiceEnabled = enabled; state.voiceLastProcessed = ''; state.voiceLastMatchAt = 0; if (!state.recognitionReady) return; if (enabled) { updateTranscript('Reconhecimento de voz ligado. Comece a falar.'); try { state.recognition.start(); } catch (e) {} } else if (state.recognitionRunning) { state.recognition.stop(); updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.'); } }
+    function enableVoicepdateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.'); } }
     function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
     function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
     function toggleCleanMode() {
