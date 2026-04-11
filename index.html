@@ -1004,7 +1004,42 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
     function loadSongs() { try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) { state.songs = []; } renderRepertoire(); }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
-    function saveCurrentSong() {$1syncSongsToCloud(); hideSongEditor(); hideLibraryPanel(); }
+    function saveCurrentSong() {
+      const title = songTitleInput.value.trim() || 'Sem título';
+      const lyrics = sanitizeLyrics(scriptInput.value);
+      const artist = artistInput.value.trim();
+      const style = styleInput.value.trim();
+
+      scriptInput.value = lyrics;
+      if (!lyrics) return;
+
+      const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+      const payload = {
+        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : `song-${Date.now()}`,
+        title,
+        artist,
+        style,
+        lyrics
+      };
+
+      if (existingIndex >= 0) {
+        state.songs[existingIndex] = payload;
+      } else {
+        state.songs.unshift(payload);
+      }
+
+      state.currentSongId = payload.id;
+      saveSongs();
+      renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      repertoireSelect.value = payload.id;
+      persistCurrentDraft();
+      loadScript();
+      hideSongEditor();
+      openLibraryPanel();
+      syncSongsToCloud();
+    }
+
     function openSelectedSong() { const id = repertoireSelect.value; const song = state.songs.find(item => item.id === id); if (!song) return; state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
     function deleteSelectedSong() { const id = repertoireSelect.value; if (!id) return; state.songs = state.songs.filter(song => song.id !== id); if (state.currentSongId === id) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); syncSongsToCloud(); }
     function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
