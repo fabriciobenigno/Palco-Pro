@@ -367,30 +367,6 @@
       pointer-events: auto;
     }
     .song-editor-panel.open { display: block; }
-
-    .song-actions-menu {
-      position: fixed;
-      z-index: 80;
-      display: none;
-      min-width: 200px;
-      padding: 8px;
-      border-radius: 18px;
-      background: rgba(8,12,18,0.96);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.34);
-      pointer-events: auto;
-    }
-    .song-actions-menu.open { display: grid; gap: 6px; }
-    .song-actions-btn {
-      width: 100%; min-height: 42px; padding: 10px 14px; border-radius: 14px;
-      background: rgba(14,16,24,0.58); border: 1px solid rgba(255,255,255,0.12);
-      color: white; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer;
-    }
-    .song-actions-btn.danger {
-      background: rgba(255, 59, 48, 0.14);
-      border-color: rgba(255, 59, 48, 0.28);
-    }
     .password-visibility-row {
       display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.76); font-size: 13px;
       margin-top: -2px;
@@ -649,12 +625,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       </div>
     </div>
 
-    <div class="song-actions-menu" id="songActionsMenu" aria-hidden="true">
-      <button class="song-actions-btn" id="editSongActionBtn" type="button">Editar música</button>
-      <button class="song-actions-btn danger" id="deleteSongActionBtn" type="button">Excluir música</button>
-    </div>
-
-
     <div class="controls-bar">
       <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
@@ -681,8 +651,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       textDragging: false, textDragPointerId: null, textDragStartY: 0, textDragLastY: 0, textDragMoved: false,
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
-      songPressTimer: null, pressedSongId: null, suppressSongClickUntil: 0,
-      supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0
+      supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
+      toastTimer: null
     };
 
     const app = $('app');
@@ -719,7 +689,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const authStatusNote = $('authStatusNote');
     const syncStatusNote = $('syncStatusNote');
     const songEditorPanel = $('songEditorPanel');
-    const songActionsMenu = $('songActionsMenu');
 
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
@@ -773,6 +742,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (syncStatusNote) syncStatusNote.textContent = message;
     }
 
+    function showToast(message, duration = 1100) {
+      if (!appToast) return;
+      appToast.textContent = message;
+      appToast.classList.add('show');
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => {
+        appToast.classList.remove('show');
+      }, duration);
+    }
+
     function setSyncStatusFromState(extraMessage = '') {
       const base = state.currentUser
         ? `Conta conectada: ${state.currentUser.email || 'usuário logado'}.`
@@ -818,62 +797,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         email: (authEmailInput?.value || '').trim(),
         password: authPasswordInput?.value || ''
       };
-    }
-
-    function closeSongActionsMenu() {
-      if (!songActionsMenu) return;
-      songActionsMenu.classList.remove('open');
-      songActionsMenu.setAttribute('aria-hidden', 'true');
-      state.pressedSongId = null;
-    }
-
-    function openSongActionsMenu(songId, x, y) {
-      if (!songActionsMenu) return;
-      state.pressedSongId = songId;
-      songActionsMenu.classList.add('open');
-      songActionsMenu.setAttribute('aria-hidden', 'false');
-      const rect = songActionsMenu.getBoundingClientRect();
-      const maxLeft = Math.max(8, window.innerWidth - rect.width - 8);
-      const maxTop = Math.max(8, window.innerHeight - rect.height - 8);
-      songActionsMenu.style.left = `${Math.min(Math.max(8, x), maxLeft)}px`;
-      songActionsMenu.style.top = `${Math.min(Math.max(8, y), maxTop)}px`;
-    }
-
-    function clearSongPressTimer() {
-      if (!state.songPressTimer) return;
-      clearTimeout(state.songPressTimer);
-      state.songPressTimer = null;
-    }
-
-    function editSongById(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      repertoireSelect.value = song.id;
-      loadScript();
-      persistCurrentDraft();
-      hideLibraryPanel();
-      openSongEditor();
-    }
-
-    function deleteSongById(songId) {
-      if (!songId) return;
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      const confirmed = window.confirm(`Deseja excluir a música "${song.title || 'Sem título'}"?`);
-      if (!confirmed) return;
-      state.songs = state.songs.filter(item => item.id !== songId);
-      if (state.currentSongId === songId) {
-        state.currentSongId = null;
-      }
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      syncSongsToCloud();
     }
 
     function sanitizeCloudSong(song) {
@@ -981,7 +904,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         await pullSongsFromCloud();
         state.lastSyncAt = Date.now();
         setSyncStatusFromState('Repertório carregado da nuvem.');
-        hideAuthPanel();
+        showToast('Login realizado');
+        setTimeout(() => {
+          hideAuthPanel();
+        }, 900);
       } catch (error) {
         updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
       }
@@ -1083,7 +1009,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function togglePlayPause() { state.playing ? pauseScroll() : startScroll(); }
     function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
     function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
-    function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; } }); state.currentLine = closestIndex; state.speechCursor = state.lineWords.slice(0, closestIndex).reduce((acc, words) => acc + words.length, 0); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
+    function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; let closestRect = null; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; closestRect = rect; } }); state.currentLine = closestIndex; const lineWords = getLineWords(closestIndex); const lineStart = getLineStartIndex(closestIndex); let spokenInsideLine = 0; if (closestRect && lineWords.length) { const relative = Math.max(0, Math.min(1, (guideY - closestRect.top) / Math.max(1, closestRect.height))); spokenInsideLine = Math.max(0, Math.min(lineWords.length - 1, Math.floor(relative * lineWords.length))); } state.speechCursor = Math.min(state.flatWords.length, lineStart + spokenInsideLine); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
     function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || songEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
@@ -1203,7 +1129,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function moveTowardSpeechCursor() {
       let matchedLine = state.currentLine;
-      for (let i = 0; i < state.lines.length; i++) {
+      for (let i = state.currentLine; i < state.lines.length; i++) {
         const start = getLineStartIndex(i);
         const end = start + getLineWords(i).length;
         if (state.speechCursor < end || i === state.lines.length - 1) {
@@ -1212,7 +1138,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       }
 
-      if (matchedLine !== state.currentLine) {
+      if (matchedLine > state.currentLine) {
         state.currentLine = matchedLine;
         markLines();
         placeActiveLineAtStart();
@@ -1220,6 +1146,37 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
       followSpeechVisualProgress();
+    }
+
+    function advanceSpeechCursorForward(heardWords) {
+      if (!heardWords.length || !state.flatWords.length) return 0;
+      const maxLookAheadPerWord = 3;
+      const hardAdvanceLimit = Math.min(state.flatWords.length, state.speechCursor + 8);
+      let cursor = state.speechCursor;
+      let matched = 0;
+
+      for (const word of heardWords) {
+        const searchEnd = Math.min(hardAdvanceLimit, cursor + maxLookAheadPerWord + 1);
+        let foundIndex = -1;
+        for (let i = cursor; i < searchEnd; i++) {
+          if (state.flatWords[i] === word) {
+            foundIndex = i;
+            break;
+          }
+        }
+        if (foundIndex >= 0) {
+          cursor = foundIndex + 1;
+          matched += 1;
+        }
+      }
+
+      if (matched > 0 && cursor > state.speechCursor) {
+        const advance = Math.min(4, cursor - state.speechCursor);
+        state.speechCursor = Math.min(state.flatWords.length, state.speechCursor + advance);
+        return advance;
+      }
+
+      return 0;
     }
 
     function setupVoice() {
@@ -1273,54 +1230,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const heardWords = normalizedTranscript.split(' ').filter(Boolean);
       if (!heardWords.length) return;
 
-      const lineBeforeMatch = state.currentLine;
-      const activeWords = getLineWords(lineBeforeMatch);
-      if (!activeWords.length) return;
+      const advancedBy = advanceSpeechCursorForward(heardWords);
+      if (!advancedBy) return;
 
-      let localCursor = state.speechCursor;
-      let matched = 0;
-      for (const word of heardWords) {
-        const current = state.flatWords[localCursor];
-        const next = state.flatWords[localCursor + 1];
-        if (word === current) {
-          localCursor += 1;
-          matched += 1;
-        } else if (word === next) {
-          localCursor += 2;
-          matched += 1;
-        }
-      }
-
-      if (matched > 0) {
-        const maxCursor = state.flatWords.length;
-        state.speechCursor = Math.min(localCursor, maxCursor);
-
-        const lineStart = getLineStartIndex(lineBeforeMatch);
-        const activeLineLastIndex = lineStart + activeWords.length;
-
-        if (state.speechCursor >= activeLineLastIndex && lineBeforeMatch < state.lines.length - 1) {
-          state.currentLine = lineBeforeMatch + 1;
-          markLines();
-          placeActiveLineAtStart();
-          state.voiceLastMatchAt = performance.now();
-          return;
-        }
-
-        state.voiceLastMatchAt = performance.now();
-        moveTowardSpeechCursor();
-        return;
-      }
-
-      const nearbyMatch = findBestNearbyVoiceMatch(heardWords);
-      if (!nearbyMatch) return;
-
-      const timeSinceLastStrongMatch = performance.now() - (state.voiceLastMatchAt || 0);
-      const canAssistNow = timeSinceLastStrongMatch > 120;
-      if (!canAssistNow) return;
-
-      if (applyNearbyVoiceMatch(nearbyMatch)) {
-        state.voiceLastMatchAt = performance.now();
-      }
+      state.voiceLastMatchAt = performance.now();
+      moveTowardSpeechCursor();
     }
 
     function enableVoice(enabled) {
@@ -1406,87 +1320,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openSelectedSong() { const id = repertoireSelect.value; const song = state.songs.find(item => item.id === id); if (!song) return; state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
     function deleteSelectedSong() { const id = repertoireSelect.value; if (!id) return; state.songs = state.songs.filter(song => song.id !== id); if (state.currentSongId === id) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); syncSongsToCloud(); }
     function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
-    function loadSongByIndex(index) { if (!state.songs.length) return; const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length; const song = state.songs[normalized]; if (!song) return; state.currentSongId = song.id; repertoireSelect.value = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); persistCurrentDraft(); }
+    function loadSongByIndex(index) { if (!state.songs.length) return; const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length; const song = state.songs[normalized]; if (!song) return; state.currentSongId = song.id; repertoireSelect.value = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; placeActiveLineAtStart(); persistCurrentDraft(); }
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
     function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
-    function renderLibraryList(term = '') {
-      const query = (term || '').toLowerCase().trim();
-      const filtered = !query ? state.songs : state.songs.filter(song => {
-        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(query);
-      });
-      libraryList.innerHTML = '';
-      if (!state.songs.length) {
-        const emptyAll = document.createElement('div');
-        emptyAll.className = 'panel-note';
-        emptyAll.textContent = 'Nenhuma música salva no repertório.';
-        libraryList.appendChild(emptyAll);
-        return;
-      }
-      if (!filtered.length) {
-        const empty = document.createElement('div');
-        empty.className = 'panel-note';
-        empty.textContent = 'Nenhuma música encontrada para essa busca.';
-        libraryList.appendChild(empty);
-        return;
-      }
-      filtered.forEach(song => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'ghost-btn';
-        btn.style.width = '100%';
-        btn.style.textAlign = 'left';
-        btn.dataset.songId = song.id;
-        btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
-
-        const startPress = (event) => {
-          clearSongPressTimer();
-          const pointX = event?.clientX ?? (window.innerWidth / 2);
-          const pointY = event?.clientY ?? (window.innerHeight / 2);
-          state.songPressTimer = setTimeout(() => {
-            state.suppressSongClickUntil = Date.now() + 450;
-            openSongActionsMenu(song.id, pointX, pointY);
-          }, 520);
-        };
-
-        const cancelPress = () => {
-          clearSongPressTimer();
-        };
-
-        btn.addEventListener('pointerdown', startPress);
-        btn.addEventListener('pointerup', cancelPress);
-        btn.addEventListener('pointerleave', cancelPress);
-        btn.addEventListener('pointercancel', cancelPress);
-        btn.addEventListener('contextmenu', (event) => {
-          event.preventDefault();
-          clearSongPressTimer();
-          state.suppressSongClickUntil = Date.now() + 450;
-          openSongActionsMenu(song.id, event.clientX, event.clientY);
-        });
-
-        btn.addEventListener('click', () => {
-          if (Date.now() < state.suppressSongClickUntil) return;
-          closeSongActionsMenu();
-          state.currentSongId = song.id;
-          songTitleInput.value = song.title || '';
-          artistInput.value = song.artist || '';
-          styleInput.value = song.style || '';
-          scriptInput.value = song.lyrics || '';
-          loadScript();
-          repertoireSelect.value = song.id;
-          persistCurrentDraft();
-          hideSongEditor();
-          hideLibraryPanel();
-        });
-
-        libraryList.appendChild(btn);
-      });
-    }
+    function renderLibraryList(term = '') { const query = (term || '').toLowerCase().trim(); const filtered = !query ? state.songs : state.songs.filter(song => { const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase(); return hay.includes(query); }); libraryList.innerHTML = ''; if (!state.songs.length) { const emptyAll = document.createElement('div'); emptyAll.className = 'panel-note'; emptyAll.textContent = 'Nenhuma música salva no repertório.'; libraryList.appendChild(emptyAll); return; } if (!filtered.length) { const empty = document.createElement('div'); empty.className = 'panel-note'; empty.textContent = 'Nenhuma música encontrada para essa busca.'; libraryList.appendChild(empty); return; } filtered.forEach(song => { const btn = document.createElement('button'); btn.className = 'ghost-btn'; btn.style.width = '100%'; btn.style.textAlign = 'left'; btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`; btn.addEventListener('click', () => { state.currentSongId = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); repertoireSelect.value = song.id; persistCurrentDraft(); hideSongEditor(); hideLibraryPanel(); }); libraryList.appendChild(btn); }); }
     function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
       $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
       $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
-      $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); if (songActionsMenu) { $('editSongActionBtn').addEventListener('click', () => { const songId = state.pressedSongId; closeSongActionsMenu(); editSongById(songId); }); $('deleteSongActionBtn').addEventListener('click', () => { const songId = state.pressedSongId; closeSongActionsMenu(); deleteSongById(songId); }); document.addEventListener('pointerdown', (event) => { if (!songActionsMenu.classList.contains('open')) return; if (songActionsMenu.contains(event.target)) return; closeSongActionsMenu(); }); window.addEventListener('scroll', closeSongActionsMenu, true); window.addEventListener('resize', closeSongActionsMenu); } [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
+      $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
