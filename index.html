@@ -1391,7 +1391,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.speechCursor = 0;
       state.scrollOffset = 0;
       repertoireSelect.value = song.id;
-      placeActiveLineAtStart();
+      placeActiveLineAtTop();
       persistCurrentDraft();
       hideLibraryPanel();
     }
@@ -1771,6 +1771,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + contentRect.height * 0.18; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
+    function placeActiveLineAtTop() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + 8; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
     function centerActiveLine() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.42; state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2); applyScroll(true); markLines(); }
     function setActiveLine(index) { const lines = getLineElements(); if (!lines.length) return; state.currentLine = Math.max(0, Math.min(index, lines.length - 1)); markLines(); centerActiveLine(); }
     function refreshLayoutPreservingPoint() { captureAnchor(); applyStyles(); restoreAnchor(); }
@@ -2213,7 +2214,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.currentLine = 0;
       state.speechCursor = 0;
       state.scrollOffset = 0;
-      placeActiveLineAtStart();
+      placeActiveLineAtTop();
       persistCurrentDraft();
     }
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
