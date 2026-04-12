@@ -225,16 +225,16 @@
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     .library-card {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       flex: 1;
       min-height: 0;
-      padding: 16px;
+      padding: 14px;
       border-radius: 28px;
       background: linear-gradient(180deg, rgba(13, 19, 31, 0.86), rgba(7, 11, 19, 0.82));
       border: 1px solid rgba(255,255,255,0.12);
@@ -247,18 +247,19 @@
       display: grid;
       gap: 0;
       overflow: auto;
-      padding-right: 2px;
+      padding-right: 0;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 96px;
+      --swipe-reveal-width: 82px;
       position: relative;
       overflow: hidden;
-      border-radius: 12px;
-      min-height: 40px;
+      border-radius: 10px;
+      min-height: 34px;
+      height: 34px;
       touch-action: pan-y;
       background: rgba(24,26,34,0.96);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
       backdrop-filter: blur(14px);
       box-shadow: none;
       margin: 0;
@@ -273,30 +274,30 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 8px;
-      padding: 0 8px 0 6px;
+      gap: 6px;
+      padding: 0 6px 0 4px;
       z-index: 0;
       pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 36px;
-      height: 36px;
-      min-height: 36px;
+      width: 30px;
+      height: 30px;
+      min-height: 30px;
       border: 0;
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
       box-shadow: 0 6px 14px rgba(0,0,0,0.16);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
       pointer-events: none;
-      flex: 0 0 36px;
+      flex: 0 0 30px;
     }
 
     .library-song-action-btn.edit {
@@ -311,11 +312,11 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 40px;
-      height: 40px;
-      padding: 6px 12px;
+      min-height: 34px;
+      height: 34px;
+      padding: 0 12px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 10px;
       background: transparent;
       box-shadow: none;
       color: #fff;
@@ -334,7 +335,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 13px;
+      font-size: 12.5px;
       line-height: 1;
       color: rgba(255,255,255,0.96);
       font-weight: 700;
@@ -342,16 +343,22 @@
 
     .library-song-line small {
       font-size: inherit;
-      font-weight: 600;
-      color: rgba(255,255,255,0.72);
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     .library-song-swipe.revealed .library-song-card {
       transform: translateX(calc(var(--swipe-reveal-width) * -1));
+    }
+
+    .library-song-card:focus-visible,
+    .library-song-action-btn:focus-visible {
+      outline: 2px solid rgba(124,176,255,0.9);
+      outline-offset: -2px;
     }
 
     .library-song-swipe.revealed .library-song-action-btn,
@@ -667,7 +674,7 @@
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     @media (max-width: 560px) {
@@ -1179,7 +1186,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hideRegisterPanel();
       hideRecoverPanel();
       authPanel.classList.add('open');
-      if (authEmailInput) authEmailInput.focus();
     }
 
     function hideAuthPanel() {
@@ -1194,7 +1200,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hideAuthPanel();
       hideRecoverPanel();
       registerPanel.classList.add('open');
-      if (registerNameInput) registerNameInput.focus();
     }
 
     function openRecoverPanel() {
@@ -1205,7 +1210,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hideAuthPanel();
       hideRegisterPanel();
       recoverPanel.classList.add('open');
-      if (recoverEmailInput) recoverEmailInput.focus();
     }
 
     function openSongEditor() {
