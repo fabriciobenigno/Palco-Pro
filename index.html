@@ -132,38 +132,209 @@
     }
 
     .mini-btn, .circle-btn, .ghost-btn, .mode-switch-btn, .entry-nav-btn, .entry-link-btn, .entry-back-btn {
+      border: 0; cursor: pointer; color: white;
+    }
+
+    .mini-btn, .circle-btn {
+      width: 48px; height: 48px; border-radius: 16px; background: rgba(14,16,24,0.62);
+      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
+      display: grid; place-items: center; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .mode-switch-btn {
+      min-width: 88px; height: 58px; padding: 0 20px; border-radius: 22px;
+      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(14px); display: grid; place-items: center;
+      font-size: 24px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      position: relative; top: 0;
+    }
+
+    .clean-return-btn {
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 148px); transform: translateX(-50%);
+      z-index: 38; min-width: 56px; height: 34px; padding: 0 14px; border-radius: 18px;
+      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
+      display: none; place-items: center; font-size: 18px; font-weight: 700; line-height: 1;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24); pointer-events: auto;
+    }
+
+    .side-panel {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 40;
+      width: var(--panel-w); max-height: min(84vh, 720px); overflow: auto;
+      border-radius: 26px; background: rgba(8,12,18,0.88); border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,0.34); padding: 16px; display: none;
+      pointer-events: auto;
+    }
+
+    .side-panel.open { display: block; }
+
+    .library-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 55;
+      display: none;
+      padding:
+        calc(var(--safe-top) + 18px)
+        max(16px, env(safe-area-inset-right))
+        calc(var(--safe-bottom) + 18px)
+        max(16px, env(safe-area-inset-left));
+      background:
+        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
+        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      backdrop-filter: blur(20px);
+    }
+
+    .library-screen.open {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .library-shell {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .library-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .library-title-wrap {
+      display: grid;
+      gap: 4px;
+    }
+
+    .library-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #fff;
+    }
+
+    .library-subtitle {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.72);
+    }
+
+    .library-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+      padding: 16px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(13, 19, 31, 0.86), rgba(7, 11, 19, 0.82));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+    }
+
+    .library-results {
+      display: grid;
+      gap: 8px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .panel-title h2 { margin: 0; font-size: 16px; color: white; }
+    .panel-grid { display: grid; gap: 14px; }
+    .field { display: grid; gap: 8px; }
+    .field label { font-size: 13px; color: rgba(255,255,255,0.72); }
+    .field textarea, .field input[type="text"], .field input[type="password"], .field select, .field input[type="range"] { width: 100%; }
+    .field textarea, .field input[type="text"], .field input[type="password"], .field select {
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: white;
+      border-radius: 18px; padding: 12px 14px; outline: none; font-size: 14px;
+    }
+    .field textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
+    .value-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: rgba(255,255,255,0.72); font-size: 12px; }
+    .small-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ghost-btn {
+      min-height: 42px; padding: 10px 14px; border-radius: 14px; background: rgba(14,16,24,0.58);
+      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px); font-size: 14px; font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+    .small-row .ghost-btn { flex: 1; min-width: 110px; }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
+      border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03);
+    }
+    .toggle-row span { color: rgba(255,255,255,0.76); font-size: 14px; }
+    .switch { position: relative; width: 50px; height: 30px; display: inline-block; }
+    .switch input { display: none; }
+    .slider { position: absolute; inset: 0; cursor: pointer; background: rgba(255,255,255,0.12); transition: 0.25s; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); }
+    .slider::before { content: ""; position: absolute; width: 22px; height: 22px; left: 4px; top: 3px; border-radius: 50%; background: white; transition: 0.25s; }
+    .switch input:checked + .slider { background: linear-gradient(135deg, #4f8cff, #7cb0ff); }
+    .switch input:checked + .slider::before { transform: translateX(19px); }
+    .panel-note { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+    .hidden { display: none !important; }
+
+    .detail-panel {
+      position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 82px); transform: translateX(-50%);
+      z-index: 37; display: none; align-items: center; justify-content: center; gap: 10px;
+      padding: 10px; border-radius: 22px; background: rgba(8,12,18,0.5);
+      border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(18px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.28); pointer-events: auto;
+      max-width: calc(100vw - 28px);
+    }
+
+    .detail-panel.open { display: flex; }
+
+    .detail-mode .detail-panel { display: flex; }
+
+    .browser-entry-gate {
+      position: fixed; inset: 0; z-index: 9999; display: none;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
+        linear-gradient(180deg, #020409 0%, #09101d 45%, #04070d 100%);
+      padding: calc(var(--safe-top) + 24px) max(20px, env(safe-area-inset-right)) calc(var(--safe-bottom) + 22px) max(20px, env(safe-area-inset-left));
+      color: #f7f9ff;
+      overflow: auto;
+    }
+    .browser-entry-gate.active { display: flex; flex-direction: column; justify-content: space-between; }
+    .entry-shell { width: 100%; max-width: 430px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; position: relative; }
+    .entry-main { display: flex; flex-direction: column; justify-content: center; gap: 18px; flex: 1; }
+    .entry-screen {
+      display: none; flex-direction: column; gap: 16px; padding: 26px 22px; border-radius: 30px;
+      background: linear-gradient(180deg, rgba(13, 19, 31, 0.84), rgba(7, 11, 19, 0.76));
+      border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(22px);
+    }
+    .entry-screen.active { display: flex; }
+    .entry-title { margin: 0; font-size: 25px; line-height: 1.18; font-weight: 800; letter-spacing: -0.025em; text-align: center; text-shadow: 0 10px 28px rgba(0,0,0,0.34); }
+    .entry-subtitle { margin: 0; font-size: 14px; line-height: 1.72; text-align: center; color: rgba(255,255,255,0.76); }
+    .entry-actions { display: grid; gap: 12px; margin-top: 10px; }
+    .entry-nav-btn, .entry-link-btn, .entry-back-btn {
       width: 100%; min-height: 60px; border-radius: 20px; padding: 16px 18px; text-decoration: none;
       display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 700; text-align: center;
-      background: linear-gradient(135deg, rgba(101, 184, 255, 0.96), rgba(76, 138, 255, 0.92), rgba(123, 196, 255, 0.95));
+      background: linear-gradient(135deg, rgba(117,193,255,0.95), rgba(76,140,255,0.92), rgba(132,203,255,0.95));
       background-size: 220% 220%;
-      border: 1px solid rgba(172, 221, 255, 0.30);
-      box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.10);
-      backdrop-filter: blur(18px);
-      transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+      border: 1px solid rgba(182,225,255,0.28); box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(18px); transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
       animation: entryButtonGradientShift 6s ease-in-out infinite;
     }
-    .entry-nav-btn:hover, .entry-link-btn:hover, .entry-back-btn:hover, .entry-nav-btn:focus-visible, .entry-link-btn:focus-visible, .entry-back-btn:focus-visible {
+    .entry-nav-btn:hover, .entry-link-btn:hover, .entry-back-btn:hover,
+    .entry-nav-btn:focus-visible, .entry-link-btn:focus-visible, .entry-back-btn:focus-visible {
       transform: translateY(-1px);
-      box-shadow: 0 22px 40px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.14);
+      box-shadow: 0 20px 38px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.12);
       filter: brightness(1.03);
       outline: none;
     }
     .entry-nav-btn:active, .entry-link-btn:active, .entry-back-btn:active {
-      transform: translateY(0) scale(0.995);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.08);
-    }
-    .entry-nav-btn {
-      justify-content: space-between;
-      text-align: left;
-      padding-right: 20px;
-    }
-    .entry-nav-btn[data-entry-target]::after {
-      content: '›'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
-      font-size: 20px; line-height: 1; font-weight: 700;
-      pointer-events: none; color: rgba(255,255,255,0.96);
-    }
-    .entry-back-btn {
-      justify-content: center;
+      transform: translateY(0);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.06);
     }
     @keyframes entryButtonGradientShift {
       0% { background-position: 0% 50%; }
@@ -431,7 +602,12 @@
 
         <div class="small-row">
           <button class="ghost-btn" id="saveSongBtn">Salvar no repertório</button>
-          <button class="ghost-btn" id="showLibraryBtn">Abrir repertório</button>
+          <button class="ghost-btn" id="openLibraryBtn">Abrir repertório</button>
+        </div>
+
+        <div class="field">
+          <div class="value-row"><label for="repertoireSelect">Músicas salvas</label><span id="repertoireCount">0</span></div>
+          <select id="repertoireSelect"></select>
         </div>
 
         <div class="field">
@@ -476,29 +652,26 @@
     <div class="auth-panel" id="authPanel">
       <div class="panel-title">
         <h2>Login</h2>
-        <button class="mini-btn" id="hideAuthBtn">×</button>
+        <button class="mini-btn" id="hideAuthPanelBtn">×</button>
       </div>
       <div class="panel-grid">
         <div class="field">
-          <label for="authEmailInput">E-mail</label>
-          <input id="authEmailInput" type="text" inputmode="email" autocomplete="username" placeholder="seuemail@exemplo.com" />
+          <label for="emailInput">E-mail</label>
+          <input id="emailInput" type="text" placeholder="Seu e-mail" autocomplete="username" />
         </div>
         <div class="field">
-          <label for="authPasswordInput">Senha</label>
-          <input id="authPasswordInput" type="password" autocomplete="current-password" placeholder="Sua senha" />
-          <label class="password-visibility-row" for="showPasswordToggle">
-            <input id="showPasswordToggle" type="checkbox" />
-            <span>Mostrar senha</span>
-          </label>
+          <label for="passwordInput">Senha</label>
+          <input id="passwordInput" type="password" placeholder="Sua senha" autocomplete="current-password" />
         </div>
-        <div class="auth-actions-row">
-          <button class="ghost-btn" id="loginSubmitBtn">Entrar</button>
-          <button class="ghost-btn" id="registerSubmitBtn">Criar conta</button>
+        <div class="small-row">
+          <button class="ghost-btn" id="signInBtn">Entrar</button>
+          <button class="ghost-btn" id="signUpBtn">Criar conta</button>
         </div>
-        <div class="auth-actions-row">
-          <button class="ghost-btn" id="logoutBtn">Sair</button>
+        <div class="small-row">
+          <button class="ghost-btn" id="recoverPasswordBtn">Recuperar senha</button>
+          <button class="ghost-btn" id="signOutBtn">Sair</button>
         </div>
-        <div class="sync-status-note" id="authStatusNote">Faça login para sincronizar seu repertório com segurança.</div>
+        <div class="panel-note" id="authStatusText">Acesse sua conta para sincronizar o repertório.</div>
       </div>
     </div>
 
@@ -509,61 +682,57 @@
       </div>
       <div class="panel-grid">
         <div class="field">
-          <label for="editorSongTitleInput">Título</label>
-          <input id="editorSongTitleInput" type="text" placeholder="Ex.: Acende Outra Vez" />
+          <label for="editSongTitleInput">Título</label>
+          <input id="editSongTitleInput" type="text" />
         </div>
         <div class="field">
-          <label for="editorArtistInput">Cantor</label>
-          <input id="editorArtistInput" type="text" placeholder="Ex.: Morada" />
+          <label for="editArtistInput">Cantor</label>
+          <input id="editArtistInput" type="text" />
         </div>
         <div class="field">
-          <label for="editorStyleInput">Estilo</label>
-          <input id="editorStyleInput" type="text" placeholder="Ex.: Worship" />
+          <label for="editStyleInput">Estilo</label>
+          <input id="editStyleInput" type="text" />
         </div>
         <div class="field">
-          <label for="editorLyricsInput">Letra / roteiro</label>
-          <textarea id="editorLyricsInput" placeholder="Cole aqui a letra ou roteiro..."></textarea>
+          <label for="editLyricsInput">Letra / roteiro</label>
+          <textarea id="editLyricsInput"></textarea>
         </div>
         <div class="small-row">
-          <button class="ghost-btn" id="saveEditedSongBtn">Salvar alterações</button>
+          <button class="ghost-btn" id="saveSongChangesBtn">Salvar alterações</button>
         </div>
       </div>
     </div>
 
     <div class="song-actions-panel" id="songActionsPanel">
-      <div class="panel-title">
-        <h2>Ações da música</h2>
-        <button class="mini-btn" id="hideSongActionsBtn">×</button>
-      </div>
-      <p class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer com esta música.</p>
+      <div class="song-actions-title" id="songActionsTitle">Ações</div>
+      <div class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer com esta música.</div>
       <div class="small-row">
-        <button class="ghost-btn" id="openSongActionBtn">Abrir</button>
         <button class="ghost-btn" id="editSongActionBtn">Editar</button>
+        <button class="ghost-btn" id="deleteSongActionBtn">Excluir</button>
       </div>
       <div class="small-row">
-        <button class="ghost-btn" id="deleteSongActionBtn">Excluir</button>
+        <button class="ghost-btn" id="hideSongActionsBtn">Fechar</button>
       </div>
     </div>
 
-    <div class="app-toast" id="appToast" aria-live="polite"></div>
+    <div class="app-toast" id="appToast"></div>
 
-    <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar ao modo limpo">↧</button>
+    <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar do modo limpo">↡</button>
 
-    <div class="controls-bar">
-      <button class="circle-btn" id="backSongBtn" aria-label="Música anterior">⏮</button>
-      <button class="mini-btn" id="togglePanelBtn" aria-label="Abrir ajustes">⚙</button>
-      <button class="mode-switch-btn" id="modeSwitchBtn" aria-label="Alternar modo detalhado">⋯</button>
-      <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">⏭</button>
+    <div class="controls-bar" id="controlsDock">
+      <button class="circle-btn" id="openLibraryBtnDock" aria-label="Abrir repertório">🎵</button>
+      <button class="mini-btn" id="openPanelDockBtn" aria-label="Abrir ajustes">⚙</button>
+      <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Alternar modo detalhado">◈</button>
+      <button class="circle-btn" id="playPauseDockBtn" aria-label="Tocar ou pausar">▶</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const $ = (id) => document.getElementById(id);
-
     const app = $('app');
-    const promptContent = $('promptContent');
     const promptWindow = $('promptWindow');
+    const promptContent = $('promptContent');
     const scriptInner = $('scriptInner');
     const transcriptPill = $('transcriptPill');
     const sidePanel = $('sidePanel');
@@ -572,23 +741,15 @@
     const songEditorPanel = $('songEditorPanel');
     const songActionsPanel = $('songActionsPanel');
     const appToast = $('appToast');
-    const repertoireSelect = $('repertoireSelect');
-    const libraryList = $('libraryList');
-    const librarySearchInput = $('librarySearchInput');
-    const syncStatusNote = $('syncStatusNote');
-    const authStatusNote = $('authStatusNote');
     const songTitleInput = $('songTitleInput');
     const artistInput = $('artistInput');
     const styleInput = $('styleInput');
     const scriptInput = $('scriptInput');
-    const editorSongTitleInput = $('editorSongTitleInput');
-    const editorArtistInput = $('editorArtistInput');
-    const editorStyleInput = $('editorStyleInput');
-    const editorLyricsInput = $('editorLyricsInput');
-    const authEmailInput = $('authEmailInput');
-    const authPasswordInput = $('authPasswordInput');
-    const voiceToggle = $('voiceToggle');
-    const mirrorToggle = $('mirrorToggle');
+    const repertoireSelect = $('repertoireSelect');
+    const repertoireCount = $('repertoireCount');
+    const libraryList = $('libraryList');
+    const librarySearchInput = $('librarySearchInput');
+    const syncStatusNote = $('syncStatusNote');
     const fontSize = $('fontSize');
     const lineHeight = $('lineHeight');
     const textWidth = $('textWidth');
@@ -602,90 +763,42 @@
     const baseSpeedValue = $('baseSpeedValue');
     const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
     const detailSpeedSlider = $('detailSpeedSlider');
-    const SETTINGS_KEY = 'palcoProSettingsV13';
-    const CURRENT_KEY = 'palcoProCurrentV13';
-    const SONGS_KEY = 'palcoProSongsV13';
-    const CLOUD_SONGS_TABLE = 'palco_pro_songs';
+    const voiceToggle = $('voiceToggle');
+    const mirrorToggle = $('mirrorToggle');
+    const SETTINGS_KEY = 'palcoProSettingsV14';
+    const CURRENT_KEY = 'palcoProCurrentV14';
+    const SONGS_KEY = 'palcoProSongsV14';
     const SUPABASE_URL = 'https://eivacumyijdrvxdrkrv.brr.supabase.co';
     const SUPABASE_ANON_KEY = '<SECRET>';
+    const CLOUD_SONGS_TABLE = 'palco_pro_songs';
 
     let toastTimer = 0;
 
     const state = {
-      lines: [],
-      lineWordCounts: [],
-      lineWordOffsets: [],
-      flatWords: [],
-      currentLine: 0,
-      speechCursor: 0,
-      scrollOffset: 0,
-      playing: false,
-      cleanMode: true,
-      lastFrame: 0,
-      baseSpeed: 20,
-      voiceFollowSpeed: 0.55,
-      voiceBoostStrength: 0,
-      voiceBoostDuration: 0,
-      voiceLastMatchAt: 0,
-      recognition: null,
-      recognitionReady: false,
-      recognitionRunning: false,
-      voiceEnabled: false,
-      voiceLastProcessed: '',
-      mirror: false,
-      draggingText: false,
-      dragStartY: 0,
-      dragStartOffset: 0,
-      dragMoved: false,
-      songs: [],
-      currentSongId: null,
-      editingSongId: null,
-      selectedSongActionId: null,
-      syncInProgress: false,
-      lastSyncedAt: 0,
-      supabase: null,
-      session: null,
-      authReady: false,
-      authLoading: false,
-      songsLoadedFromCloud: false,
-      profileId: null,
-      suppressCloudMergeNotice: false
+      lines: [], lineWordCounts: [], lineWordOffsets: [], flatWords: [], currentLine: 0, speechCursor: 0,
+      scrollOffset: 0, playing: false, cleanMode: true, lastFrame: 0, baseSpeed: 20,
+      voiceFollowSpeed: 0.55, voiceBoostStrength: 0, voiceBoostDuration: 0, voiceLastMatchAt: 0,
+      recognition: null, recognitionReady: false, recognitionRunning: false, voiceEnabled: false,
+      voiceLastProcessed: '', mirror: false, draggingText: false, dragStartY: 0, dragStartOffset: 0,
+      dragMoved: false, songs: [], currentSongId: null, selectedSongActionId: null, editingSongId: null,
+      syncInProgress: false, lastSyncedAt: 0, supabase: null, session: null, profileId: null
     };
 
     function showToast(message) {
       if (!appToast) return;
       appToast.textContent = message;
       appToast.classList.add('show');
-      window.clearTimeout(toastTimer);
-      toastTimer = window.setTimeout(() => appToast.classList.remove('show'), 2200);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => appToast.classList.remove('show'), 2200);
     }
 
-    function updateSyncStatus(text) {
-      if (syncStatusNote) syncStatusNote.textContent = text;
-    }
-
-    function updateAuthStatus(text) {
-      if (authStatusNote) authStatusNote.textContent = text;
-    }
+    function updateSyncStatus(text) { if (syncStatusNote) syncStatusNote.textContent = text; }
 
     function normalizeText(value) {
-      return (value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+      return (value || '').toLowerCase().normalize('NFD').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
     }
-
-    function splitWords(value) {
-      const normalized = normalizeText(value);
-      return normalized ? normalized.split(' ') : [];
-    }
-
-    function updateTranscript(text) {
-      transcriptPill.textContent = text;
-    }
+    function splitWords(value) { const normalized = normalizeText(value); return normalized ? normalized.split(' ') : []; }
+    function updateTranscript(text) { transcriptPill.textContent = text; }
 
     function updateValueLabels() {
       fontSizeValue.textContent = `${fontSize.value} px`;
@@ -694,6 +807,7 @@
       overlayOpacityValue.textContent = Number(overlayOpacity.value).toFixed(2);
       baseSpeedValue.textContent = baseSpeed.value;
       voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
+      if (repertoireCount) repertoireCount.textContent = String(state.songs.length);
     }
 
     function applyStyles() {
@@ -701,7 +815,7 @@
       document.documentElement.style.setProperty('--line-height', lineHeight.value);
       document.documentElement.style.setProperty('--text-width', `${textWidth.value}vw`);
       document.documentElement.style.setProperty('--overlay-opacity', overlayOpacity.value);
-      if (state.mirror) scriptInner.classList.add('mirror'); else scriptInner.classList.remove('mirror');
+      scriptInner.classList.toggle('mirror', !!state.mirror);
     }
 
     function buildWordMap() {
@@ -716,6 +830,36 @@
         total += words.length;
         state.flatWords.push(...words);
       });
+    }
+
+    function highlightCurrentLine() {
+      scriptInner.querySelectorAll('.line').forEach((node) => {
+        const index = Number(node.dataset.index || 0);
+        node.classList.toggle('active', index === state.currentLine);
+        node.classList.toggle('done', index < state.currentLine);
+      });
+    }
+
+    function getPromptHeight() { return promptWindow?.clientHeight || window.innerHeight; }
+    function clampScrollOffset(offset) {
+      const minOffset = Math.min(0, getPromptHeight() - scriptInner.scrollHeight - 40);
+      return Math.max(minOffset, Math.min(0, offset));
+    }
+    function applyScrollOffset() { scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); }
+    function getCurrentLineNode() { return scriptInner.querySelector(`.line[data-index="${state.currentLine}"]`); }
+
+    function placeActiveLineAtStart() {
+      const node = getCurrentLineNode();
+      if (!node) return;
+      const target = Math.round(getPromptHeight() * 0.18);
+      state.scrollOffset = clampScrollOffset(-(node.offsetTop - target));
+      applyScrollOffset();
+      highlightCurrentLine();
+    }
+
+    function refreshLayoutPreservingPoint() {
+      applyStyles();
+      requestAnimationFrame(() => placeActiveLineAtStart());
     }
 
     function renderLines() {
@@ -733,8 +877,8 @@
 
     function loadScript() {
       const raw = scriptInput.value || '';
-      const lines = raw.replace(/\r/g, '').split('\n');
-      state.lines = lines.length ? lines : [''];
+      state.lines = raw.replace(/\r/g, '').split('\n');
+      if (!state.lines.length) state.lines = [''];
       state.currentLine = 0;
       state.speechCursor = 0;
       state.scrollOffset = 0;
@@ -743,126 +887,39 @@
       placeActiveLineAtStart();
     }
 
-    function highlightCurrentLine() {
-      const nodes = scriptInner.querySelectorAll('.line');
-      nodes.forEach((node) => {
-        const idx = Number(node.dataset.index || 0);
-        node.classList.toggle('active', idx === state.currentLine);
-        node.classList.toggle('done', idx < state.currentLine);
-      });
-    }
-
-    function getPromptHeight() {
-      return promptWindow.clientHeight || window.innerHeight;
-    }
-
-    function getCurrentLineNode() {
-      return scriptInner.querySelector(`.line[data-index="${state.currentLine}"]`);
-    }
-
-    function lineOffsetTop(index) {
-      const node = scriptInner.querySelector(`.line[data-index="${index}"]`);
-      return node ? node.offsetTop : 0;
-    }
-
-    function clampScrollOffset(offset) {
-      const promptHeight = getPromptHeight();
-      const minOffset = Math.min(0, promptHeight - scriptInner.scrollHeight - 40);
-      return Math.max(minOffset, Math.min(0, offset));
-    }
-
-    function applyScrollOffset() {
-      scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`);
-    }
-
-    function placeActiveLineAtStart() {
-      const node = getCurrentLineNode();
-      if (!node) return;
-      const target = Math.round(getPromptHeight() * 0.18);
-      state.scrollOffset = clampScrollOffset(-(node.offsetTop - target));
-      applyScrollOffset();
-      highlightCurrentLine();
-    }
-
-    function refreshLayoutPreservingPoint() {
-      applyStyles();
-      requestAnimationFrame(() => {
-        placeActiveLineAtStart();
-      });
-    }
-
-    function setCurrentLine(index) {
-      const next = Math.max(0, Math.min(state.lines.length - 1, index));
-      if (next === state.currentLine) return;
-      state.currentLine = next;
-      const offset = state.lineWordOffsets[next] || 0;
-      state.speechCursor = Math.max(state.speechCursor, offset);
+    function jumpLine(step) {
+      state.currentLine = Math.max(0, Math.min(state.lines.length - 1, state.currentLine + step));
       placeActiveLineAtStart();
     }
 
-    function moveBlock(step) {
-      setCurrentLine(state.currentLine + step);
+    function togglePlayPause() {
+      state.playing = !state.playing;
+      syncPlayPauseIcon();
     }
 
-    function lineIndexFromWordCursor(wordCursor) {
-      for (let i = 0; i < state.lineWordOffsets.length; i++) {
-        const start = state.lineWordOffsets[i];
-        const end = start + state.lineWordCounts[i];
-        if (wordCursor < end || i === state.lineWordOffsets.length - 1) return i;
-      }
-      return 0;
-    }
-
-    function advanceSpeechCursorForward(heardWords) {
-      const maxSeek = Math.min(state.flatWords.length, state.speechCursor + 40);
-      let bestIndex = -1;
-      let bestScore = 0;
-      const minMatch = Math.max(2, Math.min(heardWords.length, 6));
-      for (let start = state.speechCursor; start < maxSeek; start++) {
-        let score = 0;
-        for (let i = 0; i < heardWords.length; i++) {
-          if (state.flatWords[start + i] === heardWords[i]) score += 1;
-        }
-        if (score > bestScore) {
-          bestScore = score;
-          bestIndex = start;
-        }
-      }
-      if (bestIndex < 0 || bestScore < minMatch) return 0;
-      const advancedBy = Math.max(0, bestIndex + bestScore - state.speechCursor);
-      state.speechCursor = Math.min(state.flatWords.length, bestIndex + bestScore);
-      return advancedBy;
-    }
-
-    function moveTowardSpeechCursor() {
-      const targetLine = lineIndexFromWordCursor(state.speechCursor);
-      if (targetLine !== state.currentLine) {
-        state.currentLine = targetLine;
-        placeActiveLineAtStart();
-      }
+    function syncPlayPauseIcon() {
+      const icon = state.playing ? '❚❚' : '▶';
+      if ($('playPauseBtn')) $('playPauseBtn').textContent = icon;
+      if ($('playPauseDockBtn')) $('playPauseDockBtn').textContent = icon;
     }
 
     function tick(ts) {
       if (!state.lastFrame) state.lastFrame = ts;
       const delta = Math.min(50, ts - state.lastFrame);
       state.lastFrame = ts;
-
       if (state.playing && !state.draggingText) {
         const pixelsPerSecond = state.baseSpeed * 0.55;
         state.scrollOffset = clampScrollOffset(state.scrollOffset - (pixelsPerSecond * delta / 1000));
         applyScrollOffset();
-
         const activeNode = getCurrentLineNode();
         if (activeNode) {
           const lineTop = activeNode.offsetTop + state.scrollOffset;
-          const threshold = Math.round(getPromptHeight() * 0.14);
-          if (lineTop < threshold && state.currentLine < state.lines.length - 1) {
+          if (lineTop < Math.round(getPromptHeight() * 0.14) && state.currentLine < state.lines.length - 1) {
             state.currentLine += 1;
             highlightCurrentLine();
           }
         }
       }
-
       requestAnimationFrame(tick);
     }
 
@@ -886,31 +943,10 @@
         state.draggingText = false;
         promptContent.classList.remove('dragging-text');
       };
-
-      promptContent.addEventListener('pointerdown', (e) => {
-        startDrag(e.clientY);
-        promptContent.setPointerCapture(e.pointerId);
-      });
+      promptContent.addEventListener('pointerdown', (e) => { startDrag(e.clientY); promptContent.setPointerCapture(e.pointerId); });
       promptContent.addEventListener('pointermove', (e) => moveDrag(e.clientY));
       promptContent.addEventListener('pointerup', endDrag);
       promptContent.addEventListener('pointercancel', endDrag);
-    }
-
-    function createSupabaseClient() {
-      if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('<')) {
-        updateSyncStatus('Sincronização local ativa. Configure o Supabase para login.');
-        updateAuthStatus('Configure o Supabase no index para ativar o login.');
-        return;
-      }
-      try {
-        state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true }
-        });
-        state.authReady = true;
-      } catch (error) {
-        console.warn('Falha ao iniciar Supabase:', error);
-        updateSyncStatus('Não foi possível iniciar a sincronização.');
-      }
     }
 
     function sanitizeSong(song) {
@@ -921,7 +957,6 @@
         style: (song.style || '').trim(),
         lyrics: (song.lyrics || '').replace(/\r/g, ''),
         updatedAt: song.updatedAt || Date.now(),
-        cloudUpdatedAt: song.cloudUpdatedAt || null,
         deletedAt: song.deletedAt || null
       };
     }
@@ -930,43 +965,29 @@
       localStorage.setItem(SONGS_KEY, JSON.stringify(state.songs));
       refreshRepertoireSelect();
       renderLibraryList(librarySearchInput.value || '');
+      updateValueLabels();
     }
 
     function loadSongs() {
       try {
         const raw = JSON.parse(localStorage.getItem(SONGS_KEY) || '[]');
-        state.songs = Array.isArray(raw) ? raw.map(sanitizeSong) : [];
-      } catch (error) {
+        state.songs = Array.isArray(raw) ? raw.map(sanitizeSong).filter(song => !song.deletedAt) : [];
+      } catch (_) {
         state.songs = [];
       }
       refreshRepertoireSelect();
-      if (!state.currentSongId && state.songs.length) {
-        loadSongByIndex(0);
-      }
+      if (!state.currentSongId && state.songs.length) loadSongByIndex(0);
     }
 
     function refreshRepertoireSelect() {
-      const activeSongs = state.songs.filter(song => !song.deletedAt);
       repertoireSelect.innerHTML = '';
-      activeSongs.forEach(song => {
+      state.songs.forEach((song) => {
         const option = document.createElement('option');
         option.value = song.id;
         option.textContent = song.title || 'Sem título';
         repertoireSelect.appendChild(option);
       });
-      if (state.currentSongId && activeSongs.some(song => song.id === state.currentSongId)) {
-        repertoireSelect.value = state.currentSongId;
-      }
-    }
-
-    function getCurrentSongIndex() {
-      const activeSongs = state.songs.filter(song => !song.deletedAt);
-      return activeSongs.findIndex(song => song.id === state.currentSongId);
-    }
-
-    function markSongUpdated(song) {
-      song.updatedAt = Date.now();
-      song.deletedAt = null;
+      if (state.currentSongId) repertoireSelect.value = state.currentSongId;
     }
 
     function persistCurrentDraft() {
@@ -985,145 +1006,24 @@
         artistInput.value = saved.artist || '';
         styleInput.value = saved.style || '';
         scriptInput.value = saved.lyrics || '';
-      } catch (error) {}
+      } catch (_) {}
     }
 
     function saveCurrentSong() {
-      const payload = sanitizeSong({
-        id: state.currentSongId,
-        title: songTitleInput.value,
-        artist: artistInput.value,
-        style: styleInput.value,
-        lyrics: scriptInput.value
-      });
-      if (!payload.title && !payload.lyrics.trim()) {
-        showToast('Preencha ao menos o título ou a letra.');
-        return;
-      }
+      const payload = sanitizeSong({ id: state.currentSongId, title: songTitleInput.value, artist: artistInput.value, style: styleInput.value, lyrics: scriptInput.value });
+      if (!payload.title && !payload.lyrics.trim()) { showToast('Preencha ao menos o título ou a letra.'); return; }
       const existingIndex = state.songs.findIndex(song => song.id === payload.id);
-      if (existingIndex >= 0) {
-        payload.cloudUpdatedAt = state.songs[existingIndex].cloudUpdatedAt || null;
-        markSongUpdated(payload);
-        state.songs[existingIndex] = payload;
-      } else {
-        markSongUpdated(payload);
-        state.songs.unshift(payload);
-      }
+      if (existingIndex >= 0) state.songs[existingIndex] = payload; else state.songs.unshift(payload);
       state.currentSongId = payload.id;
       saveSongs();
       persistCurrentDraft();
       showToast('Música salva no repertório.');
-      syncSongsToCloud();
-    }
-
-    function prepareNewSong() {
-      state.currentSongId = null;
-      songTitleInput.value = '';
-      artistInput.value = '';
-      styleInput.value = '';
-      scriptInput.value = '';
-      loadScript();
-      persistCurrentDraft();
-      hideLibraryPanel();
-      openPanel();
-    }
-
-    function openSongActions(songId) {
-      const song = state.songs.find(item => item.id === songId && !item.deletedAt);
-      if (!song) return;
-      state.selectedSongActionId = song.id;
-      $('songActionsSubtitle').textContent = `${song.title || 'Sem título'} • ${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}`;
-      songActionsPanel.classList.add('open');
-    }
-
-    function hideSongActions() {
-      state.selectedSongActionId = null;
-      songActionsPanel.classList.remove('open');
-    }
-
-    function openSongById(songId) {
-      const activeSongs = state.songs.filter(song => !song.deletedAt);
-      const index = activeSongs.findIndex(song => song.id === songId);
-      if (index >= 0) {
-        loadSongByIndex(index);
-        hideSongActions();
-        hideLibraryPanel();
-        showToast('Música carregada.');
-      }
-    }
-
-    function editSongById(songId) {
-      const song = state.songs.find(item => item.id === songId && !item.deletedAt);
-      if (!song) return;
-      state.editingSongId = song.id;
-      editorSongTitleInput.value = song.title || '';
-      editorArtistInput.value = song.artist || '';
-      editorStyleInput.value = song.style || '';
-      editorLyricsInput.value = song.lyrics || '';
-      hideSongActions();
-      songEditorPanel.classList.add('open');
-    }
-
-    function hideSongEditor() {
-      state.editingSongId = null;
-      songEditorPanel.classList.remove('open');
-    }
-
-    function saveEditedSong() {
-      if (!state.editingSongId) return;
-      const index = state.songs.findIndex(song => song.id === state.editingSongId);
-      if (index < 0) return;
-      const updated = sanitizeSong({
-        ...state.songs[index],
-        title: editorSongTitleInput.value,
-        artist: editorArtistInput.value,
-        style: editorStyleInput.value,
-        lyrics: editorLyricsInput.value
-      });
-      updated.cloudUpdatedAt = state.songs[index].cloudUpdatedAt || null;
-      markSongUpdated(updated);
-      state.songs[index] = updated;
-      if (state.currentSongId === updated.id) {
-        songTitleInput.value = updated.title;
-        artistInput.value = updated.artist;
-        styleInput.value = updated.style;
-        scriptInput.value = updated.lyrics;
-        loadScript();
-        persistCurrentDraft();
-      }
-      saveSongs();
-      hideSongEditor();
-      showToast('Música atualizada.');
-      syncSongsToCloud();
-    }
-
-    function deleteSongById(songId) {
-      const index = state.songs.findIndex(song => song.id === songId);
-      if (index < 0) return;
-      state.songs[index].deletedAt = Date.now();
-      state.songs[index].updatedAt = Date.now();
-      if (state.currentSongId === songId) {
-        state.currentSongId = null;
-        const activeSongs = state.songs.filter(song => !song.deletedAt);
-        if (activeSongs.length) {
-          const nextIndex = Math.max(0, Math.min(index, activeSongs.length - 1));
-          loadSongByIndex(nextIndex);
-        } else {
-          prepareNewSong();
-        }
-      }
-      saveSongs();
-      hideSongActions();
-      showToast('Música excluída.');
-      syncSongsToCloud();
     }
 
     function loadSongByIndex(index) {
-      const activeSongs = state.songs.filter(song => !song.deletedAt);
-      if (!activeSongs.length) return;
-      const normalized = ((index % activeSongs.length) + activeSongs.length) % activeSongs.length;
-      const song = activeSongs[normalized];
-      if (!song) return;
+      if (!state.songs.length) return;
+      const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length;
+      const song = state.songs[normalized];
       state.currentSongId = song.id;
       repertoireSelect.value = song.id;
       songTitleInput.value = song.title || '';
@@ -1131,34 +1031,29 @@
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       loadScript();
-      state.currentLine = 0;
-      state.speechCursor = 0;
-      state.scrollOffset = 0;
-      placeActiveLineAtStart();
       persistCurrentDraft();
     }
 
+    function openSelectedSong() {
+      const index = state.songs.findIndex(song => song.id === repertoireSelect.value);
+      if (index >= 0) loadSongByIndex(index);
+    }
+
     function previousSong() {
-      const currentIndex = getCurrentSongIndex();
-      if (currentIndex < 0) return;
-      loadSongByIndex(currentIndex - 1);
+      const currentIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+      if (currentIndex >= 0) loadSongByIndex(currentIndex - 1);
     }
 
     function nextSong() {
-      const currentIndex = getCurrentSongIndex();
-      if (currentIndex < 0) return;
-      loadSongByIndex(currentIndex + 1);
+      const currentIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+      if (currentIndex >= 0) loadSongByIndex(currentIndex + 1);
     }
 
     function renderLibraryList(term = '') {
       const query = (term || '').toLowerCase().trim();
-      const filtered = !query ? state.songs.filter(song => !song.deletedAt) : state.songs.filter(song => {
-        if (song.deletedAt) return false;
-        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(query);
-      });
+      const filtered = !query ? state.songs : state.songs.filter(song => [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase().includes(query));
       libraryList.innerHTML = '';
-      if (!state.songs.filter(song => !song.deletedAt).length) {
+      if (!state.songs.length) {
         const emptyAll = document.createElement('div');
         emptyAll.className = 'panel-note';
         emptyAll.textContent = 'Nenhuma música salva no repertório.';
@@ -1178,30 +1073,85 @@
         btn.style.width = '100%';
         btn.style.textAlign = 'left';
         btn.innerHTML = `<strong>${song.title || 'Sem título'}</strong><br><span style="font-size:12px; opacity:.78;">${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
-        btn.addEventListener('click', () => openSongActions(song.id));
+        btn.addEventListener('click', () => {
+          state.selectedSongActionId = song.id;
+          $('songActionsTitle').textContent = song.title || 'Sem título';
+          $('songActionsSubtitle').textContent = `${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}`;
+          songActionsPanel.classList.add('open');
+        });
         libraryList.appendChild(btn);
       });
     }
 
-    function updateValueLabels() {
-      fontSizeValue.textContent = `${fontSize.value} px`;
-      lineHeightValue.textContent = Number(lineHeight.value).toFixed(1);
-      textWidthValue.textContent = `${textWidth.value} vw`;
-      overlayOpacityValue.textContent = Number(overlayOpacity.value).toFixed(2);
-      baseSpeedValue.textContent = baseSpeed.value;
-      voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
+    function hideSongEditor() { songEditorPanel.classList.remove('open'); state.editingSongId = null; }
+    function hideSongActions() { songActionsPanel.classList.remove('open'); state.selectedSongActionId = null; }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
+    function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
+    function openPanel() { hideLibraryPanel(); hideAuthPanel(); sidePanel.classList.add('open'); }
+    function hidePanel() { sidePanel.classList.remove('open'); }
+    function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
+    function openAuthPanel() { hidePanel(); hideLibraryPanel(); authPanel.classList.add('open'); }
+    function hideAuthPanel() { authPanel.classList.remove('open'); }
+
+    function editSongById(songId) {
+      const song = state.songs.find(item => item.id === songId);
+      if (!song) return;
+      state.editingSongId = song.id;
+      $('editSongTitleInput').value = song.title || '';
+      $('editArtistInput').value = song.artist || '';
+      $('editStyleInput').value = song.style || '';
+      $('editLyricsInput').value = song.lyrics || '';
+      hideSongActions();
+      songEditorPanel.classList.add('open');
+    }
+
+    function saveSongChanges() {
+      const index = state.songs.findIndex(song => song.id === state.editingSongId);
+      if (index < 0) return;
+      state.songs[index] = sanitizeSong({
+        ...state.songs[index],
+        title: $('editSongTitleInput').value,
+        artist: $('editArtistInput').value,
+        style: $('editStyleInput').value,
+        lyrics: $('editLyricsInput').value
+      });
+      if (state.currentSongId === state.editingSongId) loadSongByIndex(index);
+      saveSongs();
+      hideSongEditor();
+      showToast('Música atualizada.');
+    }
+
+    function deleteSongById(songId) {
+      const index = state.songs.findIndex(song => song.id === songId);
+      if (index < 0) return;
+      state.songs.splice(index, 1);
+      if (state.currentSongId === songId) {
+        state.currentSongId = null;
+        if (state.songs.length) loadSongByIndex(Math.max(0, index - 1));
+        else { songTitleInput.value = ''; artistInput.value = ''; styleInput.value = ''; scriptInput.value = ''; loadScript(); }
+      }
+      saveSongs();
+      hideSongActions();
+      showToast('Música excluída.');
+    }
+
+    function prepareNewSong() {
+      state.currentSongId = null;
+      songTitleInput.value = '';
+      artistInput.value = '';
+      styleInput.value = '';
+      scriptInput.value = '';
+      loadScript();
+      persistCurrentDraft();
+      hideLibraryPanel();
+      openPanel();
     }
 
     function persistSettings() {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        fontSize: fontSize.value,
-        lineHeight: lineHeight.value,
-        textWidth: textWidth.value,
-        overlayOpacity: overlayOpacity.value,
-        baseSpeed: baseSpeed.value,
-        voiceFollowSpeed: voiceFollowSpeed.value,
-        mirror: state.mirror,
-        voiceEnabled: voiceToggle.checked
+        fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value,
+        overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value,
+        mirror: !!state.mirror, voiceEnabled: !!voiceToggle.checked
       }));
     }
 
@@ -1215,219 +1165,29 @@
         if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed;
         if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed;
         state.mirror = !!saved.mirror;
-        mirrorToggle.checked = state.mirror;
+        mirrorToggle.checked = !!saved.mirror;
         voiceToggle.checked = !!saved.voiceEnabled;
-      } catch (error) {}
+      } catch (_) {}
     }
 
-    async function restoreSupabaseSession() {
-      if (!state.supabase) return;
-      try {
-        const { data, error } = await state.supabase.auth.getSession();
-        if (error) throw error;
-        state.session = data.session || null;
-        state.profileId = state.session?.user?.id || null;
-        if (state.session) {
-          updateAuthStatus(`Conectado como ${state.session.user.email}`);
-          updateSyncStatus('Conta conectada. Sincronização pronta.');
-          await syncSongsFromCloud();
-        } else {
-          updateAuthStatus('Faça login para sincronizar seu repertório com segurança.');
-        }
-        state.supabase.auth.onAuthStateChange(async (_event, session) => {
-          state.session = session || null;
-          state.profileId = state.session?.user?.id || null;
-          if (session) {
-            updateAuthStatus(`Conectado como ${session.user.email}`);
-            updateSyncStatus('Conta conectada. Sincronizando repertório...');
-            await syncSongsFromCloud();
-          } else {
-            updateAuthStatus('Faça login para sincronizar seu repertório com segurança.');
-            updateSyncStatus('Sincronização local ativa.');
-          }
-        });
-      } catch (error) {
-        console.warn(error);
-        updateAuthStatus('Não foi possível recuperar sua sessão.');
-      }
-    }
-
-    async function signIn() {
-      if (!state.supabase) {
-        showToast('Supabase não configurado neste index.');
-        return;
-      }
-      if (state.authLoading) return;
-      const email = authEmailInput.value.trim();
-      const password = authPasswordInput.value.trim();
-      if (!email || !password) {
-        showToast('Informe e-mail e senha.');
-        return;
-      }
-      state.authLoading = true;
-      updateAuthStatus('Entrando...');
-      try {
-        const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        state.session = data.session || null;
-        state.profileId = data.user?.id || state.session?.user?.id || null;
-        updateAuthStatus(`Conectado como ${data.user?.email || email}`);
-        updateSyncStatus('Conta conectada. Sincronizando repertório...');
-        showToast('Login realizado com sucesso.');
-        await syncSongsFromCloud();
-      } catch (error) {
-        console.warn(error);
-        updateAuthStatus('Não foi possível entrar com essas credenciais.');
-        showToast(error?.message?.includes('Invalid login credentials') ? 'E-mail ou senha incorretos.' : 'Falha ao entrar.');
-      } finally {
-        state.authLoading = false;
-      }
-    }
-
-    async function signUp() {
-      if (!state.supabase) {
-        showToast('Supabase não configurado neste index.');
-        return;
-      }
-      if (state.authLoading) return;
-      const email = authEmailInput.value.trim();
-      const password = authPasswordInput.value.trim();
-      if (!email || !password) {
-        showToast('Informe e-mail e senha.');
-        return;
-      }
-      if (password.length < 6) {
-        showToast('Use uma senha com pelo menos 6 caracteres.');
-        return;
-      }
-      state.authLoading = true;
-      updateAuthStatus('Criando conta...');
-      try {
-        const { data, error } = await state.supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        if (data.session) {
-          state.session = data.session;
-          state.profileId = data.user?.id || data.session.user?.id || null;
-          updateAuthStatus(`Conta criada e conectada como ${data.user?.email || email}`);
-          showToast('Conta criada com sucesso.');
-          await syncSongsFromCloud();
-        } else {
-          updateAuthStatus('Conta criada. Verifique seu e-mail para confirmar.');
-          showToast('Conta criada. Confira seu e-mail.');
-        }
-      } catch (error) {
-        console.warn(error);
-        updateAuthStatus('Não foi possível criar a conta.');
-        showToast(error?.message || 'Falha ao criar conta.');
-      } finally {
-        state.authLoading = false;
-      }
-    }
-
-    async function signOut() {
-      if (!state.supabase || !state.session) {
-        showToast('Nenhuma conta conectada.');
-        return;
-      }
-      try {
-        const { error } = await state.supabase.auth.signOut();
-        if (error) throw error;
-        state.session = null;
-        state.profileId = null;
-        updateAuthStatus('Sessão encerrada.');
+    function createSupabaseClient() {
+      if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('<')) {
         updateSyncStatus('Sincronização local ativa.');
-        showToast('Você saiu da conta.');
-      } catch (error) {
-        console.warn(error);
-        showToast('Não foi possível sair agora.');
+        return;
       }
-    }
-
-    async function syncSongsFromCloud() {
-      if (!state.supabase || !state.profileId || state.syncInProgress) return;
-      state.syncInProgress = true;
-      updateSyncStatus('Baixando repertório da nuvem...');
       try {
-        const { data, error } = await state.supabase
-          .from(CLOUD_SONGS_TABLE)
-          .select('*')
-          .eq('user_id', state.profileId)
-          .order('updated_at', { ascending: false });
-        if (error) throw error;
-        const remoteSongs = Array.isArray(data) ? data.map(item => sanitizeSong({
-          id: item.song_id,
-          title: item.title,
-          artist: item.artist,
-          style: item.style,
-          lyrics: item.lyrics,
-          updatedAt: item.updated_at ? new Date(item.updated_at).getTime() : Date.now(),
-          cloudUpdatedAt: item.updated_at || null,
-          deletedAt: item.deleted_at ? new Date(item.deleted_at).getTime() : null
-        })) : [];
-
-        const byId = new Map();
-        [...state.songs, ...remoteSongs].forEach(song => {
-          const current = byId.get(song.id);
-          if (!current || (song.updatedAt || 0) > (current.updatedAt || 0)) {
-            byId.set(song.id, song);
-          }
-        });
-        state.songs = Array.from(byId.values()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        state.songsLoadedFromCloud = true;
-        saveSongs();
-        if (!state.currentSongId) {
-          const activeSongs = state.songs.filter(song => !song.deletedAt);
-          if (activeSongs.length) {
-            loadSongByIndex(0);
-          }
-        }
-        updateSyncStatus('Repertório sincronizado com a nuvem.');
-      } catch (error) {
-        console.warn(error);
-        updateSyncStatus('Falha ao baixar repertório da nuvem.');
-      } finally {
-        state.syncInProgress = false;
+        state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+      } catch (_) {
+        updateSyncStatus('Sincronização local ativa.');
       }
     }
 
-    async function syncSongsToCloud() {
-      if (!state.supabase || !state.profileId || state.syncInProgress) return;
-      const now = Date.now();
-      if (now - state.lastSyncedAt < 1200) return;
-      state.syncInProgress = true;
-      updateSyncStatus('Enviando alterações para a nuvem...');
-      try {
-        const payload = state.songs.map(song => ({
-          user_id: state.profileId,
-          song_id: song.id,
-          title: song.title,
-          artist: song.artist,
-          style: song.style,
-          lyrics: song.lyrics,
-          updated_at: new Date(song.updatedAt || Date.now()).toISOString(),
-          deleted_at: song.deletedAt ? new Date(song.deletedAt).toISOString() : null
-        }));
-        if (payload.length) {
-          const { error } = await state.supabase.from(CLOUD_SONGS_TABLE).upsert(payload, { onConflict: 'user_id,song_id' });
-          if (error) throw error;
-        }
-        state.lastSyncedAt = Date.now();
-        updateSyncStatus('Repertório sincronizado com a nuvem.');
-      } catch (error) {
-        console.warn(error);
-        updateSyncStatus('Falha ao enviar alterações para a nuvem.');
-      } finally {
-        state.syncInProgress = false;
-      }
-    }
-
-    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
-    function hidePanel() { sidePanel.classList.remove('open'); }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
-    function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
-    function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function openAuthPanel() { hidePanel(); hideLibraryPanel(); hideSongEditor(); authPanel.classList.add('open'); }
-    function hideAuthPanel() { authPanel.classList.remove('open'); }
+    async function signInWithSupabase() { showToast('Login disponível quando o Supabase estiver configurado.'); }
+    async function signUpWithSupabase() { showToast('Cadastro disponível quando o Supabase estiver configurado.'); }
+    async function recoverPasswordWithSupabase() { showToast('Recuperação disponível quando o Supabase estiver configurado.'); }
+    async function signOutFromSupabase() { showToast('Nenhuma conta conectada.'); }
+    async function syncSongsToCloud() { showToast('Sincronização local ativa.'); }
+    async function restoreSupabaseSession() { updateSyncStatus('Sincronização local ativa.'); }
 
     function setupVoice() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1436,107 +1196,60 @@
         voiceToggle.disabled = true;
         return;
       }
-
       const recognition = new SpeechRecognition();
       recognition.lang = 'pt-BR';
       recognition.interimResults = true;
       recognition.continuous = true;
       recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        state.recognitionRunning = true;
-      };
-
+      recognition.onstart = () => { state.recognitionRunning = true; };
       recognition.onend = () => {
         state.recognitionRunning = false;
-        if (state.voiceEnabled) {
-          setTimeout(() => {
-            try { recognition.start(); } catch (e) {}
-          }, 250);
-        }
+        if (state.voiceEnabled) setTimeout(() => { try { recognition.start(); } catch (_) {} }, 250);
       };
-
       recognition.onresult = (event) => {
         let joined = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          joined += event.results[i][0].transcript + ' ';
-        }
+        for (let i = event.resultIndex; i < event.results.length; i++) joined += event.results[i][0].transcript + ' ';
         joined = joined.trim();
         if (!joined) return;
         updateTranscript(`Você disse: ${joined}`);
-        handleVoiceContinuous(joined);
       };
-
       state.recognition = recognition;
       state.recognitionReady = true;
     }
 
-    function handleVoiceContinuous(transcript) {
-      const normalizedTranscript = splitWords(transcript).join(' ');
-      if (!normalizedTranscript || !state.flatWords.length) return;
-      if (normalizedTranscript === state.voiceLastProcessed) return;
-      state.voiceLastProcessed = normalizedTranscript;
-
-      const heardWords = normalizedTranscript.split(' ').filter(Boolean);
-      if (!heardWords.length) return;
-
-      const advancedBy = advanceSpeechCursorForward(heardWords);
-      if (!advancedBy) return;
-
-      state.voiceLastMatchAt = performance.now();
-      moveTowardSpeechCursor();
-    }
-
     function enableVoice(enabled) {
       state.voiceEnabled = enabled;
-      state.voiceLastProcessed = '';
-      state.voiceLastMatchAt = 0;
       if (!state.recognitionReady) return;
       if (enabled) {
         updateTranscript('Reconhecimento de voz ligado. Comece a falar.');
-        try { state.recognition.start(); } catch (e) {}
+        try { state.recognition.start(); } catch (_) {}
       } else if (state.recognitionRunning) {
         state.recognition.stop();
         updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.');
       }
     }
 
-    function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
-    function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
-    function toggleCleanMode() {
-      if (state.cleanMode) {
-        state.cleanMode = false;
-        app.classList.add('detail-mode');
-        app.classList.remove('clean-mode');
-        $('detailPanel').classList.add('open');
-      } else {
-        returnToCleanMode();
-      }
+    function toggleMirror() {
+      state.mirror = !state.mirror;
+      mirrorToggle.checked = state.mirror;
+      refreshLayoutPreservingPoint();
+      persistSettings();
     }
-    function returnToCleanMode() {
-      state.cleanMode = true;
-      app.classList.add('clean-mode');
-      app.classList.remove('detail-mode');
-      $('detailPanel').classList.remove('open');
+
+    function toggleCleanMode() {
+      state.cleanMode = !state.cleanMode;
+      app.classList.toggle('clean-mode', state.cleanMode);
+      app.classList.toggle('detail-mode', !state.cleanMode);
+      $('detailPanel').classList.toggle('open', !state.cleanMode);
+      $('cleanReturnBtn').style.display = state.cleanMode ? 'none' : 'grid';
     }
 
     function bindBluetoothControls() {
       document.addEventListener('keydown', (event) => {
         if (event.repeat) return;
-        const key = event.key;
-        if (key === 'ArrowUp' || key === 'PageUp') {
-          event.preventDefault();
-          moveBlock(-1);
-        }
-        if (key === 'ArrowDown' || key === 'PageDown') {
-          event.preventDefault();
-          moveBlock(1);
-        }
-        if (key === ' ' || key === 'MediaPlayPause') {
-          event.preventDefault();
-          state.playing = !state.playing;
-          syncPlayPauseIcon();
-        }
+        if (event.key === 'ArrowUp' || event.key === 'PageUp') { event.preventDefault(); jumpLine(-1); }
+        if (event.key === 'ArrowDown' || event.key === 'PageDown') { event.preventDefault(); jumpLine(1); }
+        if (event.key === ' ' || event.key === 'MediaPlayPause') { event.preventDefault(); togglePlayPause(); }
       });
     }
 
@@ -1545,67 +1258,39 @@
       $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor);
       $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; });
       $('sampleTextBtn').addEventListener('click', () => {
         songTitleInput.value = 'Exemplo';
         scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou';
         loadScript();
       });
       $('saveSongBtn').addEventListener('click', saveCurrentSong);
-      $('openSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) openSongById(state.selectedSongActionId); });
-      $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); });
-      $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); });
-      $('backSongBtn').addEventListener('click', previousSong);
-      $('nextSongBtn').addEventListener('click', nextSong);
-      $('saveEditedSongBtn').addEventListener('click', saveEditedSong);
+      $('openLibraryBtn').addEventListener('click', openLibraryPanel);
+      $('openLibraryBtnDock').addEventListener('click', openLibraryPanel);
       $('hideLibraryBtn').addEventListener('click', hideLibraryPanel);
+      $('openPanelDockBtn').addEventListener('click', togglePanel);
       $('hidePanelBtn').addEventListener('click', hidePanel);
-      $('hideAuthBtn').addEventListener('click', hideAuthPanel);
-      $('showLibraryBtn').addEventListener('click', openLibraryPanel);
-      $('togglePanelBtn').addEventListener('click', togglePanel);
-      $('modeSwitchBtn').addEventListener('click', toggleCleanMode);
-      $('cleanReturnBtn').addEventListener('click', returnToCleanMode);
-      $('backBlockBtn').addEventListener('click', () => moveBlock(-1));
-      $('nextBlockBtn').addEventListener('click', () => moveBlock(1));
-      $('playPauseBtn').addEventListener('click', () => { state.playing = !state.playing; syncPlayPauseIcon(); });
       $('openLoginBtn').addEventListener('click', openAuthPanel);
-      $('syncNowBtn').addEventListener('click', syncSongsToCloud);
-      $('loginSubmitBtn').addEventListener('click', signIn);
-      $('registerSubmitBtn').addEventListener('click', signUp);
-      $('logoutBtn').addEventListener('click', signOut);
-      repertoireSelect.addEventListener('change', () => {
-        const activeSongs = state.songs.filter(song => !song.deletedAt);
-        const index = activeSongs.findIndex(song => song.id === repertoireSelect.value);
-        if (index >= 0) loadSongByIndex(index);
-      });
+      $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel);
+      $('signInBtn').addEventListener('click', signInWithSupabase);
+      $('signUpBtn').addEventListener('click', signUpWithSupabase);
+      $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase);
+      $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true }));
+      $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); });
+      $('deleteSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) deleteSongById(state.selectedSongActionId); });
+      $('saveSongChangesBtn').addEventListener('click', saveSongChanges);
+      $('backBlockBtn').addEventListener('click', () => jumpLine(-1));
+      $('nextBlockBtn').addEventListener('click', () => jumpLine(1));
+      $('playPauseBtn').addEventListener('click', togglePlayPause);
+      $('playPauseDockBtn').addEventListener('click', togglePlayPause);
+      $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode);
+      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
       librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value || ''));
-      [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => input.addEventListener('input', () => {
-        updateValueLabels();
-        applyStyles();
-        persistSettings();
-      }));
-      baseSpeed.addEventListener('input', () => {
-        updateValueLabels();
-        state.baseSpeed = Number(baseSpeed.value);
-        if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value;
-        persistSettings();
-      });
-      if (detailSpeedSlider) {
-        detailSpeedSlider.addEventListener('input', () => {
-          baseSpeed.value = detailSpeedSlider.value;
-          state.baseSpeed = Number(detailSpeedSlider.value);
-          updateValueLabels();
-          persistSettings();
-        });
-      }
-      voiceFollowSpeed.addEventListener('input', () => {
-        updateValueLabels();
-        const raw = Number(voiceFollowSpeed.value);
-        state.voiceFollowSpeed = raw / 100;
-        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
-        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
-        persistSettings();
-      });
+      repertoireSelect.addEventListener('change', openSelectedSong);
+      [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }));
+      baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); });
+      if (detailSpeedSlider) detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); });
+      voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; persistSettings(); });
       voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); });
       mirrorToggle.addEventListener('change', toggleMirror);
       songTitleInput.addEventListener('input', persistCurrentDraft);
@@ -1630,12 +1315,18 @@
       const gate = $('browserEntryGate');
       if (!gate) return;
       const shouldLockBrowser = shouldShowBrowserEntryGate();
-      app.classList.toggle('browser-locked', shouldLockBrowser);
       gate.classList.toggle('active', shouldLockBrowser);
       gate.setAttribute('aria-hidden', shouldLockBrowser ? 'false' : 'true');
+      document.body.style.overflow = shouldLockBrowser ? 'auto' : 'hidden';
+      document.documentElement.style.overflow = shouldLockBrowser ? 'auto' : 'hidden';
+      ['.stage-layer', '.teleprompter-overlay', '.controls-bar', '.clean-return-btn', '.detail-panel', '.side-panel', '.library-screen', '.auth-panel', '.song-editor-panel', '.song-actions-panel', '.app-toast'].forEach((selector) => {
+        document.querySelectorAll(selector).forEach((node) => {
+          node.style.display = shouldLockBrowser ? 'none' : '';
+        });
+      });
       showEntryScreen('home');
       gate.querySelectorAll('[data-entry-target]').forEach((btn) => {
-        btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target')));
+        btn.onclick = () => showEntryScreen(btn.getAttribute('data-entry-target'));
       });
     }
 
@@ -1647,8 +1338,6 @@
       updateValueLabels();
       state.baseSpeed = Number(baseSpeed.value);
       state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
-      state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
-      state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
       applyStyles();
       loadScript();
       setupVoice();
