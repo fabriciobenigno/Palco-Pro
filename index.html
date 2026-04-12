@@ -697,6 +697,81 @@
     .song-editor-panel .fullscreen-card {
       overflow: auto;
     }
+
+
+    .editor-actions-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .editor-actions-row .ghost-btn {
+      flex: 1;
+      min-width: 132px;
+    }
+
+    .suggestions-panel {
+      z-index: 60;
+      pointer-events: auto;
+    }
+
+    .suggestions-panel .fullscreen-card {
+      gap: 12px;
+      overflow: auto;
+    }
+
+    .suggestions-results {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: auto;
+      border-radius: 22px;
+      background: rgba(9,13,20,0.54);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 240px;
+    }
+
+    .suggestion-empty {
+      padding: 18px 16px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.66);
+      text-align: center;
+    }
+
+    .suggestion-item {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(17,22,31,0.94);
+      color: #fff;
+      text-align: left;
+      padding: 12px 14px;
+      display: grid;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: 0;
+    }
+
+    .suggestion-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.96);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .suggestion-item-meta {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .password-visibility-row {
       display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.76); font-size: 13px;
       margin-top: -2px;
@@ -1063,6 +1138,10 @@
         </div>
 
         <div class="fullscreen-card">
+          <div class="editor-actions-row">
+            <button class="ghost-btn" id="openSuggestionsBtn">Sugestões</button>
+          </div>
+
           <div class="field">
             <label for="songTitleInput">Título da música</label>
             <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
@@ -1090,6 +1169,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           <div class="field" style="margin-top: 2px;">
             <button class="ghost-btn" id="saveSongBtn">Salvar música</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fullscreen-screen suggestions-panel" id="suggestionsPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Sugestões</h2>
+            <p class="fullscreen-subtitle">Pesquise músicas sugeridas e toque em uma delas para preencher o cadastro.</p>
+          </div>
+          <button class="mini-btn" id="hideSuggestionsPanelBtn">×</button>
+        </div>
+
+        <div class="fullscreen-card">
+          <div class="field">
+            <input id="suggestionsSearchInput" type="text" placeholder="Buscar por música, artista ou estilo" />
+          </div>
+
+          <div class="sync-status-note" id="suggestionsStatusNote">Carregue as sugestões disponíveis para pesquisar.</div>
+
+          <div class="suggestions-results" id="suggestionsList"></div>
         </div>
       </div>
     </div>
@@ -1136,7 +1237,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
-      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: ''
+      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], suggestionsLoadedAt: 0
     };
 
     const app = $('app');
@@ -1185,6 +1286,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const syncStatusNote = $('syncStatusNote');
     const accountIdentityBtn = $('accountIdentityBtn');
     const songEditorPanel = $('songEditorPanel');
+    const suggestionsPanel = $('suggestionsPanel');
+    const suggestionsSearchInput = $('suggestionsSearchInput');
+    const suggestionsStatusNote = $('suggestionsStatusNote');
+    const suggestionsList = $('suggestionsList');
     const appToast = $('appToast');
     const songActionsPanel = $('songActionsPanel');
     const songActionsSubtitle = $('songActionsSubtitle');
@@ -1247,6 +1352,94 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function updateSyncStatus(message) {
       if (syncStatusNote) syncStatusNote.textContent = message;
+    }
+
+    function updateSuggestionsStatus(message) {
+      if (suggestionsStatusNote) suggestionsStatusNote.textContent = message;
+    }
+
+    function getSuggestionSearchQuery() {
+      return (suggestionsSearchInput?.value || '').trim().toLowerCase();
+    }
+
+    function filterSuggestionSongs() {
+      const query = getSuggestionSearchQuery();
+      let songs = state.suggestionSongs.slice().sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
+      if (!query) return songs;
+      return songs.filter((song) => {
+        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(query);
+      });
+    }
+
+    function renderSuggestionList() {
+      if (!suggestionsList) return;
+      const songs = filterSuggestionSongs();
+      suggestionsList.innerHTML = '';
+      if (!songs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'suggestion-empty';
+        empty.textContent = state.suggestionSongs.length ? 'Nenhuma sugestão encontrada para essa busca.' : 'Nenhuma sugestão disponível no momento.';
+        suggestionsList.appendChild(empty);
+        return;
+      }
+      songs.forEach((song) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'suggestion-item';
+        button.innerHTML = `<span class="suggestion-item-title">${escapeHtml(song.title || 'Sem título')}</span><span class="suggestion-item-meta">${escapeHtml([song.artist, song.style].filter(Boolean).join(' • ') || 'Sugestão disponível')}</span>`;
+        button.addEventListener('click', () => applySuggestionSong(song));
+        suggestionsList.appendChild(button);
+      });
+    }
+
+    async function loadSuggestionSongs(force = false) {
+      if (!state.supabase) createSupabaseClient();
+      if (!state.supabase) {
+        updateSuggestionsStatus('Não foi possível iniciar as sugestões agora.');
+        renderSuggestionList();
+        return;
+      }
+      const cacheFresh = state.suggestionsLoadedAt && (Date.now() - state.suggestionsLoadedAt) < 60000;
+      if (!force && cacheFresh && state.suggestionSongs.length) {
+        updateSuggestionsStatus('Pesquise músicas sugeridas para preencher o cadastro.');
+        renderSuggestionList();
+        return;
+      }
+      updateSuggestionsStatus('Carregando sugestões...');
+      try {
+        const { data, error } = await state.supabase
+          .from('songs')
+          .select('id, song_title, artist, style, lyrics')
+          .eq('suggestion_enabled', true)
+          .order('song_title', { ascending: true });
+        if (error) throw error;
+        state.suggestionSongs = (data || []).map((song) => ({
+          id: song.id,
+          title: song.song_title || 'Sem título',
+          artist: song.artist || '',
+          style: song.style || '',
+          lyrics: sanitizeLyrics(song.lyrics || '')
+        }));
+        state.suggestionsLoadedAt = Date.now();
+        updateSuggestionsStatus(state.suggestionSongs.length ? 'Pesquise e toque em uma sugestão para preencher o cadastro.' : 'Nenhuma sugestão disponível no momento.');
+      } catch (_) {
+        state.suggestionSongs = [];
+        updateSuggestionsStatus('Não foi possível carregar as sugestões agora. Verifique as permissões do banco e tente novamente.');
+      }
+      renderSuggestionList();
+    }
+
+    function applySuggestionSong(song) {
+      if (!song) return;
+      songTitleInput.value = song.title || '';
+      artistInput.value = song.artist || '';
+      styleInput.value = song.style || '';
+      scriptInput.value = song.lyrics || '';
+      persistCurrentDraft();
+      hideSuggestionsPanel();
+      openSongEditor();
+      showToast('Sugestão aplicada', 1400);
     }
 
     function getUserIdentityLabel() {
@@ -1328,6 +1521,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hidePanel();
       hideLibraryPanel();
       hideSongEditor();
+      hideSuggestionsPanel();
       hideSongActions();
       hideAuthPanel();
       hideRecoverPanel();
@@ -1338,6 +1532,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hidePanel();
       hideLibraryPanel();
       hideSongEditor();
+      hideSuggestionsPanel();
       hideSongActions();
       hideAuthPanel();
       hideRegisterPanel();
@@ -1349,11 +1544,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hideAuthPanel();
       hideRegisterPanel();
       hideRecoverPanel();
+      hideSuggestionsPanel();
       songEditorPanel.classList.add('open');
     }
 
     function hideSongEditor() {
       songEditorPanel.classList.remove('open');
+    }
+
+    function openSuggestionsPanel() {
+      hidePanel();
+      hideAuthPanel();
+      hideRegisterPanel();
+      hideRecoverPanel();
+      hideSongEditor();
+      suggestionsPanel.classList.add('open');
+      loadSuggestionSongs();
+      renderSuggestionList();
+    }
+
+    function hideSuggestionsPanel() {
+      if (!suggestionsPanel) return;
+      suggestionsPanel.classList.remove('open');
     }
 
     function openSongActions(songId) {
@@ -1800,7 +2012,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
     function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
     function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; let closestRect = null; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; closestRect = rect; } }); state.currentLine = closestIndex; const lineWords = getLineWords(closestIndex); const lineStart = getLineStartIndex(closestIndex); let spokenInsideLine = 0; if (closestRect && lineWords.length) { const relative = Math.max(0, Math.min(1, (guideY - closestRect.top) / Math.max(1, closestRect.height))); spokenInsideLine = Math.max(0, Math.min(lineWords.length - 1, Math.floor(relative * lineWords.length))); } state.speechCursor = Math.min(state.flatWords.length, lineStart + spokenInsideLine); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
-    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
+    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
     function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
@@ -2056,9 +2268,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       app.classList.remove('detail-mode');
       $('detailPanel').classList.remove('open');
     }
-    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
+    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
     function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue })); }
@@ -2314,7 +2526,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
