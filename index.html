@@ -244,25 +244,22 @@
     }
 
     .library-results {
-      display: flex;
-      flex-direction: column;
+      display: grid;
       gap: 0;
       overflow: auto;
-      padding-right: 0;
+      padding-right: 2px;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 94px;
+      --swipe-reveal-width: 96px;
       position: relative;
       overflow: hidden;
-      border-radius: 0;
-      min-height: 46px;
-      height: 46px;
+      border-radius: 12px;
+      min-height: 40px;
       touch-action: pan-y;
-      background: transparent;
-      border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: none;
+      background: rgba(24,26,34,0.96);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
       box-shadow: none;
       margin: 0;
     }
@@ -283,23 +280,23 @@
     }
 
     .library-song-action-btn {
-      width: 34px;
-      height: 34px;
-      min-height: 34px;
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
       border: 0;
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       box-shadow: 0 6px 14px rgba(0,0,0,0.16);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
       pointer-events: none;
-      flex: 0 0 34px;
+      flex: 0 0 36px;
     }
 
     .library-song-action-btn.edit {
@@ -314,12 +311,12 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 46px;
-      height: 46px;
-      padding: 0 12px;
+      min-height: 40px;
+      height: 40px;
+      padding: 6px 12px;
       border: 0;
-      border-radius: 0;
-      background: rgba(18, 22, 30, 0.94);
+      border-radius: 12px;
+      background: transparent;
       box-shadow: none;
       color: #fff;
       text-align: left;
@@ -337,20 +334,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 14px;
-      line-height: 1.2;
+      font-size: 13px;
+      line-height: 1;
       color: rgba(255,255,255,0.96);
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .library-song-line small {
       font-size: inherit;
-      font-weight: 500;
+      font-weight: 600;
       color: rgba(255,255,255,0.72);
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 0;
+      margin-top: 2px;
     }
 
     .library-song-swipe.revealed .library-song-card {
@@ -507,15 +504,83 @@
     .entry-step-text { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.9); }
     .entry-footer { text-align: center; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.58); padding-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
-    .auth-panel {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 46;
-      width: var(--panel-w); max-height: min(84vh, 720px); overflow: auto;
-      border-radius: 26px; background: rgba(8,12,18,0.92); border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,0.34); padding: 16px; display: none;
-      pointer-events: auto;
+    .fullscreen-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 58;
+      display: none;
+      padding:
+        calc(var(--safe-top) + 18px)
+        max(16px, env(safe-area-inset-right))
+        calc(var(--safe-bottom) + 18px)
+        max(16px, env(safe-area-inset-left));
+      background:
+        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
+        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      backdrop-filter: blur(20px);
     }
 
-    .auth-panel.open { display: block; }
+    .fullscreen-screen.open {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fullscreen-shell {
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .fullscreen-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .fullscreen-title-wrap {
+      display: grid;
+      gap: 4px;
+    }
+
+    .fullscreen-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #fff;
+    }
+
+    .fullscreen-subtitle {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.72);
+    }
+
+    .fullscreen-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+      padding: 16px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(22px);
+      overflow: auto;
+    }
+
+    .auth-panel, .register-panel, .recover-panel {
+      pointer-events: auto;
+    }
     .auth-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .auth-actions-row .ghost-btn { flex: 1; min-width: 110px; }
     .sync-status-note {
@@ -719,6 +784,7 @@
       <div class="panel-grid">
         <div class="small-row">
           <button class="ghost-btn" id="openLoginBtn">Login</button>
+          <button class="ghost-btn" id="openRegisterBtn">Cadastro</button>
           <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
         </div>
 
@@ -783,38 +849,108 @@
       </div>
     </div>
 
-    <div class="auth-panel" id="authPanel">
-      <div class="panel-title">
-        <h2>Login</h2>
-        <button class="mini-btn" id="hideAuthPanelBtn">×</button>
+    <div class="fullscreen-screen auth-panel" id="authPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Login</h2>
+            <p class="fullscreen-subtitle">Entre na sua conta para sincronizar seu repertório no celular.</p>
+          </div>
+          <button class="mini-btn" id="hideAuthPanelBtn">×</button>
+        </div>
+
+        <div class="fullscreen-card">
+          <div class="field">
+            <label for="authEmailInput">Login</label>
+            <input id="authEmailInput" type="text" placeholder="Seu Gmail" />
+          </div>
+
+          <div class="field">
+            <label for="authPasswordInput">Senha</label>
+            <input id="authPasswordInput" type="password" placeholder="Sua senha" />
+            <label class="password-visibility-row" for="showPasswordToggle">
+              <input id="showPasswordToggle" type="checkbox" />
+              <span>Visualizar senha</span>
+            </label>
+          </div>
+
+          <div class="auth-actions-row">
+            <button class="ghost-btn" id="signInBtn">Entrar</button>
+            <button class="ghost-btn" id="recoverPasswordBtn">Recuperar senha</button>
+          </div>
+
+          <div class="auth-actions-row">
+            <button class="ghost-btn" id="signOutBtn">Sair</button>
+          </div>
+
+          <div class="sync-status-note" id="authStatusNote">Nenhuma conta conectada.</div>
+          <div class="panel-note">O cadastro agora fica em uma opção própria nos ajustes, para manter o login mais direto no celular.</div>
+        </div>
       </div>
+    </div>
 
-      <div class="panel-grid">
-        <div class="field">
-          <label for="authEmailInput">Login</label>
-          <input id="authEmailInput" type="text" placeholder="Seu e-mail" />
+    <div class="fullscreen-screen register-panel" id="registerPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Cadastro</h2>
+            <p class="fullscreen-subtitle">Crie seu acesso com um fluxo mais completo, pensado para uso no celular.</p>
+          </div>
+          <button class="mini-btn" id="hideRegisterPanelBtn">×</button>
         </div>
 
-        <div class="field">
-          <label for="authPasswordInput">Senha</label>
-          <input id="authPasswordInput" type="password" placeholder="Sua senha" />
-          <label class="password-visibility-row" for="showPasswordToggle">
-            <input id="showPasswordToggle" type="checkbox" />
-            <span>Visualizar senha</span>
-          </label>
+        <div class="fullscreen-card">
+          <div class="field">
+            <label for="registerNameInput">Cadastro</label>
+            <input id="registerNameInput" type="text" placeholder="Seu nome" />
+          </div>
+
+          <div class="field">
+            <label for="registerEmailInput">Login</label>
+            <input id="registerEmailInput" type="text" placeholder="Seu Gmail" />
+          </div>
+
+          <div class="field">
+            <label for="registerPasswordInput">Senha</label>
+            <input id="registerPasswordInput" type="password" placeholder="Crie sua senha" />
+          </div>
+
+          <div class="field">
+            <label for="registerPasswordConfirmInput">Confirmar senha</label>
+            <input id="registerPasswordConfirmInput" type="password" placeholder="Repita sua senha" />
+          </div>
+
+          <div class="auth-actions-row">
+            <button class="ghost-btn" id="submitRegisterBtn">Concluir cadastro</button>
+          </div>
+
+          <div class="sync-status-note" id="registerStatusNote">Preencha seus dados para concluir o cadastro.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fullscreen-screen recover-panel" id="recoverPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Recuperar senha</h2>
+            <p class="fullscreen-subtitle">Coloque seu Gmail para recuperação de senha e enviaremos as instruções.</p>
+          </div>
+          <button class="mini-btn" id="hideRecoverPanelBtn">×</button>
         </div>
 
-        <div class="auth-actions-row">
-          <button class="ghost-btn" id="signInBtn">Entrar</button>
-          <button class="ghost-btn" id="signUpBtn">Cadastrar</button>
-        </div>
+        <div class="fullscreen-card">
+          <div class="field">
+            <label for="recoverEmailInput">Gmail para recuperação</label>
+            <input id="recoverEmailInput" type="text" placeholder="seuemail@gmail.com" />
+          </div>
 
-        <div class="auth-actions-row">
-          <button class="ghost-btn" id="signOutBtn">Sair</button>
-          <button class="ghost-btn" id="recoverPasswordBtn">Recuperar senha</button>
-        </div>
+          <div class="auth-actions-row">
+            <button class="ghost-btn" id="sendRecoveryBtn">Enviar recuperação</button>
+          </div>
 
-        <div class="sync-status-note" id="authStatusNote">Nenhuma conta conectada.</div>
+          <div class="sync-status-note" id="recoverStatusNote">Informe o Gmail da conta para receber a recuperação.</div>
+        </div>
       </div>
     </div>
 
@@ -934,6 +1070,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const authEmailInput = $('authEmailInput');
     const authPasswordInput = $('authPasswordInput');
     const authStatusNote = $('authStatusNote');
+    const registerPanel = $('registerPanel');
+    const registerNameInput = $('registerNameInput');
+    const registerEmailInput = $('registerEmailInput');
+    const registerPasswordInput = $('registerPasswordInput');
+    const registerPasswordConfirmInput = $('registerPasswordConfirmInput');
+    const registerStatusNote = $('registerStatusNote');
+    const recoverPanel = $('recoverPanel');
+    const recoverEmailInput = $('recoverEmailInput');
+    const recoverStatusNote = $('recoverStatusNote');
     const syncStatusNote = $('syncStatusNote');
     const songEditorPanel = $('songEditorPanel');
     const appToast = $('appToast');
@@ -988,6 +1133,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (authStatusNote) authStatusNote.textContent = message;
     }
 
+    function updateRegisterStatus(message) {
+      if (registerStatusNote) registerStatusNote.textContent = message;
+    }
+
+    function updateRecoverStatus(message) {
+      if (recoverStatusNote) recoverStatusNote.textContent = message;
+    }
+
     function updateSyncStatus(message) {
       if (syncStatusNote) syncStatusNote.textContent = message;
     }
@@ -1010,21 +1163,56 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       updateSyncStatus(`${base}${time}${extraMessage ? ` ${extraMessage}` : ''}`.trim());
     }
 
+    function hideRegisterPanel() {
+      registerPanel.classList.remove('open');
+    }
+
+    function hideRecoverPanel() {
+      recoverPanel.classList.remove('open');
+    }
+
     function openAuthPanel() {
       hidePanel();
       hideLibraryPanel();
       hideSongEditor();
       hideSongActions();
+      hideRegisterPanel();
+      hideRecoverPanel();
       authPanel.classList.add('open');
+      if (authEmailInput) authEmailInput.focus();
     }
 
     function hideAuthPanel() {
       authPanel.classList.remove('open');
     }
 
+    function openRegisterPanel() {
+      hidePanel();
+      hideLibraryPanel();
+      hideSongEditor();
+      hideSongActions();
+      hideAuthPanel();
+      hideRecoverPanel();
+      registerPanel.classList.add('open');
+      if (registerNameInput) registerNameInput.focus();
+    }
+
+    function openRecoverPanel() {
+      hidePanel();
+      hideLibraryPanel();
+      hideSongEditor();
+      hideSongActions();
+      hideAuthPanel();
+      hideRegisterPanel();
+      recoverPanel.classList.add('open');
+      if (recoverEmailInput) recoverEmailInput.focus();
+    }
+
     function openSongEditor() {
       hidePanel();
       hideAuthPanel();
+      hideRegisterPanel();
+      hideRecoverPanel();
       songEditorPanel.classList.add('open');
       songTitleInput.focus();
     }
@@ -1079,7 +1267,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let dragging = false;
       let horizontalIntent = false;
       let moved = false;
-      const revealWidth = 94;
+      const revealWidth = 122;
 
       const finishSwipe = (offset) => {
         if (offset <= -(revealWidth * 0.45)) {
@@ -1265,22 +1453,46 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function signUpWithSupabase() {
-      const { email, password } = getAuthCredentials();
-      if (!email || !password) {
-        updateAuthStatus('Preencha login e senha para cadastrar.');
+      const name = (registerNameInput?.value || '').trim();
+      const email = (registerEmailInput?.value || '').trim();
+      const password = registerPasswordInput?.value || '';
+      const passwordConfirm = registerPasswordConfirmInput?.value || '';
+      if (!name || !email || !password || !passwordConfirm) {
+        updateRegisterStatus('Preencha cadastro, login, senha e confirmação para concluir.');
+        return;
+      }
+      if (password !== passwordConfirm) {
+        updateRegisterStatus('As senhas informadas não coincidem.');
+        return;
+      }
+      if (!state.supabase) {
+        createSupabaseClient();
+      }
+      if (!state.supabase) {
+        updateRegisterStatus('Não foi possível iniciar o cadastro agora.');
         return;
       }
       try {
-        const { data, error } = await state.supabase.auth.signUp({ email, password });
+        const { data, error } = await state.supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { display_name: name } }
+        });
         if (error) throw error;
-        state.currentUser = data.user || null;
-        updateAuthStatus(state.currentUser
+        state.currentUser = data.user || data.session?.user || null;
+        updateRegisterStatus(state.currentUser
           ? `Cadastro concluído para ${state.currentUser.email || email}.`
-          : 'Cadastro enviado. Verifique o e-mail da conta, se necessário.');
-        setSyncStatusFromState();
-        if (state.currentUser) await syncSongsToCloud({ manual: true });
+          : 'Cadastro concluído. Verifique seu e-mail para finalizar, se necessário.');
+        showToast('Cadastro concluído', 1500);
+        setSyncStatusFromState('Cadastro concluído.');
+        if (state.currentUser) {
+          await syncSongsToCloud({ manual: true });
+        }
+        setTimeout(() => {
+          hideRegisterPanel();
+        }, 1100);
       } catch (error) {
-        updateAuthStatus(`Não foi possível cadastrar. ${error.message || 'Tente novamente.'}`.trim());
+        updateRegisterStatus(`Não foi possível cadastrar. ${error.message || 'Tente novamente.'}`.trim());
       }
     }
 
@@ -1334,17 +1546,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function recoverPasswordWithSupabase() {
-      const email = (authEmailInput?.value || '').trim();
+      const email = (recoverEmailInput?.value || '').trim();
       if (!email) {
-        updateAuthStatus('Informe seu e-mail para recuperar a senha.');
+        updateRecoverStatus('Coloque seu Gmail para recuperação de senha.');
+        return;
+      }
+      if (!state.supabase) {
+        createSupabaseClient();
+      }
+      if (!state.supabase) {
+        updateRecoverStatus('Não foi possível iniciar a recuperação agora.');
         return;
       }
       try {
         const { error } = await state.supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
-        updateAuthStatus('Enviamos a recuperação de senha para o e-mail informado.');
+        updateRecoverStatus(`Um e-mail foi enviado para ${email}.`);
+        showToast('E-mail de recuperação enviado', 1600);
+        setTimeout(() => {
+          hideRecoverPanel();
+        }, 1100);
       } catch (error) {
-        updateAuthStatus(`Não foi possível enviar a recuperação. ${error.message || 'Tente novamente.'}`.trim());
+        updateRecoverStatus(`Não foi possível enviar a recuperação. ${error.message || 'Tente novamente.'}`.trim());
       }
     }
 
@@ -1424,7 +1647,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
     function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
     function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; let closestRect = null; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; closestRect = rect; } }); state.currentLine = closestIndex; const lineWords = getLineWords(closestIndex); const lineStart = getLineStartIndex(closestIndex); let spokenInsideLine = 0; if (closestRect && lineWords.length) { const relative = Math.max(0, Math.min(1, (guideY - closestRect.top) / Math.max(1, closestRect.height))); spokenInsideLine = Math.max(0, Math.min(lineWords.length - 1, Math.floor(relative * lineWords.length))); } state.speechCursor = Math.min(state.flatWords.length, lineStart + spokenInsideLine); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
-    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || songEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
+    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
     function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
@@ -1680,9 +1903,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       app.classList.remove('detail-mode');
       $('detailPanel').classList.remove('open');
     }
-    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
+    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
     function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked })); }
@@ -1810,8 +2033,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
       $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('signUpBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
-      $('recoverPasswordBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('signOutBtn').addEventListener('click', signOutFromSupabase);
+      $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
