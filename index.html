@@ -788,6 +788,7 @@
         <div class="small-row">
           <button class="ghost-btn" id="openLoginBtn">Login</button>
           <button class="ghost-btn" id="openRegisterBtn">Cadastro</button>
+          <button class="ghost-btn hidden" id="accountIdentityBtn" type="button" aria-label="Conta conectada"></button>
           <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
           <button class="ghost-btn" id="logOutBtn">Log-out</button>
         </div>
@@ -1080,6 +1081,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const recoverEmailInput = $('recoverEmailInput');
     const recoverStatusNote = $('recoverStatusNote');
     const syncStatusNote = $('syncStatusNote');
+    const accountIdentityBtn = $('accountIdentityBtn');
     const songEditorPanel = $('songEditorPanel');
     const appToast = $('appToast');
     const songActionsPanel = $('songActionsPanel');
@@ -1145,6 +1147,33 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (syncStatusNote) syncStatusNote.textContent = message;
     }
 
+    function getUserIdentityLabel() {
+      if (!state.currentUser) return '';
+      const meta = state.currentUser.user_metadata || {};
+      return (meta.display_name || meta.name || state.currentUser.email || 'Conta conectada').trim();
+    }
+
+    function updateAccountControls() {
+      const isLoggedIn = !!state.currentUser;
+      const loginBtn = $('openLoginBtn');
+      const registerBtn = $('openRegisterBtn');
+      const logoutBtn = $('logOutBtn');
+      if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
+      if (registerBtn) registerBtn.classList.toggle('hidden', isLoggedIn);
+      if (logoutBtn) logoutBtn.classList.toggle('hidden', !isLoggedIn);
+      if (accountIdentityBtn) {
+        if (isLoggedIn) {
+          accountIdentityBtn.textContent = getUserIdentityLabel();
+          accountIdentityBtn.title = state.currentUser.email || getUserIdentityLabel();
+          accountIdentityBtn.classList.remove('hidden');
+        } else {
+          accountIdentityBtn.textContent = '';
+          accountIdentityBtn.title = '';
+          accountIdentityBtn.classList.add('hidden');
+        }
+      }
+    }
+
     function showToast(message, duration = 1100) {
       if (!appToast) return;
       appToast.textContent = message;
@@ -1156,6 +1185,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function setSyncStatusFromState(extraMessage = '') {
+      updateAccountControls();
       const base = state.currentUser
         ? `Conta conectada: ${state.currentUser.email || 'usuário logado'}.`
         : 'Sincronização local ativa.';
@@ -1540,6 +1570,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.currentUser = null;
       updateAuthStatus('Nenhuma conta conectada.');
       setSyncStatusFromState('Sincronização online pausada.');
+      showToast('Log-out realizado');
     }
 
     async function recoverPasswordWithSupabase() {
@@ -2057,7 +2088,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
     function showEntryScreen(target) { const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' }; const activeId = map[target] || map.home; ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => { const screen = $(id); if (screen) screen.classList.toggle('active', id === activeId); }); }
     function setupBrowserEntryGate() { const gate = $('browserEntryGate'); if (!gate) return; gate.classList.toggle('active', shouldShowBrowserEntryGate()); gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true'); showEntryScreen('home'); gate.querySelectorAll('[data-entry-target]').forEach((btn) => { btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target'))); }); }
-    function init() { createSupabaseClient(); loadSettings(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
+    function init() { createSupabaseClient(); loadSettings(); updateAccountControls(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
     init();
   </script>
 </body>
