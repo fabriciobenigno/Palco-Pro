@@ -1387,11 +1387,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       loadScript();
-      state.currentLine = 0;
-      state.speechCursor = 0;
-      state.scrollOffset = 0;
       repertoireSelect.value = song.id;
-      placeActiveLineAtTop();
+      resetSongToTopStart();
       persistCurrentDraft();
       hideLibraryPanel();
     }
@@ -1772,6 +1769,25 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + contentRect.height * 0.18; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
     function placeActiveLineAtTop() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + 8; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
+    function resetSongToTopStart() {
+      state.currentLine = 0;
+      state.speechCursor = 0;
+      state.anchorIndex = 0;
+      state.anchorProgress = 0.25;
+      state.voiceLastProcessed = '';
+      state.voiceLastMatchAt = 0;
+      state.scrollOffset = 0;
+      applyScroll(true);
+      const placeAtDefaultStart = () => {
+        state.currentLine = 0;
+        markLines();
+        placeActiveLineAtTop();
+      };
+      requestAnimationFrame(() => {
+        placeAtDefaultStart();
+        requestAnimationFrame(placeAtDefaultStart);
+      });
+    }
     function centerActiveLine() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.42; state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2); applyScroll(true); markLines(); }
     function setActiveLine(index) { const lines = getLineElements(); if (!lines.length) return; state.currentLine = Math.max(0, Math.min(index, lines.length - 1)); markLines(); centerActiveLine(); }
     function refreshLayoutPreservingPoint() { captureAnchor(); applyStyles(); restoreAnchor(); }
@@ -2211,10 +2227,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       loadScript();
-      state.currentLine = 0;
-      state.speechCursor = 0;
-      state.scrollOffset = 0;
-      placeActiveLineAtTop();
+      resetSongToTopStart();
       persistCurrentDraft();
     }
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
