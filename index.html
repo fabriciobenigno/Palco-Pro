@@ -1409,9 +1409,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       updateSuggestionsStatus('Carregando sugestões...');
       try {
         const { data, error } = await state.supabase
-          .from('songs')
+          .from('approved_suggestions')
           .select('id, song_title, artist, style, lyrics')
-          .eq('suggestion_enabled', true)
+          .eq('active', true)
           .order('song_title', { ascending: true });
         if (error) throw error;
         state.suggestionSongs = (data || []).map((song) => ({
