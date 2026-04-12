@@ -244,22 +244,25 @@
     }
 
     .library-results {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 0;
       overflow: auto;
-      padding-right: 2px;
+      padding-right: 0;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 96px;
+      --swipe-reveal-width: 94px;
       position: relative;
       overflow: hidden;
-      border-radius: 12px;
-      min-height: 40px;
+      border-radius: 0;
+      min-height: 46px;
+      height: 46px;
       touch-action: pan-y;
-      background: rgba(24,26,34,0.96);
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(14px);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: none;
       box-shadow: none;
       margin: 0;
     }
@@ -280,23 +283,23 @@
     }
 
     .library-song-action-btn {
-      width: 36px;
-      height: 36px;
-      min-height: 36px;
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
       border: 0;
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       box-shadow: 0 6px 14px rgba(0,0,0,0.16);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
       pointer-events: none;
-      flex: 0 0 36px;
+      flex: 0 0 34px;
     }
 
     .library-song-action-btn.edit {
@@ -311,12 +314,12 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 40px;
-      height: 40px;
-      padding: 6px 12px;
+      min-height: 46px;
+      height: 46px;
+      padding: 0 12px;
       border: 0;
-      border-radius: 12px;
-      background: transparent;
+      border-radius: 0;
+      background: rgba(18, 22, 30, 0.94);
       box-shadow: none;
       color: #fff;
       text-align: left;
@@ -334,20 +337,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 13px;
-      line-height: 1;
+      font-size: 14px;
+      line-height: 1.2;
       color: rgba(255,255,255,0.96);
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .library-song-line small {
       font-size: inherit;
-      font-weight: 600;
+      font-weight: 500;
       color: rgba(255,255,255,0.72);
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 2px;
+      margin-top: 0;
     }
 
     .library-song-swipe.revealed .library-song-card {
@@ -1076,7 +1079,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let dragging = false;
       let horizontalIntent = false;
       let moved = false;
-      const revealWidth = 122;
+      const revealWidth = 94;
 
       const finishSwipe = (offset) => {
         if (offset <= -(revealWidth * 0.45)) {
