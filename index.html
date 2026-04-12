@@ -1001,25 +1001,35 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         updateAuthStatus('Preencha login e senha para entrar.');
         return;
       }
+      if (!state.supabase) {
+        createSupabaseClient();
+      }
+      if (!state.supabase) {
+        updateAuthStatus('Não foi possível iniciar o login agora.');
+        return;
+      }
       try {
         const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        state.currentUser = data.user || null;
-        updateAuthStatus(`Conta conectada: ${state.currentUser?.email || email}.`);
+        const user = data?.user || data?.session?.user || null;
+        if (!user) throw new Error('Sessão não confirmada.');
+        state.currentUser = user;
+        updateAuthStatus(`Conta conectada: ${state.currentUser.email || email}.`);
+        setSyncStatusFromState('Login concluído.');
         showToast('Login realizado');
         setTimeout(() => {
           hideAuthPanel();
-        }, 900);
+        }, 950);
 
         try {
           await pullSongsFromCloud();
           state.lastSyncAt = Date.now();
           setSyncStatusFromState('Repertório carregado da nuvem.');
-        } catch (cloudError) {
-          state.lastSyncAt = Date.now();
+        } catch (_) {
           setSyncStatusFromState('Login concluído. Não foi possível atualizar o repertório da nuvem agora.');
         }
       } catch (error) {
+        state.currentUser = null;
         updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
       }
     }
@@ -1057,9 +1067,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         if (state.currentUser) {
           updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
           setSyncStatusFromState();
-          await pullSongsFromCloud();
-          state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório carregado da nuvem.');
+          try {
+            await pullSongsFromCloud();
+            state.lastSyncAt = Date.now();
+            setSyncStatusFromState('Repertório carregado da nuvem.');
+          } catch (_) {
+            setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da nuvem agora.');
+          }
         } else {
           updateAuthStatus('Nenhuma conta conectada.');
           setSyncStatusFromState();
