@@ -224,6 +224,10 @@
       color: rgba(255,255,255,0.72);
     }
 
+    .library-song-swipe + .library-song-swipe {
+      margin-top: 2px;
+    }
+
     .library-card {
       display: flex;
       flex-direction: column;
@@ -241,22 +245,23 @@
 
     .library-results {
       display: grid;
-      gap: 2px;
+      gap: 0;
       overflow: auto;
       padding-right: 2px;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 122px;
+      --swipe-reveal-width: 96px;
       position: relative;
       overflow: hidden;
-      border-radius: 18px;
-      min-height: 58px;
+      border-radius: 12px;
+      min-height: 40px;
       touch-action: pan-y;
       background: rgba(24,26,34,0.96);
-      border: 1px solid rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.08);
       backdrop-filter: blur(14px);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+      box-shadow: none;
+      margin: 0;
     }
 
     .library-song-actions {
@@ -268,30 +273,30 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 10px;
-      padding: 0 12px 0 8px;
+      gap: 8px;
+      padding: 0 8px 0 6px;
       z-index: 0;
       pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 42px;
-      height: 42px;
-      min-height: 42px;
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
       border: 0;
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
       pointer-events: none;
-      flex: 0 0 42px;
+      flex: 0 0 36px;
     }
 
     .library-song-action-btn.edit {
@@ -306,10 +311,11 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 58px;
-      padding: 10px 14px;
+      min-height: 40px;
+      height: 40px;
+      padding: 6px 12px;
       border: 0;
-      border-radius: 18px;
+      border-radius: 12px;
       background: transparent;
       box-shadow: none;
       color: #fff;
@@ -328,8 +334,8 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 14px;
-      line-height: 1.25;
+      font-size: 13px;
+      line-height: 1;
       color: rgba(255,255,255,0.96);
       font-weight: 700;
     }
@@ -338,6 +344,10 @@
       font-size: inherit;
       font-weight: 600;
       color: rgba(255,255,255,0.72);
+    }
+
+    .library-song-swipe + .library-song-swipe {
+      margin-top: 2px;
     }
 
     .library-song-swipe.revealed .library-song-card {
@@ -586,6 +596,10 @@
       font-size: 13px;
       line-height: 1.5;
       color: rgba(255,255,255,0.72);
+    }
+
+    .library-song-swipe + .library-song-swipe {
+      margin-top: 2px;
     }
 
     @media (max-width: 560px) {
