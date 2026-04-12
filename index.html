@@ -7,8 +7,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#000000" />
-  <meta name="apple-mobile-web-app-title" content="Palco Pro" />
-  <link rel="manifest" href="manifest.webmanifest" />
   <title>Palco Pro</title>
   <meta name="description" content="Palco Pro é o app premium para músicos em apresentações ao vivo, com repertório persistente, leitura confortável no palco, reconhecimento por fala e experiência profissional no celular." />
   <meta property="og:type" content="website" />
@@ -318,11 +316,65 @@
     .entry-nav-btn, .entry-link-btn, .entry-back-btn {
       width: 100%; min-height: 60px; border-radius: 20px; padding: 16px 18px; text-decoration: none;
       display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 700; text-align: center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
       border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(18px); transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      backdrop-filter: blur(18px); transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+      position: relative; overflow: hidden; isolation: isolate;
+    }
+    .entry-nav-btn {
+      background: linear-gradient(135deg, rgba(118, 203, 255, 0.98), rgba(76, 150, 255, 0.96), rgba(137, 216, 255, 0.94));
+      background-size: 220% 220%;
+      border-color: rgba(169, 229, 255, 0.36);
+      box-shadow: 0 20px 42px rgba(0,0,0,0.30), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.22);
+      color: #f8fbff;
+      cursor: pointer;
+      animation: entryNavGradientFlow 7.5s ease-in-out infinite;
+    }
+    .entry-nav-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.07) 34%, rgba(255,255,255,0.26) 50%, rgba(255,255,255,0.08) 66%, transparent 82%);
+      transform: translateX(-140%);
+      animation: entryNavSheen 4.8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .entry-nav-btn::after {
+      content: "›";
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 800;
+      margin-left: 6px;
+      opacity: 0.92;
+      transform: translateX(0);
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .entry-nav-btn:hover,
+    .entry-nav-btn:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(205, 241, 255, 0.46);
+      box-shadow: 0 22px 46px rgba(0,0,0,0.32), 0 12px 30px rgba(95, 184, 255, 0.24), inset 0 1px 0 rgba(255,255,255,0.28);
+      outline: none;
+    }
+    .entry-nav-btn:hover::after,
+    .entry-nav-btn:focus-visible::after {
+      transform: translateX(2px);
+      opacity: 1;
+    }
+    .entry-link-btn, .entry-back-btn {
+      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
     }
     .entry-link-btn img { width: 24px; height: 24px; object-fit: contain; flex: 0 0 24px; }
+    @keyframes entryNavGradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes entryNavSheen {
+      0%, 58%, 100% { transform: translateX(-140%); opacity: 0; }
+      16% { opacity: 1; }
+      34% { transform: translateX(140%); opacity: 0.9; }
+    }
     .entry-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
     .entry-step {
       display: flex; gap: 12px; align-items: flex-start; padding: 15px 15px; border-radius: 20px;
@@ -1461,16 +1513,5 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function init() { createSupabaseClient(); loadSettings(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
     init();
   </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js').catch(function (error) {
-          console.warn('Falha ao registrar service worker:', error);
-        });
-      });
-    }
-  </script>
-
 </body>
 </html>
