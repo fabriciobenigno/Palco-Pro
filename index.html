@@ -887,7 +887,7 @@
           <button class="ghost-btn" id="openLoginBtn">Login</button>
           <button class="ghost-btn" id="openRegisterBtn">Cadastro</button>
           <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
-          <button class="ghost-btn" id="logOutBtn">Log-out</button>
+          <button class="ghost-btn" id="logOutBtn">Sair da conta</button>
         </div>
 
         <div class="sync-status-note" id="syncStatusNote">Sincronização local ativa.</div>
@@ -1260,10 +1260,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const loginBtn = $('openLoginBtn');
       const registerBtn = $('openRegisterBtn');
       const logoutBtn = $('logOutBtn');
+      const syncBtn = $('syncNowBtn');
       const accountIdentityRow = $('accountIdentityRow');
       if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
       if (registerBtn) registerBtn.classList.toggle('hidden', isLoggedIn);
-      if (logoutBtn) logoutBtn.classList.toggle('hidden', !isLoggedIn);
+      if (logoutBtn) {
+        logoutBtn.classList.toggle('hidden', !isLoggedIn);
+        logoutBtn.textContent = 'Sair da conta';
+      }
+      if (syncBtn) syncBtn.classList.toggle('hidden', !isLoggedIn);
       if (accountIdentityRow) accountIdentityRow.classList.toggle('hidden', !isLoggedIn);
       if (accountIdentityBtn) {
         if (isLoggedIn) {
@@ -2178,8 +2183,39 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!confirmed) return;
       deleteSongById(songId);
     }
-    function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
-    function loadSongByIndex(index) { if (!state.songs.length) return; const normalized = ((index % state.songs.length) + state.songs.length) % state.songs.length; const song = state.songs[normalized]; if (!song) return; state.currentSongId = song.id; repertoireSelect.value = song.id; songTitleInput.value = song.title || ''; artistInput.value = song.artist || ''; styleInput.value = song.style || ''; scriptInput.value = song.lyrics || ''; loadScript(); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; placeActiveLineAtStart(); persistCurrentDraft(); }
+    function getPlaybackSongList() {
+      let songs = getNormalizedLibrarySongs('');
+      if (!songs.length) songs = state.songs.slice();
+      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
+        songs = state.songs.slice();
+      }
+      return songs;
+    }
+    function getCurrentSongIndex() {
+      const playbackSongs = getPlaybackSongList();
+      if (!playbackSongs.length) return -1;
+      const selectedId = state.currentSongId || repertoireSelect.value || playbackSongs[0]?.id;
+      return playbackSongs.findIndex(song => song.id === selectedId);
+    }
+    function loadSongByIndex(index) {
+      const playbackSongs = getPlaybackSongList();
+      if (!playbackSongs.length) return;
+      const normalized = ((index % playbackSongs.length) + playbackSongs.length) % playbackSongs.length;
+      const song = playbackSongs[normalized];
+      if (!song) return;
+      state.currentSongId = song.id;
+      repertoireSelect.value = song.id;
+      songTitleInput.value = song.title || '';
+      artistInput.value = song.artist || '';
+      styleInput.value = song.style || '';
+      scriptInput.value = song.lyrics || '';
+      loadScript();
+      state.currentLine = 0;
+      state.speechCursor = 0;
+      state.scrollOffset = 0;
+      placeActiveLineAtStart();
+      persistCurrentDraft();
+    }
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
     function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
     function renderLibraryList(term = '') {
