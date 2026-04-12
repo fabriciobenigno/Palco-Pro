@@ -241,17 +241,19 @@
 
     .library-results {
       display: grid;
-      gap: 8px;
+      gap: 4px;
       overflow: auto;
       padding-right: 2px;
     }
 
     .library-song-swipe {
+      --swipe-reveal-width: 116px;
       position: relative;
       overflow: hidden;
-      border-radius: 16px;
-      min-height: 62px;
+      border-radius: 18px;
+      min-height: 66px;
       touch-action: pan-y;
+      background: rgba(255,255,255,0.025);
     }
 
     .library-song-actions {
@@ -259,56 +261,56 @@
       top: 0;
       right: 0;
       bottom: 0;
-      width: 116px;
+      width: var(--swipe-reveal-width);
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 8px;
-      padding: 5px 6px 5px 0;
+      gap: 10px;
+      padding: 0 10px 0 8px;
       overflow: hidden;
       z-index: 0;
       pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 54px;
-      height: calc(100% - 10px);
-      min-height: 52px;
+      width: 42px;
+      height: 42px;
+      min-height: 42px;
       border: 0;
-      border-radius: 14px;
+      border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 22px;
+      font-size: 19px;
       font-weight: 700;
       box-shadow: 0 10px 24px rgba(0,0,0,0.18);
       opacity: 0;
-      transform: translateX(18px);
+      transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
-      pointer-events: auto;
-      flex: 0 0 54px;
+      pointer-events: none;
+      flex: 0 0 42px;
     }
 
     .library-song-action-btn.edit {
-      background: linear-gradient(180deg, rgba(86,156,255,0.96), rgba(59,117,219,0.92));
+      background: linear-gradient(180deg, rgba(91,176,255,0.98), rgba(52,131,248,0.94));
     }
 
     .library-song-action-btn.delete {
-      background: linear-gradient(180deg, rgba(255,106,106,0.96), rgba(218,62,62,0.92));
+      background: linear-gradient(180deg, rgba(255,96,96,0.98), rgba(240,58,58,0.94));
     }
 
     .library-song-card {
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 62px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(14,16,24,0.72);
+      min-height: 66px;
+      padding: 11px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(24,26,34,0.96);
       backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
       color: #fff;
       text-align: left;
       transform: translateX(0);
@@ -319,25 +321,27 @@
     .library-song-card strong {
       display: block;
       font-size: 14px;
-      line-height: 1.35;
+      line-height: 1.28;
+      font-weight: 800;
     }
 
     .library-song-card span {
       display: block;
-      font-size: 12px;
-      opacity: .78;
-      margin-top: 2px;
-      line-height: 1.45;
+      font-size: 11px;
+      opacity: .72;
+      margin-top: 1px;
+      line-height: 1.35;
     }
 
     .library-song-swipe.revealed .library-song-card {
-      transform: translateX(-116px);
+      transform: translateX(calc(var(--swipe-reveal-width) * -1));
     }
 
     .library-song-swipe.revealed .library-song-action-btn,
     .library-song-swipe.swiping .library-song-action-btn {
       opacity: 1;
-      transform: translateX(0);
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
     }
     .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
     .panel-title h2 { margin: 0; font-size: 16px; color: white; }
