@@ -225,16 +225,16 @@
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 1px;
+      margin-top: 2px;
     }
 
     .library-card {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
       flex: 1;
       min-height: 0;
-      padding: 14px;
+      padding: 16px;
       border-radius: 28px;
       background: linear-gradient(180deg, rgba(13, 19, 31, 0.86), rgba(7, 11, 19, 0.82));
       border: 1px solid rgba(255,255,255,0.12);
@@ -244,23 +244,24 @@
     }
 
     .library-results {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 0;
       overflow: auto;
       padding-right: 0;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 82px;
+      --swipe-reveal-width: 94px;
       position: relative;
       overflow: hidden;
       border-radius: 0;
-      min-height: 28px;
-      height: 28px;
+      min-height: 46px;
+      height: 46px;
       touch-action: pan-y;
       background: transparent;
       border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
       backdrop-filter: none;
       box-shadow: none;
       margin: 0;
@@ -275,30 +276,30 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 6px;
-      padding: 0 6px 0 4px;
+      gap: 8px;
+      padding: 0 8px 0 6px;
       z-index: 0;
       pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 30px;
-      height: 30px;
-      min-height: 30px;
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
       border: 0;
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       box-shadow: 0 6px 14px rgba(0,0,0,0.16);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
       transition: opacity 0.18s ease, transform 0.18s ease;
       pointer-events: none;
-      flex: 0 0 30px;
+      flex: 0 0 34px;
     }
 
     .library-song-action-btn.edit {
@@ -313,12 +314,12 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 28px;
-      height: 28px;
-      padding: 0 8px;
+      min-height: 46px;
+      height: 46px;
+      padding: 0 12px;
       border: 0;
       border-radius: 0;
-      background: rgba(10,14,20,0.92);
+      background: rgba(18, 22, 30, 0.94);
       box-shadow: none;
       color: #fff;
       text-align: left;
@@ -336,31 +337,24 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 12.5px;
-      line-height: 1;
+      font-size: 14px;
+      line-height: 1.2;
       color: rgba(255,255,255,0.96);
-      display: block;
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .library-song-line small {
       font-size: inherit;
       font-weight: 500;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.72);
     }
 
     .library-song-swipe + .library-song-swipe {
-      margin-top: 1px;
+      margin-top: 0;
     }
 
     .library-song-swipe.revealed .library-song-card {
       transform: translateX(calc(var(--swipe-reveal-width) * -1));
-    }
-
-    .library-song-card:focus-visible,
-    .library-song-action-btn:focus-visible {
-      outline: 2px solid rgba(124,176,255,0.9);
-      outline-offset: -2px;
     }
 
     .library-song-swipe.revealed .library-song-action-btn,
@@ -1273,7 +1267,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let dragging = false;
       let horizontalIntent = false;
       let moved = false;
-      const revealWidth = 122;
+      const revealWidth = 94;
 
       const finishSwipe = (offset) => {
         if (offset <= -(revealWidth * 0.45)) {
@@ -1919,7 +1913,27 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
-    function loadSongs() { try { state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch (_) { state.songs = []; } ensureSongIdsAreValid(); renderRepertoire(); }
+    function getSampleSongs() {
+      return [
+        { id: createSongId(), title: 'Vive', artist: 'Djavan', style: 'MPB', lyrics: 'Vive\n\nNo silêncio da manhã\nA canção encontra luz.' },
+        { id: createSongId(), title: 'Serrado', artist: 'Djavan', style: 'MPB', lyrics: 'Serrado\n\nPasso lento pela estrada\nO vento acompanha a voz.' },
+        { id: createSongId(), title: 'Oceano', artist: 'Djavan', style: 'MPB', lyrics: 'Oceano\n\nMeu olhar procura calma\nNa maré do teu refrão.' }
+      ];
+    }
+
+    function loadSongs() {
+      try {
+        state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch (_) {
+        state.songs = [];
+      }
+      if (!Array.isArray(state.songs) || !state.songs.length) {
+        state.songs = getSampleSongs();
+        saveSongs();
+      }
+      ensureSongIdsAreValid();
+      renderRepertoire();
+    }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
     function saveCurrentSong() {
       const title = songTitleInput.value.trim() || 'Sem título';
