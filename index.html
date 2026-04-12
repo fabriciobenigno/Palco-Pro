@@ -254,13 +254,14 @@
       --swipe-reveal-width: 82px;
       position: relative;
       overflow: hidden;
-      border-radius: 10px;
-      min-height: 34px;
-      height: 34px;
+      border-radius: 0;
+      min-height: 28px;
+      height: 28px;
       touch-action: pan-y;
-      background: rgba(24,26,34,0.96);
-      border: 1px solid rgba(255,255,255,0.06);
-      backdrop-filter: blur(14px);
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: none;
       box-shadow: none;
       margin: 0;
     }
@@ -312,12 +313,12 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 34px;
-      height: 34px;
-      padding: 0 12px;
+      min-height: 28px;
+      height: 28px;
+      padding: 0 8px;
       border: 0;
-      border-radius: 10px;
-      background: transparent;
+      border-radius: 0;
+      background: rgba(10,14,20,0.92);
       box-shadow: none;
       color: #fff;
       text-align: left;
@@ -338,6 +339,7 @@
       font-size: 12.5px;
       line-height: 1;
       color: rgba(255,255,255,0.96);
+      display: block;
       font-weight: 700;
     }
 
