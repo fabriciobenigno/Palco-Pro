@@ -376,6 +376,8 @@
     .field textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
     .value-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: rgba(255,255,255,0.72); font-size: 12px; }
     .small-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .account-identity-row { display: grid; gap: 0; }
+    .account-identity-btn { width: 100%; justify-content: flex-start; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ghost-btn {
       min-height: 42px; padding: 10px 14px; border-radius: 14px; background: rgba(14,16,24,0.58);
       border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px); font-size: 14px; font-weight: 600;
@@ -785,10 +787,13 @@
       </div>
 
       <div class="panel-grid">
+        <div class="account-identity-row hidden" id="accountIdentityRow">
+          <button class="ghost-btn account-identity-btn" id="accountIdentityBtn" type="button" aria-label="Conta conectada"></button>
+        </div>
+
         <div class="small-row">
           <button class="ghost-btn" id="openLoginBtn">Login</button>
           <button class="ghost-btn" id="openRegisterBtn">Cadastro</button>
-          <button class="ghost-btn hidden" id="accountIdentityBtn" type="button" aria-label="Conta conectada"></button>
           <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
           <button class="ghost-btn" id="logOutBtn">Log-out</button>
         </div>
@@ -1158,9 +1163,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const loginBtn = $('openLoginBtn');
       const registerBtn = $('openRegisterBtn');
       const logoutBtn = $('logOutBtn');
+      const accountIdentityRow = $('accountIdentityRow');
       if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
       if (registerBtn) registerBtn.classList.toggle('hidden', isLoggedIn);
       if (logoutBtn) logoutBtn.classList.toggle('hidden', !isLoggedIn);
+      if (accountIdentityRow) accountIdentityRow.classList.toggle('hidden', !isLoggedIn);
       if (accountIdentityBtn) {
         if (isLoggedIn) {
           accountIdentityBtn.textContent = getUserIdentityLabel();
