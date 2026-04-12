@@ -256,20 +256,26 @@
 
     .library-song-actions {
       position: absolute;
-      inset: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 116px;
       display: flex;
       justify-content: flex-end;
-      align-items: stretch;
+      align-items: center;
       gap: 8px;
-      padding-left: 16px;
-      padding-right: 0;
+      padding: 5px 6px 5px 0;
+      overflow: hidden;
       z-index: 0;
+      pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 62px;
+      width: 54px;
+      height: calc(100% - 10px);
+      min-height: 52px;
       border: 0;
-      border-radius: 16px;
+      border-radius: 14px;
       color: #fff;
       cursor: pointer;
       display: grid;
@@ -277,6 +283,11 @@
       font-size: 22px;
       font-weight: 700;
       box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      opacity: 0;
+      transform: translateX(18px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      pointer-events: auto;
+      flex: 0 0 54px;
     }
 
     .library-song-action-btn.edit {
@@ -320,7 +331,13 @@
     }
 
     .library-song-swipe.revealed .library-song-card {
-      transform: translateX(-136px);
+      transform: translateX(-116px);
+    }
+
+    .library-song-swipe.revealed .library-song-action-btn,
+    .library-song-swipe.swiping .library-song-action-btn {
+      opacity: 1;
+      transform: translateX(0);
     }
     .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
     .panel-title h2 { margin: 0; font-size: 16px; color: white; }
@@ -1033,9 +1050,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let startY = 0;
       let dragging = false;
       let horizontalIntent = false;
+      let moved = false;
+      const revealWidth = 116;
 
-      const finishSwipe = (deltaX) => {
-        if (deltaX <= -54) {
+      const finishSwipe = (offset) => {
+        if (offset <= -(revealWidth * 0.45)) {
           closeAllLibrarySwipes(songId);
           row.classList.add('revealed');
           state.revealedSongId = songId;
@@ -1043,6 +1062,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           row.classList.remove('revealed');
           if (state.revealedSongId === songId) state.revealedSongId = null;
         }
+        row.classList.remove('swiping');
+      };
+
+      const resetDragState = () => {
+        card.style.transition = '';
+        card.style.transform = '';
+        dragging = false;
+        horizontalIntent = false;
       };
 
       const onPointerDown = (event) => {
@@ -1051,6 +1078,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         startY = event.clientY;
         dragging = true;
         horizontalIntent = false;
+        moved = false;
         card.style.transition = 'none';
       };
 
@@ -1062,45 +1090,40 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           if (Math.abs(deltaX) < 8) return;
           horizontalIntent = Math.abs(deltaX) > Math.abs(deltaY);
           if (!horizontalIntent) {
-            dragging = false;
-            card.style.transition = '';
+            resetDragState();
             return;
           }
         }
-        const baseOffset = row.classList.contains('revealed') ? -136 : 0;
-        const nextOffset = Math.max(-136, Math.min(0, baseOffset + deltaX));
+        moved = true;
+        row.classList.add('swiping');
+        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
+        const nextOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
         card.style.transform = `translateX(${nextOffset}px)`;
       };
 
       const onPointerUp = (event) => {
         if (!dragging) return;
         const deltaX = event.clientX - startX;
-        card.style.transition = '';
-        card.style.transform = '';
-        finishSwipe(deltaX);
-        dragging = false;
-        horizontalIntent = false;
-      };
-
-      const onPointerCancel = () => {
-        if (!dragging) return;
-        card.style.transition = '';
-        card.style.transform = '';
-        dragging = false
+        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
+        const finalOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
+        resetDragState();
+        finishSwipe(finalOffset);
       };
 
       card.addEventListener('pointerdown', onPointerDown);
       card.addEventListener('pointermove', onPointerMove);
       card.addEventListener('pointerup', onPointerUp);
       card.addEventListener('pointercancel', () => {
-        card.style.transition = '';
-        card.style.transform = '';
-        dragging = false;
-        horizontalIntent = false;
+        row.classList.remove('swiping');
+        resetDragState();
       });
       card.addEventListener('click', (event) => {
         if (event.target.closest('.library-song-action-btn')) return;
-        if (dragging || horizontalIntent) return;
+        if (moved || horizontalIntent) {
+          moved = false;
+          horizontalIntent = false;
+          return;
+        }
         if (row.classList.contains('revealed')) {
           closeAllLibrarySwipes();
           return;
