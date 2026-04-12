@@ -363,6 +363,53 @@
       transform: translateX(0) scale(1);
       pointer-events: auto;
     }
+    .library-sort-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: -2px;
+      margin-bottom: 6px;
+    }
+
+    .library-sort-btn {
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.78);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .library-sort-btn.active {
+      background: linear-gradient(180deg, rgba(91,176,255,0.24), rgba(52,131,248,0.2));
+      border-color: rgba(124,176,255,0.34);
+      color: #fff;
+    }
+
+    .library-filter-chip {
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.82);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .library-filter-chip.active {
+      background: linear-gradient(180deg, rgba(91,176,255,0.24), rgba(52,131,248,0.2));
+      border-color: rgba(124,176,255,0.34);
+      color: #fff;
+    }
+
     .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
     .panel-title h2 { margin: 0; font-size: 16px; color: white; }
     .panel-grid { display: grid; gap: 14px; }
@@ -602,13 +649,13 @@
       min-width: 140px;
     }
     .song-editor-panel {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 56;
-      width: min(420px, calc(100vw - 28px)); max-height: min(86vh, 760px); overflow: auto;
-      border-radius: 26px; background: rgba(8,12,18,0.94); border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,0.34); padding: 16px; display: none;
+      z-index: 59;
       pointer-events: auto;
     }
-    .song-editor-panel.open { display: block; }
+
+    .song-editor-panel .fullscreen-card {
+      overflow: auto;
+    }
     .password-visibility-row {
       display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.76); font-size: 13px;
       margin-top: -2px;
@@ -757,12 +804,16 @@
             <button class="ghost-btn" id="newSongBtn">Cadastrar música</button>
           </div>
           <div class="field">
-            <label for="librarySearchInput">Buscar no repertório</label>
             <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
           </div>
+          <div class="library-sort-row" id="librarySortControls">
+            <button class="library-sort-btn active" type="button" data-sort="alpha">Alfabética</button>
+            <button class="library-sort-btn" type="button" data-sort="artist">Artista</button>
+            <button class="library-sort-btn" type="button" data-sort="style">Estilo</button>
+            <button class="library-sort-btn" type="button" data-sort="created_oldest">Cadastro</button>
+          </div>
+          <div class="library-sort-row hidden" id="libraryFilterOptions"></div>
           <div class="field" style="min-height:0; flex:1;">
-            <label>Lista completa do repertório</label>
-            <div class="panel-note">Busque por nome da música, cantor ou estilo, ou escolha diretamente na lista completa abaixo.</div>
             <div id="libraryList" class="library-results"></div>
           </div>
           <select id="repertoireSelect" class="hidden"></select>
@@ -960,41 +1011,44 @@
       </div>
     </div>
 
-    <div class="song-editor-panel" id="songEditorPanel">
-      <div class="panel-title">
-        <h2>Nova música</h2>
-        <button class="mini-btn" id="hideSongEditorBtn">×</button>
-      </div>
-
-      <div class="panel-grid">
-        <div class="field">
-          <label for="songTitleInput">Título da música</label>
-          <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
+    <div class="fullscreen-screen song-editor-panel" id="songEditorPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Cadastrar música</h2>
+            <p class="fullscreen-subtitle">Preencha os dados da música e salve no repertório.</p>
+          </div>
+          <button class="mini-btn" id="hideSongEditorBtn">×</button>
         </div>
 
-        <div class="field">
-          <label for="artistInput">Cantor / artista</label>
-          <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
-        </div>
+        <div class="fullscreen-card">
+          <div class="field">
+            <label for="songTitleInput">Título da música</label>
+            <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
+          </div>
 
-        <div class="field">
-          <label for="styleInput">Estilo musical</label>
-          <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
-        </div>
+          <div class="field">
+            <label for="artistInput">Cantor / artista</label>
+            <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
+          </div>
 
-        <div class="field">
-          <label for="scriptInput">Letra da música</label>
-          <textarea id="scriptInput">Cole aqui a letra da sua música.
+          <div class="field">
+            <label for="styleInput">Estilo musical</label>
+            <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
+          </div>
+
+          <div class="field" style="flex:1; min-height: 0;">
+            <label for="scriptInput">Letra da música</label>
+            <textarea id="scriptInput" style="min-height: 220px;">Cole aqui a letra da sua música.
 
 Use uma estrofe por bloco para facilitar a leitura no palco.
 
 O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
-        </div>
+          </div>
 
-        <div class="small-row">
-          <button class="ghost-btn" id="loadTextBtn">Carregar música</button>
-          <button class="ghost-btn" id="sampleTextBtn">Exemplo</button>
-          <button class="ghost-btn" id="saveSongBtn">Salvar no repertório</button>
+          <div class="field" style="margin-top: 2px;">
+            <button class="ghost-btn" id="saveSongBtn">Salvar música</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1041,7 +1095,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
-      toastTimer: null, selectedSongActionId: null, revealedSongId: null
+      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: ''
     };
 
     const app = $('app');
@@ -1057,6 +1111,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const libraryPanel = $('libraryPanel');
     const librarySearchInput = $('librarySearchInput');
     const libraryList = $('libraryList');
+    const librarySortControls = $('librarySortControls');
+    const libraryFilterOptions = $('libraryFilterOptions');
     const fontSize = $('fontSize');
     const lineHeight = $('lineHeight');
     const textWidth = $('textWidth');
@@ -1248,7 +1304,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       hideRegisterPanel();
       hideRecoverPanel();
       songEditorPanel.classList.add('open');
-      songTitleInput.focus();
     }
 
     function hideSongEditor() {
@@ -1940,12 +1995,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
     function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); libraryPanel.classList.add('open'); renderLibraryList(librarySearchInput.value || ''); }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
     function getSampleSongs() {
@@ -2006,6 +2061,72 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       syncSongsToCloud();
     }
 
+    function getNormalizedLibrarySongs(term = '') {
+      const query = (term || '').toLowerCase().trim();
+      let songs = state.songs.slice();
+
+      if (state.librarySortMode === 'alpha') {
+        songs.sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
+      } else if (state.librarySortMode === 'created_oldest') {
+        songs = songs.slice().reverse();
+      } else if (state.librarySortMode === 'artist' && state.libraryFilterValue) {
+        songs = songs.filter(song => (song.artist || '').trim() === state.libraryFilterValue);
+      } else if (state.librarySortMode === 'style' && state.libraryFilterValue) {
+        songs = songs.filter(song => (song.style || '').trim() === state.libraryFilterValue);
+      }
+
+      if (query) {
+        songs = songs.filter(song => {
+          const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
+          return hay.includes(query);
+        });
+      }
+
+      return songs;
+    }
+
+    function getLibraryFacetValues(mode) {
+      const values = state.songs
+        .map(song => mode === 'artist' ? (song.artist || '').trim() : (song.style || '').trim())
+        .filter(Boolean);
+
+      return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+    }
+
+    function renderLibraryFilterOptions() {
+      if (!libraryFilterOptions) return;
+      const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
+      libraryFilterOptions.innerHTML = '';
+
+      if (!needsFacet) {
+        libraryFilterOptions.classList.add('hidden');
+        return;
+      }
+
+      const values = getLibraryFacetValues(state.librarySortMode);
+      if (!values.length) {
+        libraryFilterOptions.classList.add('hidden');
+        return;
+      }
+
+      values.forEach((value) => {
+        const btn = document.createElement('button');
+        btn.className = 'library-filter-chip';
+        if (state.libraryFilterValue === value) btn.classList.add('active');
+        btn.type = 'button';
+        btn.textContent = value;
+        btn.addEventListener('click', () => {
+          state.libraryFilterValue = value;
+          persistSettings();
+          renderLibraryFilterOptions();
+          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        });
+        libraryFilterOptions.appendChild(btn);
+      });
+
+      libraryFilterOptions.classList.remove('hidden');
+    }
+
     function openSelectedSong() { const id = repertoireSelect.value; if (!id) return; openSongById(id); }
     function deleteSongById(songId) { if (!songId) return; state.songs = state.songs.filter(song => song.id !== songId); if (state.currentSongId === songId) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); hideSongActions(); syncSongsToCloud(); }
     function getCurrentSongIndex() { if (!state.songs.length) return -1; const selectedId = state.currentSongId || repertoireSelect.value || state.songs[0]?.id; return state.songs.findIndex(song => song.id === selectedId); }
@@ -2013,12 +2134,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
     function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
     function renderLibraryList(term = '') {
-      const query = (term || '').toLowerCase().trim();
-      const filtered = !query ? state.songs : state.songs.filter(song => {
-        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(query);
-      });
+      renderLibraryFilterOptions();
 
+      const normalized = getNormalizedLibrarySongs(term);
       libraryList.innerHTML = '';
 
       if (!state.songs.length) {
@@ -2029,7 +2147,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         return;
       }
 
-      if (!filtered.length) {
+      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
+        const selectNote = document.createElement('div');
+        selectNote.className = 'panel-note';
+        selectNote.textContent = state.librarySortMode === 'artist'
+          ? 'Selecione um artista para ver as músicas.'
+          : 'Selecione um estilo para ver as músicas.';
+        libraryList.appendChild(selectNote);
+        return;
+      }
+
+      if (!normalized.length) {
         const empty = document.createElement('div');
         empty.className = 'panel-note';
         empty.textContent = 'Nenhuma música encontrada para essa busca.';
@@ -2037,7 +2165,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         return;
       }
 
-      filtered.forEach(song => {
+      normalized.forEach(song => {
         const row = document.createElement('div');
         row.className = 'library-song-swipe';
         row.dataset.songId = song.id;
@@ -2085,10 +2213,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       });
     }
 
-    function bindEvents() { $('loadTextBtn').addEventListener('click', loadScript);
-      $('newSongBtn').addEventListener('click', prepareNewSong);
+    function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('sampleTextBtn').addEventListener('click', () => { songTitleInput.value = 'Exemplo'; scriptInput.value = 'Hoje o céu abriu luz pra cantar\n\nA cidade acendeu quando a banda entrou\n\nCada voz respondeu no refrão\n\nE o palco ficou pequeno pro que a noite entregou'; loadScript(); }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; deleteSongById(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
