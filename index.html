@@ -241,19 +241,22 @@
 
     .library-results {
       display: grid;
-      gap: 4px;
+      gap: 2px;
       overflow: auto;
       padding-right: 2px;
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 116px;
+      --swipe-reveal-width: 122px;
       position: relative;
       overflow: hidden;
       border-radius: 18px;
-      min-height: 66px;
+      min-height: 58px;
       touch-action: pan-y;
-      background: rgba(255,255,255,0.025);
+      background: rgba(24,26,34,0.96);
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
     }
 
     .library-song-actions {
@@ -266,8 +269,7 @@
       justify-content: flex-end;
       align-items: center;
       gap: 10px;
-      padding: 0 10px 0 8px;
-      overflow: hidden;
+      padding: 0 12px 0 8px;
       z-index: 0;
       pointer-events: none;
     }
@@ -282,7 +284,7 @@
       cursor: pointer;
       display: grid;
       place-items: center;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 700;
       box-shadow: 0 10px 24px rgba(0,0,0,0.18);
       opacity: 0;
@@ -304,33 +306,38 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 66px;
-      padding: 11px 14px;
+      min-height: 58px;
+      padding: 10px 14px;
+      border: 0;
       border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(24,26,34,0.96);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      background: transparent;
+      box-shadow: none;
       color: #fff;
       text-align: left;
       transform: translateX(0);
       transition: transform 0.22s ease;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
     }
 
-    .library-song-card strong {
-      display: block;
+    .library-song-line {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-size: 14px;
-      line-height: 1.28;
-      font-weight: 800;
+      line-height: 1.25;
+      color: rgba(255,255,255,0.96);
+      font-weight: 700;
     }
 
-    .library-song-card span {
-      display: block;
-      font-size: 11px;
-      opacity: .72;
-      margin-top: 1px;
-      line-height: 1.35;
+    .library-song-line small {
+      font-size: inherit;
+      font-weight: 600;
+      color: rgba(255,255,255,0.72);
     }
 
     .library-song-swipe.revealed .library-song-card {
@@ -1055,7 +1062,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let dragging = false;
       let horizontalIntent = false;
       let moved = false;
-      const revealWidth = 116;
+      const revealWidth = 122;
 
       const finishSwipe = (offset) => {
         if (offset <= -(revealWidth * 0.45)) {
@@ -1772,7 +1779,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         const card = document.createElement('button');
         card.className = 'library-song-card';
         card.type = 'button';
-        card.innerHTML = `<strong>${song.title || 'Sem título'}</strong><span>${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
+        const artistText = song.artist || 'Sem cantor';
+        const styleText = song.style || 'Sem estilo';
+        card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'} <small>- ${artistText} - ${styleText}</small></span>`;
 
         row.appendChild(actions);
         row.appendChild(card);
