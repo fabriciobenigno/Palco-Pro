@@ -556,7 +556,151 @@
 
     .detail-mode .detail-panel { display: flex; }
 
-    .browser-entry-gate {
+        .app-launch-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding:
+        calc(var(--safe-top) + 24px)
+        max(20px, env(safe-area-inset-right))
+        calc(var(--safe-bottom) + 24px)
+        max(20px, env(safe-area-inset-left));
+      background:
+        radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
+        linear-gradient(180deg, rgba(2,4,9,0.92) 0%, rgba(9,16,29,0.95) 45%, rgba(4,7,13,0.98) 100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.32s ease, visibility 0.32s ease;
+    }
+
+    .app-launch-splash.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .app-launch-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .app-launch-shell {
+      width: min(100%, 420px);
+      padding: 28px 24px;
+      border-radius: 32px;
+      display: grid;
+      gap: 20px;
+      justify-items: center;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(13, 19, 31, 0.88), rgba(7, 11, 19, 0.82));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), 0 12px 30px rgba(76, 152, 255, 0.16), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(22px);
+    }
+
+    .app-launch-mark {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      display: grid;
+      place-items: center;
+    }
+
+    .app-launch-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(123, 231, 255, 0.22);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
+    }
+
+    .app-launch-ring-a {
+      animation: splashPulse 2.2s ease-in-out infinite;
+    }
+
+    .app-launch-ring-b {
+      inset: 10px;
+      border-color: rgba(134, 107, 255, 0.28);
+      animation: splashPulse 2.2s ease-in-out infinite 0.24s;
+    }
+
+    .app-launch-core {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #f7f9ff;
+      background: linear-gradient(135deg, rgba(96, 182, 255, 0.96), rgba(72, 126, 255, 0.94), rgba(128, 101, 255, 0.92));
+      box-shadow: 0 18px 36px rgba(0,0,0,0.28), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.20);
+      animation: splashFloat 2.4s ease-in-out infinite;
+    }
+
+    .app-launch-copy {
+      display: grid;
+      gap: 8px;
+    }
+
+    .app-launch-title {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .app-launch-subtitle {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.74);
+    }
+
+    .app-launch-loader {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 14px;
+    }
+
+    .app-launch-loader span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(123,231,255,0.95), rgba(95,146,255,0.9));
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+      animation: splashDot 0.95s ease-in-out infinite;
+    }
+
+    .app-launch-loader span:nth-child(2) { animation-delay: 0.14s; }
+    .app-launch-loader span:nth-child(3) { animation-delay: 0.28s; }
+
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(0.94); opacity: 0.38; }
+      50% { transform: scale(1.08); opacity: 0.9; }
+    }
+
+    @keyframes splashFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes splashDot {
+      0%, 100% { transform: translateY(0); opacity: 0.42; }
+      50% { transform: translateY(-6px); opacity: 1; }
+    }
+
+.browser-entry-gate {
       position: fixed; inset: 0; z-index: 9999; display: none;
       background:
         radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
@@ -908,45 +1052,21 @@
 </head>
 <body>
   <div class="app" id="app">
-    <div class="browser-entry-gate" id="browserEntryGate" aria-hidden="true">
-      <div class="entry-shell">
-        <div class="entry-main">
-          <section class="entry-screen active" id="entryHomeScreen">
-            <h1 class="entry-title">Palco Pro</h1>
-            <p class="entry-subtitle">Instale o app para usar sua leitura de letras e repertório com mais praticidade no palco.</p>
-            <div class="entry-actions">
-              <button class="entry-nav-btn" type="button" data-entry-target="install">Tutorial de instalação</button>
-              <button class="entry-nav-btn" type="button" data-entry-target="usage">Tutorial de uso do app</button>
-              <a class="entry-link-btn" href="https://instagram.com/fabricio_benigno" target="_blank" rel="noopener noreferrer">
-                <img src="instagram.ico" alt="Instagram" />
-                <span>@fabricio_benigno</span>
-              </a>
-            </div>
-          </section>
 
-          <section class="entry-screen" id="entryInstallScreen">
-            <h2 class="entry-title">Tutorial de instalação</h2>
-            <ol class="entry-steps">
-              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o menu do navegador no seu celular.</span></li>
-              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Toque em <strong>Instalar app</strong>, <strong>Adicionar à tela inicial</strong> ou opção equivalente.</span></li>
-              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Confirme a instalação e aguarde o ícone do app aparecer na tela inicial.</span></li>
-              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o Palco Pro pelo ícone instalado para usar normalmente.</span></li>
-            </ol>
-            <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
-          </section>
-
-          <section class="entry-screen" id="entryUsageScreen">
-            <h2 class="entry-title">Tutorial de uso do app</h2>
-            <ol class="entry-steps">
-              <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o aplicativo já instalado pela tela inicial do seu celular.</span></li>
-              <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Entre nos ajustes, informe o título, cole a letra e salve no repertório.</span></li>
-              <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Use o modo limpo para deixar a leitura mais livre durante a apresentação.</span></li>
-              <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Você pode avançar com a fala, navegar entre músicas e reabrir o repertório salvo quando quiser.</span></li>
-            </ol>
-            <button class="entry-back-btn" type="button" data-entry-target="home">Voltar</button>
-          </section>
+    <div class="app-launch-splash" id="appLaunchSplash" aria-hidden="true">
+      <div class="app-launch-shell">
+        <div class="app-launch-mark" aria-hidden="true">
+          <span class="app-launch-ring app-launch-ring-a"></span>
+          <span class="app-launch-ring app-launch-ring-b"></span>
+          <span class="app-launch-core">P</span>
         </div>
-        <div class="entry-footer">aplicativo desenvolvido por Fabricio Benigno</div>
+        <div class="app-launch-copy">
+          <h1 class="app-launch-title">Palco Pro</h1>
+          <p class="app-launch-subtitle">Preparando seu repertório e carregando o app.</p>
+        </div>
+        <div class="app-launch-loader" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
       </div>
     </div>
 
@@ -2658,10 +2778,82 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
-    function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
-    function showEntryScreen(target) { const map = { home: 'entryHomeScreen', install: 'entryInstallScreen', usage: 'entryUsageScreen' }; const activeId = map[target] || map.home; ['entryHomeScreen', 'entryInstallScreen', 'entryUsageScreen'].forEach((id) => { const screen = $(id); if (screen) screen.classList.toggle('active', id === activeId); }); }
-    function setupBrowserEntryGate() { const gate = $('browserEntryGate'); if (!gate) return; gate.classList.toggle('active', shouldShowBrowserEntryGate()); gate.setAttribute('aria-hidden', shouldShowBrowserEntryGate() ? 'false' : 'true'); showEntryScreen('home'); gate.querySelectorAll('[data-entry-target]').forEach((btn) => { btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target'))); }); }
-    function init() { createSupabaseClient(); loadSettings(); updateAccountControls(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
+    const appLaunchState = {
+      ready: false,
+      visible: false,
+      shownAt: 0,
+      delayTimer: null,
+      hideTimer: null
+    };
+
+    function showLaunchSplash() {
+      const splash = $('appLaunchSplash');
+      if (!splash || appLaunchState.visible || appLaunchState.ready) return;
+      appLaunchState.visible = true;
+      appLaunchState.shownAt = Date.now();
+      splash.classList.remove('fade-out');
+      splash.classList.add('active');
+      splash.setAttribute('aria-hidden', 'false');
+    }
+
+    function hideLaunchSplash(force = false) {
+      const splash = $('appLaunchSplash');
+      if (!splash) return;
+      clearTimeout(appLaunchState.hideTimer);
+      if (!appLaunchState.visible) {
+        splash.classList.remove('active');
+        splash.classList.remove('fade-out');
+        splash.setAttribute('aria-hidden', 'true');
+        return;
+      }
+      const elapsed = Date.now() - appLaunchState.shownAt;
+      const remaining = force ? 0 : Math.max(0, 520 - elapsed);
+      appLaunchState.hideTimer = setTimeout(() => {
+        splash.classList.remove('active');
+        splash.classList.add('fade-out');
+        splash.setAttribute('aria-hidden', 'true');
+        appLaunchState.visible = false;
+      }, remaining);
+    }
+
+    function scheduleLaunchSplash() {
+      clearTimeout(appLaunchState.delayTimer);
+      appLaunchState.delayTimer = setTimeout(() => {
+        if (!appLaunchState.ready) showLaunchSplash();
+      }, 180);
+    }
+
+    async function init() {
+      scheduleLaunchSplash();
+      try {
+        createSupabaseClient();
+        loadSettings();
+        updateAccountControls();
+        loadCurrentDraft();
+        loadSongs();
+        updateValueLabels();
+        state.baseSpeed = Number(baseSpeed.value);
+        state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100;
+        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
+        applyStyles();
+        loadScript();
+        setupVoice();
+        bindEvents();
+        bindBluetoothControls();
+        bindTextDrag();
+        app.classList.add('clean-mode');
+        $('detailPanel').classList.remove('open');
+        syncPlayPauseIcon();
+        if (voiceToggle.checked) enableVoice(true);
+        await restoreSupabaseSession();
+      } finally {
+        appLaunchState.ready = true;
+        clearTimeout(appLaunchState.delayTimer);
+        hideLaunchSplash();
+      }
+    }
+
     init();
   </script>
 </body>
