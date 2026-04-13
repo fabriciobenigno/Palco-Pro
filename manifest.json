@@ -15,9 +15,21 @@
   "icons": [
     {
       "src": "/Palco-Pro/palco-pro-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Palco-Pro/palco-pro-icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/Palco-Pro/palco-pro-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
@@ -28,5 +40,6 @@
       "form_factor": "wide",
       "label": "Tela de apresentação do app Palco Pro"
     }
-  ]
+  ],
+  "prefer_related_applications": false
 }
