@@ -35,6 +35,15 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --text: #f7f9ff;
       --panel-w: min(380px, calc(100vw - 28px));
+      --accent-blue: #5ca8ff;
+      --accent-cyan: #7be7ff;
+      --accent-violet: #866bff;
+      --glass-border: rgba(255,255,255,0.14);
+      --glass-bg: rgba(10, 14, 24, 0.62);
+      --card-top: rgba(20, 27, 44, 0.88);
+      --card-bottom: rgba(7, 11, 22, 0.88);
+      --glow-soft: 0 22px 60px rgba(0,0,0,0.34);
+      --glow-blue: 0 18px 42px rgba(76, 152, 255, 0.18);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,17 +55,43 @@
     .app {
       position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
       background:
-        radial-gradient(circle at 50% -10%, rgba(79,140,255,0.22), transparent 28%),
-        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.04), transparent 34%),
-        linear-gradient(180deg, #020409 0%, #08111e 42%, #04070d 100%);
+        radial-gradient(circle at 50% -12%, rgba(99,164,255,0.24), transparent 24%),
+        radial-gradient(circle at 18% 12%, rgba(123,231,255,0.10), transparent 24%),
+        radial-gradient(circle at 82% 16%, rgba(134,107,255,0.10), transparent 26%),
+        linear-gradient(180deg, #010204 0%, #07101d 34%, #0b1322 64%, #04070d 100%);
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 22%),
+        radial-gradient(circle at 50% 100%, rgba(66, 120, 255, 0.16), transparent 34%);
+      opacity: 0.9;
+    }
+
+    .app::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 90px),
+        linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0));
+      mix-blend-mode: screen;
+      opacity: 0.24;
     }
 
     .stage-layer {
       position: absolute; inset: 0;
       background:
-        radial-gradient(circle at 50% 18%, rgba(96,146,255,0.14), transparent 24%),
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+        radial-gradient(circle at 50% 16%, rgba(96,146,255,0.18), transparent 18%),
+        radial-gradient(circle at 50% 26%, rgba(123,231,255,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0));
       pointer-events: none;
+      filter: saturate(1.08);
     }
 
     .teleprompter-overlay {
@@ -134,16 +169,17 @@
     }
 
     .mini-btn, .circle-btn {
-      width: 48px; height: 48px; border-radius: 16px; background: rgba(14,16,24,0.62);
-      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
-      display: grid; place-items: center; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      width: 48px; height: 48px; border-radius: 18px; background: linear-gradient(180deg, rgba(24,30,46,0.86), rgba(10,14,24,0.82));
+      border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(16px) saturate(1.16);
+      display: grid; place-items: center; font-size: 20px; box-shadow: var(--glow-soft), inset 0 1px 0 rgba(255,255,255,0.08);
     }
 
     .mode-switch-btn {
-      min-width: 88px; height: 58px; padding: 0 20px; border-radius: 22px;
-      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
-      backdrop-filter: blur(14px); display: grid; place-items: center;
-      font-size: 24px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      min-width: 88px; height: 58px; padding: 0 20px; border-radius: 24px;
+      background: linear-gradient(135deg, rgba(94,169,255,0.24), rgba(134,107,255,0.18), rgba(11,17,29,0.92));
+      border: 1px solid rgba(155,210,255,0.24);
+      backdrop-filter: blur(16px) saturate(1.18); display: grid; place-items: center;
+      font-size: 24px; font-weight: 700; line-height: 1; box-shadow: var(--glow-soft), var(--glow-blue), inset 0 1px 0 rgba(255,255,255,0.08);
       position: relative; top: 0;
     }
 
@@ -200,10 +236,10 @@
       gap: 14px;
       padding: 16px;
       border-radius: 28px;
-      background: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
+      background: linear-gradient(180deg, rgba(20,27,44,0.88), rgba(7,11,22,0.88));
       border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(22px);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), 0 12px 28px rgba(76, 152, 255, 0.12), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(24px) saturate(1.14);
     }
 
     .library-screen {
@@ -293,19 +329,18 @@
     }
 
     .library-song-swipe {
-      --swipe-reveal-width: 94px;
+      --swipe-reveal-width: 108px;
       position: relative;
       overflow: hidden;
-      border-radius: 0;
-      min-height: 46px;
-      height: 46px;
+      border-radius: 18px;
+      min-height: 52px;
+      height: 52px;
       touch-action: pan-y;
-      background: transparent;
-      border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: none;
-      box-shadow: none;
-      margin: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      margin: 0 0 8px;
     }
 
     .library-song-actions {
@@ -318,54 +353,73 @@
       justify-content: flex-end;
       align-items: center;
       gap: 8px;
-      padding: 0 8px 0 6px;
+      padding: 0 10px 0 8px;
       z-index: 0;
       pointer-events: none;
     }
 
     .library-song-action-btn {
-      width: 34px;
-      height: 34px;
-      min-height: 34px;
+      width: 40px;
+      height: 40px;
+      min-height: 40px;
       border: 0;
-      border-radius: 999px;
+      border-radius: 14px;
       color: #fff;
       cursor: pointer;
       display: grid;
       place-items: center;
       font-size: 15px;
       font-weight: 700;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.16);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.10);
       opacity: 0;
       transform: translateX(18px) scale(0.96);
-      transition: opacity 0.18s ease, transform 0.18s ease;
+      transition: opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
       pointer-events: none;
-      flex: 0 0 34px;
+      flex: 0 0 40px;
+      overflow: hidden;
     }
 
     .library-song-action-btn.edit {
-      background: linear-gradient(180deg, rgba(91,176,255,0.98), rgba(52,131,248,0.94));
+      background: linear-gradient(180deg, rgba(94,186,255,0.98), rgba(46,129,255,0.94));
     }
 
     .library-song-action-btn.delete {
-      background: linear-gradient(180deg, rgba(255,96,96,0.98), rgba(240,58,58,0.94));
+      background: linear-gradient(180deg, rgba(255,118,118,0.98), rgba(235,62,62,0.94));
+    }
+
+    .library-song-action-btn img {
+      width: 17px;
+      height: 17px;
+      object-fit: contain;
+      display: block;
+      filter: brightness(0) invert(1);
+      pointer-events: none;
+    }
+
+    .library-song-action-btn:active {
+      box-shadow: 0 8px 18px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .library-song-swipe.revealed .library-song-card,
+    .library-song-swipe.swiping .library-song-card {
+      background: linear-gradient(180deg, rgba(18, 24, 37, 0.98), rgba(10, 14, 24, 0.96));
     }
 
     .library-song-card {
       position: relative;
       z-index: 1;
       width: 100%;
-      min-height: 46px;
-      height: 46px;
-      padding: 0 12px;
+      min-height: 52px;
+      height: 52px;
+      padding: 0 14px;
       border: 0;
-      border-radius: 0;
-      background: rgba(18, 22, 30, 0.94);
-      box-shadow: none;
+      border-radius: 17px;
+      background: linear-gradient(180deg, rgba(20, 25, 38, 0.98), rgba(12, 16, 27, 0.96));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
       color: #fff;
       text-align: left;
       transform: translateX(0);
-      transition: transform 0.22s ease;
+      transition: transform 0.22s ease, background 0.22s ease;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -380,8 +434,9 @@
       white-space: nowrap;
       font-size: 14px;
       line-height: 1.2;
-      color: rgba(255,255,255,0.96);
-      font-weight: 600;
+      color: rgba(255,255,255,0.98);
+      font-weight: 700;
+      letter-spacing: 0.01em;
     }
 
     .library-song-line small {
@@ -458,8 +513,9 @@
     .field label { font-size: 13px; color: rgba(255,255,255,0.72); }
     .field textarea, .field input[type="text"], .field input[type="password"], .field select, .field input[type="range"] { width: 100%; }
     .field textarea, .field input[type="text"], .field input[type="password"], .field select {
-      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: white;
+      border: 1px solid rgba(255,255,255,0.12); background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04)); color: white;
       border-radius: 18px; padding: 12px 14px; outline: none; font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     }
     .field textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
     .value-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: rgba(255,255,255,0.72); font-size: 12px; }
@@ -467,9 +523,10 @@
     .account-identity-row { display: grid; gap: 0; }
     .account-identity-btn { width: 100%; justify-content: flex-start; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ghost-btn {
-      min-height: 42px; padding: 10px 14px; border-radius: 14px; background: rgba(14,16,24,0.58);
-      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px); font-size: 14px; font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      min-height: 44px; padding: 10px 15px; border-radius: 16px;
+      background: linear-gradient(180deg, rgba(22,29,45,0.86), rgba(10,14,24,0.82));
+      border: 1px solid rgba(255,255,255,0.13); backdrop-filter: blur(16px) saturate(1.14); font-size: 14px; font-weight: 700;
+      box-shadow: var(--glow-soft), inset 0 1px 0 rgba(255,255,255,0.07);
     }
     .small-row .ghost-btn { flex: 1; min-width: 110px; }
     .toggle-row {
@@ -529,7 +586,7 @@
       position: relative; overflow: hidden; isolation: isolate;
     }
     .entry-nav-btn {
-      background: linear-gradient(135deg, rgba(118, 203, 255, 0.98), rgba(76, 150, 255, 0.96), rgba(137, 216, 255, 0.94));
+      background: linear-gradient(135deg, rgba(96, 182, 255, 0.98), rgba(72, 126, 255, 0.96), rgba(128, 101, 255, 0.92));
       background-size: 220% 220%;
       border-color: rgba(169, 229, 255, 0.36);
       box-shadow: 0 20px 42px rgba(0,0,0,0.30), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.22);
@@ -664,10 +721,10 @@
       min-height: 0;
       padding: 16px;
       border-radius: 28px;
-      background: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
+      background: linear-gradient(180deg, rgba(20,27,44,0.88), rgba(7,11,22,0.88));
       border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(22px);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.42), 0 12px 28px rgba(76, 152, 255, 0.12), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(24px) saturate(1.14);
       overflow: auto;
     }
 
@@ -1682,7 +1739,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       let dragging = false;
       let horizontalIntent = false;
       let moved = false;
-      const revealWidth = 94;
+      const revealWidth = 108;
 
       const finishSwipe = (offset) => {
         if (offset <= -(revealWidth * 0.45)) {
@@ -2560,7 +2617,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         editBtn.className = 'library-song-action-btn edit';
         editBtn.type = 'button';
         editBtn.setAttribute('aria-label', 'Editar música');
-        editBtn.textContent = '✎';
+        editBtn.innerHTML = '<img src="editar.png" alt="" />';
         editBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           closeAllLibrarySwipes();
@@ -2571,7 +2628,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         deleteBtn.className = 'library-song-action-btn delete';
         deleteBtn.type = 'button';
         deleteBtn.setAttribute('aria-label', 'Excluir música');
-        deleteBtn.textContent = '🗑';
+        deleteBtn.innerHTML = '<img src="excluir.png" alt="" />';
         deleteBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           closeAllLibrarySwipes();
