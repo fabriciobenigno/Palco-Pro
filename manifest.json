@@ -8,10 +8,20 @@
   "start_url": "/Palco-Pro/",
   "scope": "/Palco-Pro/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "categories": ["music", "productivity", "utilities"],
+  "categories": [
+    "music",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icon-192.png",
@@ -29,7 +39,7 @@
   "screenshots": [
     {
       "src": "palco-pro-share.png",
-      "sizes": "1200x630",
+      "sizes": "2048x1365",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Tela inicial do app Palco Pro"
