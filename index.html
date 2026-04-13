@@ -664,122 +664,6 @@
 
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .entry-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9996;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding:
-        calc(var(--safe-top) + 18px)
-        max(16px, env(safe-area-inset-right))
-        calc(var(--safe-bottom) + 18px)
-        max(16px, env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 50% 14%, rgba(124,188,255,0.16), transparent 22%),
-        radial-gradient(circle at 50% 0%, rgba(134,107,255,0.12), transparent 28%),
-        linear-gradient(180deg, rgba(3,7,14,0.98), rgba(4,8,16,0.98));
-      backdrop-filter: blur(22px);
-    }
-
-    .entry-screen.open {
-      display: flex;
-    }
-
-    .entry-shell {
-      width: 100%;
-      max-width: 420px;
-      display: grid;
-      gap: 18px;
-      justify-items: center;
-      text-align: center;
-    }
-
-    .entry-logo {
-      width: 96px;
-      height: 96px;
-      border-radius: 28px;
-      object-fit: cover;
-      box-shadow: 0 24px 54px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.08);
-    }
-
-    .entry-title {
-      margin: 0;
-      font-size: clamp(28px, 7vw, 40px);
-      line-height: 1.02;
-      font-weight: 800;
-      letter-spacing: -0.05em;
-      color: #fff;
-    }
-
-    .entry-subtitle {
-      margin: 0;
-      max-width: 320px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.72);
-    }
-
-    .entry-card {
-      width: 100%;
-      display: grid;
-      gap: 12px;
-      padding: 18px;
-      border-radius: 28px;
-      background: linear-gradient(180deg, rgba(18,24,38,0.86), rgba(9,14,24,0.84));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 28px 70px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
-      backdrop-filter: blur(22px);
-    }
-
-    .entry-card p {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.76);
-    }
-
-    .entry-actions {
-      display: grid;
-      gap: 10px;
-      width: 100%;
-    }
-
-    .entry-nav-btn,
-    .entry-link-btn,
-    .entry-back-btn {
-      min-height: 52px;
-      padding: 14px 18px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(90,165,255,0.18), rgba(42,96,184,0.18), rgba(15,20,34,0.92));
-      border: 1px solid rgba(134,188,255,0.24);
-      backdrop-filter: blur(18px);
-      font-size: 15px;
-      font-weight: 700;
-      line-height: 1.35;
-      letter-spacing: 0.01em;
-      box-shadow: 0 18px 42px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.08);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    }
-
-    .entry-nav-btn:active,
-    .entry-link-btn:active,
-    .entry-back-btn:active,
-    .ghost-btn:active,
-    .mini-btn:active,
-    .circle-btn:active,
-    .mode-switch-btn:active {
-      transform: translateY(1px) scale(0.99);
-    }
-
-    .entry-install-note {
-      font-size: 12px;
-      line-height: 1.55;
-      color: rgba(255,255,255,0.58);
-      margin-top: 2px;
-    }
-
     .fullscreen-screen {
       position: absolute;
       inset: 0;
@@ -969,47 +853,7 @@
       </div>
     </div>
 
-    <div class="entry-screen" id="entryScreen" aria-hidden="true">
-      <div class="entry-shell">
-        <img class="entry-logo" src="palco-pro-icon.png" alt="Palco Pro" />
-        <div>
-          <h1 class="entry-title">Palco Pro</h1>
-          <p class="entry-subtitle">Abra suas músicas, organize seu repertório e use o teleprompter com visual profissional no palco.</p>
-        </div>
-
-        <div class="entry-card">
-          <div class="entry-actions">
-            <button class="entry-nav-btn" id="entryOpenLoginBtn">Entrar na conta</button>
-            <button class="entry-nav-btn" id="entryOpenRegisterBtn">Criar cadastro</button>
-            <a class="entry-link-btn" id="entryInstagramLink" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a class="entry-link-btn" id="entryWhatsappLink" href="https://wa.me/" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-          </div>
-          <p class="entry-install-note">Para melhor experiência, instale o app na tela inicial do seu celular quando o navegador mostrar essa opção.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="controls-bar" id="controlsBar">
-      <button class="mini-btn" id="settingsBtn" aria-label="Abrir ajustes">⚙️</button>
-      <button class="circle-btn" id="libraryBtn" aria-label="Abrir repertório">☰</button>
-      <button class="mode-switch-btn" id="playPauseBtn" aria-label="Iniciar ou pausar">▶</button>
-      <button class="circle-btn" id="cleanToggleBtn" aria-label="Alternar visual limpo">✦</button>
-      <button class="mini-btn" id="detailModeBtn" aria-label="Ajustes rápidos">⋯</button>
-    </div>
-
-    <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar do modo limpo">˅</button>
-
-    <div class="detail-panel" id="detailPanel">
-      <button class="mini-btn" id="decreaseBtn" aria-label="Diminuir velocidade">−</button>
-      <input id="detailSpeedSlider" type="range" min="5" max="80" step="1" value="20" aria-label="Velocidade" />
-      <button class="mini-btn" id="increaseBtn" aria-label="Aumentar velocidade">+</button>
-    </div>
-
-    <div class="library-screen" id="libraryPanel">
-      <div class="library-shell">
-        <div class="library-header">
-          <div class="library-title-wrap">
-            <h2 class="library-title">Repertório</h2>
+    <div class="controls-bar" id="controlsBar">tório</h2>
             <p class="library-subtitle">Abra suas músicas salvas ou organize o que vai para o palco.</p>
           </div>
           <button class="mini-btn" id="hideLibraryBtn">×</button>
@@ -2001,21 +1845,8 @@
     }
 
     function hideLaunchSplash(force = false) {
-      const splash = $('appLaunchSplash');
-      if (!splash) return;
-      clearTimeout(appLaunchState.hideTimer);
-      if (!appLaunchState.visible) {
-        splash.classList.remove('active');
-        splash.classList.remove('fade-out');
-        splash.setAttribute('aria-hidden', 'true');
-        return;
-      }
-      const elapsed = Date.now() - appLaunchState.shownAt;
-      const remaining = force ? 0 : Math.max(0, 520 - elapsed);
-      appLaunchState.hideTimer = setTimeout(() => {
-        splash.classList.remove('active');
-        splash.classList.add('fade-out');
-        splash.setAttribute('aria-hidden', 'true');
+      const splash = $('
+    function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }     splash.setAttribute('aria-hidden', 'true');
         appLaunchState.visible = false;
       }, remaining);
     }
@@ -2151,10 +1982,7 @@
         loadScript();
         setupVoice();
         bindEvents();
-        bindBluetoothControls();
-        bindTextDrag();
-        app.classList.add('clean-mode');
-        $('detailPanel').classList.remove('open');
+        bindB('open');
         syncPlayPauseIcon();
         if (voiceToggle.checked) enableVoice(true);
         await restoreSupabaseSession();
@@ -2164,7 +1992,4 @@
         hideLaunchSplash();
       }
     }
-    init();
-  </script>
-</body>
-</html>
+  
