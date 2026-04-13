@@ -23,8 +23,12 @@
   <meta name="twitter:title" content="Palco Pro" />
   <meta name="twitter:description" content="App premium para músicos em apresentações ao vivo, com repertório persistente, leitura confortável no palco e experiência profissional no celular." />
   <meta name="twitter:image" content="https://fabriciobenigno.github.io/Palco-Pro/palco-pro-share.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="palco-pro-icon.png" />
-  <link rel="apple-touch-icon" href="palco-pro-icon.png" />
+  <meta name="application-name" content="Palco Pro" />
+  <meta name="apple-mobile-web-app-title" content="Palco Pro" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
   <link rel="manifest" href="manifest.json" />
   <style>
     :root {
@@ -562,198 +566,226 @@
       position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center;
       padding: calc(var(--safe-top) + 24px) max(20px, env(safe-area-inset-right)) calc(var(--safe-bottom) + 24px) max(20px, env(safe-area-inset-left));
       background:
-        radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
-        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
-        linear-gradient(180deg, rgba(2,4,9,0.92) 0%, rgba(9,16,29,0.95) 45%, rgba(4,7,13,0.98) 100%);
-      opacity: 0; visibility: hidden; pointer-events: none;
-      transition: opacity 0.32s ease, visibility 0.32s ease;
+        radial-gradient(circle at 50% 20%, rgba(124,188,255,0.22), transparent 22%),
+        radial-gradient(circle at 50% 0%, rgba(134,107,255,0.16), transparent 28%),
+        linear-gradient(180deg, rgba(2,6,14,0.98), rgba(3,8,16,0.98));
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+      pointer-events: none;
     }
 
     .app-launch-splash.active {
-      opacity: 1; visibility: visible; pointer-events: auto;
+      opacity: 1;
+      visibility: visible;
     }
 
     .app-launch-splash.fade-out {
-      opacity: 0; visibility: hidden; pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
     }
 
     .app-launch-shell {
-      width: min(100%, 420px); padding: 28px 24px; border-radius: 32px;
-      display: grid; gap: 20px; justify-items: center; text-align: center;
-      background: linear-gradient(180deg, rgba(13, 19, 31, 0.88), rgba(7, 11, 19, 0.82));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), 0 12px 30px rgba(76, 152, 255, 0.16), inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(22px);
+      width: min(420px, 100%);
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+      text-align: center;
     }
 
-    .app-launch-mark {
-      position: relative; width: 88px; height: 88px; display: grid; place-items: center;
+    .app-launch-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
+      object-fit: cover;
+      box-shadow: 0 22px 48px rgba(0,0,0,0.34), 0 0 0 1px rgba(255,255,255,0.1);
+      animation: splashPulse 1.7s ease-in-out infinite;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
     }
-
-    .app-launch-ring {
-      position: absolute; inset: 0; border-radius: 50%;
-      border: 1px solid rgba(123, 231, 255, 0.22);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
-    }
-
-    .app-launch-ring-a { animation: splashPulse 2.2s ease-in-out infinite; }
-
-    .app-launch-ring-b {
-      inset: 10px; border-color: rgba(134, 107, 255, 0.28);
-      animation: splashPulse 2.2s ease-in-out infinite 0.24s;
-    }
-
-    .app-launch-core {
-      width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center;
-      font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: #f7f9ff;
-      background: linear-gradient(135deg, rgba(96, 182, 255, 0.96), rgba(72, 126, 255, 0.94), rgba(128, 101, 255, 0.92));
-      box-shadow: 0 18px 36px rgba(0,0,0,0.28), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.20);
-      animation: splashFloat 2.4s ease-in-out infinite;
-    }
-
-    .app-launch-copy { display: grid; gap: 8px; }
 
     .app-launch-title {
-      margin: 0; font-size: 26px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; color: #fff;
+      margin: 0;
+      font-size: clamp(28px, 6vw, 38px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #fff;
+      text-shadow: 0 12px 28px rgba(0,0,0,0.28);
     }
 
     .app-launch-subtitle {
-      margin: 0; font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.74);
+      margin: 0;
+      max-width: 300px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.72);
     }
 
     .app-launch-loader {
-      display: inline-flex; align-items: center; gap: 8px; min-height: 14px;
+      width: 88px;
+      height: 4px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
-    .app-launch-loader span {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: linear-gradient(180deg, rgba(123,231,255,0.95), rgba(95,146,255,0.9));
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
-      animation: splashDot 0.95s ease-in-out infinite;
+    .app-launch-loader::after {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgba(92,168,255,0.25), rgba(123,231,255,0.95), rgba(134,107,255,0.85));
+      animation: splashBar 1.15s ease-in-out infinite;
     }
-
-    .app-launch-loader span:nth-child(2) { animation-delay: 0.14s; }
-    .app-launch-loader span:nth-child(3) { animation-delay: 0.28s; }
 
     @keyframes splashPulse {
-      0%, 100% { transform: scale(0.94); opacity: 0.38; }
-      50% { transform: scale(1.08); opacity: 0.9; }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.035); }
     }
 
-    @keyframes splashFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+    @keyframes splashBar {
+      0% { transform: translateX(-110%); }
+      100% { transform: translateX(250%); }
     }
 
-    @keyframes splashDot {
-      0%, 100% { transform: translateY(0); opacity: 0.42; }
-      50% { transform: translateY(-6px); opacity: 1; }
+    .toast {
+      position: absolute; left: 50%; top: calc(var(--safe-top) + 18px); transform: translateX(-50%) translateY(-16px);
+      z-index: 60; min-width: 180px; max-width: min(88vw, 420px);
+      padding: 12px 14px; border-radius: 18px;
+      background: rgba(11, 16, 26, 0.78); border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(16px);
+      color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.45;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      text-align: center;
+      box-shadow: 0 18px 44px rgba(0,0,0,0.28);
     }
 
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .browser-entry-gate {
-      position: fixed; inset: 0; z-index: 9999; display: none;
-      background:
-        radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
-        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
-        linear-gradient(180deg, #020409 0%, #09101d 45%, #04070d 100%);
-      padding: calc(var(--safe-top) + 24px) max(20px, env(safe-area-inset-right)) calc(var(--safe-bottom) + 22px) max(20px, env(safe-area-inset-left));
-      color: #f7f9ff;
-    }
-    .browser-entry-gate.active { display: flex; flex-direction: column; justify-content: space-between; }
-    .entry-shell { width: 100%; max-width: 430px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; position: relative; }
-    .entry-main { display: flex; flex-direction: column; justify-content: center; gap: 18px; flex: 1; }
     .entry-screen {
-      display: none; flex-direction: column; gap: 16px; padding: 26px 22px; border-radius: 30px;
-      background: linear-gradient(180deg, rgba(13, 19, 31, 0.84), rgba(7, 11, 19, 0.76));
-      border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      position: fixed;
+      inset: 0;
+      z-index: 9996;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding:
+        calc(var(--safe-top) + 18px)
+        max(16px, env(safe-area-inset-right))
+        calc(var(--safe-bottom) + 18px)
+        max(16px, env(safe-area-inset-left));
+      background:
+        radial-gradient(circle at 50% 14%, rgba(124,188,255,0.16), transparent 22%),
+        radial-gradient(circle at 50% 0%, rgba(134,107,255,0.12), transparent 28%),
+        linear-gradient(180deg, rgba(3,7,14,0.98), rgba(4,8,16,0.98));
       backdrop-filter: blur(22px);
     }
-    .entry-screen.active { display: flex; }
-    .entry-title { margin: 0; font-size: 25px; line-height: 1.18; font-weight: 800; letter-spacing: -0.025em; text-align: center; text-shadow: 0 10px 28px rgba(0,0,0,0.34); }
-    .entry-subtitle { margin: 0; font-size: 14px; line-height: 1.72; text-align: center; color: rgba(255,255,255,0.76); }
-    .entry-actions { display: grid; gap: 12px; margin-top: 10px; }
-    .entry-nav-btn, .entry-link-btn, .entry-back-btn {
-      width: 100%; min-height: 60px; border-radius: 20px; padding: 16px 18px; text-decoration: none;
-      display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 700; text-align: center;
-      border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 18px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(18px); transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, border-color 0.22s ease;
-      position: relative; overflow: hidden; isolation: isolate;
+
+    .entry-screen.open {
+      display: flex;
     }
-    .entry-nav-btn {
-      background: linear-gradient(135deg, rgba(96, 182, 255, 0.98), rgba(72, 126, 255, 0.96), rgba(128, 101, 255, 0.92));
-      background-size: 220% 220%;
-      border-color: rgba(169, 229, 255, 0.36);
-      box-shadow: 0 20px 42px rgba(0,0,0,0.30), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.22);
-      color: #f8fbff;
-      cursor: pointer;
-      animation: entryNavGradientFlow 7.5s ease-in-out infinite;
+
+    .entry-shell {
+      width: 100%;
+      max-width: 420px;
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+      text-align: center;
     }
-    .entry-nav-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.07) 34%, rgba(255,255,255,0.26) 50%, rgba(255,255,255,0.08) 66%, transparent 82%);
-      transform: translateX(-140%);
-      animation: entryNavSheen 4.8s ease-in-out infinite;
-      pointer-events: none;
-      z-index: -1;
+
+    .entry-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
+      object-fit: cover;
+      box-shadow: 0 24px 54px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.08);
     }
-    .entry-nav-btn::after {
-      content: "›";
-      font-size: 20px;
-      line-height: 1;
+
+    .entry-title {
+      margin: 0;
+      font-size: clamp(28px, 7vw, 40px);
+      line-height: 1.02;
       font-weight: 800;
-      margin-left: 6px;
-      opacity: 0.92;
-      transform: translateX(0);
-      transition: transform 0.22s ease, opacity 0.22s ease;
+      letter-spacing: -0.05em;
+      color: #fff;
     }
-    .entry-nav-btn:hover,
-    .entry-nav-btn:focus-visible {
-      transform: translateY(-1px);
-      border-color: rgba(205, 241, 255, 0.46);
-      box-shadow: 0 22px 46px rgba(0,0,0,0.32), 0 12px 30px rgba(95, 184, 255, 0.24), inset 0 1px 0 rgba(255,255,255,0.28);
-      outline: none;
+
+    .entry-subtitle {
+      margin: 0;
+      max-width: 320px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.72);
     }
-    .entry-nav-btn:hover::after,
-    .entry-nav-btn:focus-visible::after {
-      transform: translateX(2px);
-      opacity: 1;
+
+    .entry-card {
+      width: 100%;
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(18,24,38,0.86), rgba(9,14,24,0.84));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 28px 70px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(22px);
     }
-    .entry-link-btn, .entry-back-btn {
-      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
+
+    .entry-card p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.76);
     }
-    .entry-link-btn img { width: 24px; height: 24px; object-fit: contain; flex: 0 0 24px; }
-    @keyframes entryNavGradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+
+    .entry-actions {
+      display: grid;
+      gap: 10px;
+      width: 100%;
     }
-    @keyframes entryNavSheen {
-      0%, 58%, 100% { transform: translateX(-140%); opacity: 0; }
-      16% { opacity: 1; }
-      34% { transform: translateX(140%); opacity: 0.9; }
+
+    .entry-nav-btn,
+    .entry-link-btn,
+    .entry-back-btn {
+      min-height: 52px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(90,165,255,0.18), rgba(42,96,184,0.18), rgba(15,20,34,0.92));
+      border: 1px solid rgba(134,188,255,0.24);
+      backdrop-filter: blur(18px);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: 0.01em;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
-    .entry-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-    .entry-step {
-      display: flex; gap: 12px; align-items: flex-start; padding: 15px 15px; border-radius: 20px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
-      border: 1px solid rgba(255,255,255,0.11); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+
+    .entry-nav-btn:active,
+    .entry-link-btn:active,
+    .entry-back-btn:active,
+    .ghost-btn:active,
+    .mini-btn:active,
+    .circle-btn:active,
+    .mode-switch-btn:active {
+      transform: translateY(1px) scale(0.99);
     }
-    .entry-step-number {
-      width: 28px; height: 28px; border-radius: 999px; background: linear-gradient(135deg, rgba(79,140,255,0.96), rgba(124,176,255,0.88));
-      display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; flex: 0 0 28px; margin-top: 1px;
-      box-shadow: 0 8px 18px rgba(79,140,255,0.26);
+
+    .entry-install-note {
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.58);
+      margin-top: 2px;
     }
-    .entry-step-text { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.9); }
-    .entry-footer { text-align: center; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.58); padding-bottom: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
     .fullscreen-screen {
       position: absolute;
       inset: 0;
-      z-index: 58;
+      z-index: 64;
       display: none;
+      flex-direction: column;
       padding:
         calc(var(--safe-top) + 18px)
         max(16px, env(safe-area-inset-right))
@@ -763,11 +795,12 @@
         radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
         linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
       backdrop-filter: blur(20px);
+      pointer-events: auto;
+      overflow: hidden;
     }
 
     .fullscreen-screen.open {
       display: flex;
-      flex-direction: column;
     }
 
     .fullscreen-shell {
@@ -811,7 +844,7 @@
     .fullscreen-card {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       flex: 1;
       min-height: 0;
       padding: 16px;
@@ -823,208 +856,97 @@
       overflow: auto;
     }
 
-    .auth-panel, .register-panel, .recover-panel {
-      pointer-events: auto;
-    }
-    .auth-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .auth-actions-row .ghost-btn { flex: 1; min-width: 110px; }
-    .sync-status-note {
-      padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.5;
-    }
-    .library-actions-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .library-actions-row .ghost-btn {
-      flex: 1;
-      min-width: 140px;
-    }
-    .song-editor-panel {
-      z-index: 59;
-      pointer-events: auto;
-    }
-
-    .song-editor-panel .fullscreen-card {
-      overflow: auto;
-    }
-
-
-    .editor-actions-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .editor-actions-row .ghost-btn {
-      flex: 1;
-      min-width: 132px;
-    }
-
-    .suggestions-panel {
-      z-index: 60;
-      pointer-events: auto;
-    }
-
-    .suggestions-panel .fullscreen-card {
-      gap: 12px;
-      overflow: auto;
-    }
-
-    .suggestions-results {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      overflow: auto;
-      border-radius: 22px;
-      background: rgba(9,13,20,0.54);
-      border: 1px solid rgba(255,255,255,0.08);
-      min-height: 240px;
-    }
-
-    .suggestion-empty {
-      padding: 18px 16px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: rgba(255,255,255,0.66);
-      text-align: center;
-    }
-
-    .suggestion-item {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(17,22,31,0.94);
-      color: #fff;
-      text-align: left;
-      padding: 12px 14px;
+    .auth-actions-row {
       display: grid;
-      gap: 4px;
-      cursor: pointer;
+      gap: 10px;
+      grid-template-columns: 1fr;
     }
 
-    .suggestion-item:last-child {
-      border-bottom: 0;
-    }
-
-    .suggestion-item-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.96);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .suggestion-item-meta {
+    .sync-status-note {
       font-size: 12px;
-      color: rgba(255,255,255,0.7);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.72);
     }
-    .password-visibility-row {
-      display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.76); font-size: 13px;
-      margin-top: -2px;
+
+    .account-actions-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
     }
-    .password-visibility-row input { width: 16px; height: 16px; accent-color: #7cb0ff; }
 
+    .social-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-    .app-toast {
-      position: absolute;
-      left: 50%;
-      top: calc(var(--safe-top) + 18px);
-      transform: translateX(-50%) translateY(-12px);
-      z-index: 80;
-      padding: 12px 16px;
-      border-radius: 16px;
-      background: rgba(8,12,18,0.92);
-      border: 1px solid rgba(255,255,255,0.14);
+    .social-btn {
+      min-height: 48px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
       color: #fff;
+      background: linear-gradient(180deg, rgba(22,29,45,0.86), rgba(10,14,24,0.82));
+      border: 1px solid rgba(255,255,255,0.13);
+      box-shadow: var(--glow-soft), inset 0 1px 0 rgba(255,255,255,0.07);
+      backdrop-filter: blur(16px) saturate(1.14);
       font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .app-toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .song-actions-panel {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 70;
-      width: min(340px, calc(100vw - 28px));
-      border-radius: 24px;
-      background: rgba(8,12,18,0.94);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.34);
-      padding: 16px;
-      display: none;
-      pointer-events: auto;
-    }
-
-    .song-actions-panel.open { display: block; }
-    .song-actions-title {
-      margin: 0 0 8px;
-      font-size: 16px;
       font-weight: 700;
-      color: white;
+      letter-spacing: 0.01em;
     }
+
+    .social-btn img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      display: block;
+      filter: brightness(0) invert(1);
+    }
+
     .song-actions-subtitle {
-      margin: 0 0 14px;
+      width: 100%;
+      max-width: 460px;
+      margin: 0 auto 12px;
       font-size: 13px;
       line-height: 1.5;
       color: rgba(255,255,255,0.72);
     }
 
-    .library-song-swipe + .library-song-swipe {
-      margin-top: 1px;
-    }
+    @media (max-width: 390px) {
+      .mode-switch-btn {
+        min-width: 78px;
+        padding: 0 16px;
+      }
 
-    @media (max-width: 560px) {
-      :root { --text-width: 90vw; }
-      .script-inner { padding-left: 18px; padding-right: 18px; }
-      .controls-bar { gap: 10px; bottom: calc(var(--safe-bottom) + 18px); }
-      .mini-btn, .circle-btn { width: 46px; height: 46px; }
-      .mode-switch-btn { min-width: 80px; height: 54px; }
-      .detail-panel { gap: 8px; padding: 8px; bottom: calc(var(--safe-bottom) + 78px); }
-      .clean-return-btn { bottom: calc(var(--safe-bottom) + 140px); }
+      .controls-bar {
+        gap: 10px;
+      }
+
+      .app-launch-logo,
+      .entry-logo {
+        width: 86px;
+        height: 86px;
+        border-radius: 24px;
+      }
+
+      .entry-card,
+      .fullscreen-card,
+      .library-card,
+      .side-panel .panel-grid {
+        border-radius: 24px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app" id="app">
-    <div class="app-launch-splash" id="appLaunchSplash" aria-hidden="true">
-      <div class="app-launch-shell">
-        <div class="app-launch-mark" aria-hidden="true">
-          <span class="app-launch-ring app-launch-ring-a"></span>
-          <span class="app-launch-ring app-launch-ring-b"></span>
-          <span class="app-launch-core">P</span>
-        </div>
-        <div class="app-launch-copy">
-          <h1 class="app-launch-title">Palco Pro</h1>
-          <p class="app-launch-subtitle">Preparando seu repertório e carregando o app.</p>
-        </div>
-        <div class="app-launch-loader" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="stage-layer"></div>
-
+    <div class="stage-layer" aria-hidden="true"></div>
     <div class="teleprompter-overlay">
-      <div class="transcript-pill hidden" id="transcriptPill" aria-hidden="true">A transcrição aparecerá aqui quando a fala estiver ligada.</div>
-      <div class="prompt-window" id="promptWindow">
+      <div class="prompt-window">
         <div class="prompt-bg"></div>
         <div class="prompt-content" id="promptContent">
           <div class="script-inner" id="scriptInner"></div>
@@ -1032,45 +954,77 @@
       </div>
     </div>
 
-        <div class="library-screen" id="libraryPanel">
-      <div class="library-shell">
-        <div class="library-header">
-          <div class="library-title-wrap">
-            <h2 class="library-title">Repertório</h2>
-            <p class="library-subtitle">Escolha sua música por nome, cantor, estilo ou pela lista completa.</p>
-          </div>
-          <button class="mini-btn" id="hideLibraryBtn" aria-label="Fechar repertório">×</button>
+    <div class="transcript-pill" id="transcriptPill" aria-live="polite"></div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="app-launch-splash active" id="appLaunchSplash" aria-hidden="false">
+      <div class="app-launch-shell">
+        <img class="app-launch-logo" src="palco-pro-icon.png" alt="Palco Pro" />
+        <div>
+          <h1 class="app-launch-title">Palco Pro</h1>
+          <p class="app-launch-subtitle">Preparando sua experiência no palco.</p>
+        </div>
+        <div class="app-launch-loader" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="entry-screen" id="entryScreen" aria-hidden="true">
+      <div class="entry-shell">
+        <img class="entry-logo" src="palco-pro-icon.png" alt="Palco Pro" />
+        <div>
+          <h1 class="entry-title">Palco Pro</h1>
+          <p class="entry-subtitle">Abra suas músicas, organize seu repertório e use o teleprompter com visual profissional no palco.</p>
         </div>
 
-        <div class="library-card">
-          <div class="library-actions-row">
-            <button class="ghost-btn" id="newSongBtn">Cadastrar música</button>
+        <div class="entry-card">
+          <div class="entry-actions">
+            <button class="entry-nav-btn" id="entryOpenLoginBtn">Entrar na conta</button>
+            <button class="entry-nav-btn" id="entryOpenRegisterBtn">Criar cadastro</button>
+            <a class="entry-link-btn" id="entryInstagramLink" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a class="entry-link-btn" id="entryWhatsappLink" href="https://wa.me/" target="_blank" rel="noopener noreferrer">WhatsApp</a>
           </div>
-          <div class="field">
-            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
-          </div>
-          <div class="library-sort-row" id="librarySortControls">
-            <button class="library-sort-btn active" type="button" data-sort="alpha">Alfabética</button>
-            <button class="library-sort-btn" type="button" data-sort="artist">Artista</button>
-            <button class="library-sort-btn" type="button" data-sort="style">Estilo</button>
-            <button class="library-sort-btn" type="button" data-sort="created_oldest">Cadastro</button>
-          </div>
-          <div class="library-sort-row hidden" id="libraryFilterOptions"></div>
-          <div class="field" style="min-height:0; flex:1;">
-            <div id="libraryList" class="library-results"></div>
-          </div>
-          <select id="repertoireSelect" class="hidden"></select>
+          <p class="entry-install-note">Para melhor experiência, instale o app na tela inicial do seu celular quando o navegador mostrar essa opção.</p>
         </div>
       </div>
     </div>
 
+    <div class="controls-bar" id="controlsBar">
+      <button class="mini-btn" id="settingsBtn" aria-label="Abrir ajustes">⚙️</button>
+      <button class="circle-btn" id="libraryBtn" aria-label="Abrir repertório">☰</button>
+      <button class="mode-switch-btn" id="playPauseBtn" aria-label="Iniciar ou pausar">▶</button>
+      <button class="circle-btn" id="cleanToggleBtn" aria-label="Alternar visual limpo">✦</button>
+      <button class="mini-btn" id="detailModeBtn" aria-label="Ajustes rápidos">⋯</button>
+    </div>
+
+    <button class="clean-return-btn" id="cleanReturnBtn" aria-label="Voltar do modo limpo">˅</button>
+
     <div class="detail-panel" id="detailPanel">
-      <button class="mini-btn" id="backBlockBtn" aria-label="Voltar bloco">↟</button>
-      <button class="mini-btn" id="playPauseBtn" aria-label="Play ou pause">▶</button>
-      <button class="mini-btn" id="nextBlockBtn" aria-label="Próximo bloco">↡</button>
-      <div style="display:grid; gap:4px; min-width:120px; padding:0 6px;">
-        <span style="font-size:11px; color:rgba(255,255,255,0.72); text-align:center;">Velocidade</span>
-        <input id="detailSpeedSlider" type="range" min="4" max="80" value="20" style="width:100%;" />
+      <button class="mini-btn" id="decreaseBtn" aria-label="Diminuir velocidade">−</button>
+      <input id="detailSpeedSlider" type="range" min="5" max="80" step="1" value="20" aria-label="Velocidade" />
+      <button class="mini-btn" id="increaseBtn" aria-label="Aumentar velocidade">+</button>
+    </div>
+
+    <div class="library-screen" id="libraryPanel">
+      <div class="library-shell">
+        <div class="library-header">
+          <div class="library-title-wrap">
+            <h2 class="library-title">Repertório</h2>
+            <p class="library-subtitle">Abra suas músicas salvas ou organize o que vai para o palco.</p>
+          </div>
+          <button class="mini-btn" id="hideLibraryBtn">×</button>
+        </div>
+
+        <div class="library-card">
+          <div class="field">
+            <label for="librarySearchInput">Buscar música</label>
+            <input id="librarySearchInput" type="text" placeholder="Digite o nome da música ou artista" />
+          </div>
+
+          <div class="library-sort-row" id="librarySortControls"></div>
+          <div class="small-row" id="libraryFilterOptions"></div>
+          <div class="library-results" id="libraryList"></div>
+        </div>
       </div>
     </div>
 
@@ -1079,103 +1033,127 @@
         <h2>Ajustes</h2>
         <button class="mini-btn" id="hidePanelBtn">×</button>
       </div>
-
       <div class="panel-grid">
-        <div class="account-identity-row hidden" id="accountIdentityRow">
-          <button class="ghost-btn account-identity-btn" id="accountIdentityBtn" type="button" aria-label="Conta conectada"></button>
+        <div class="field">
+          <label for="songTitleInput">Título da música</label>
+          <input id="songTitleInput" type="text" placeholder="Nome da música" />
+        </div>
+
+        <div class="field">
+          <label for="artistInput">Artista</label>
+          <input id="artistInput" type="text" placeholder="Nome do artista" />
+        </div>
+
+        <div class="field">
+          <label for="styleInput">Estilo</label>
+          <input id="styleInput" type="text" placeholder="Estilo musical" />
+        </div>
+
+        <div class="field">
+          <label for="scriptInput">Letra / roteiro</label>
+          <textarea id="scriptInput" placeholder="Entre nos ajustes, cole seu roteiro, ative sua câmera, o reconhecimento por fala ou o que for necessário."></textarea>
+        </div>
+
+        <div class="field hidden">
+          <label for="repertoireSelect">Música atual</label>
+          <select id="repertoireSelect"></select>
         </div>
 
         <div class="small-row">
-          <button class="ghost-btn" id="openLoginBtn">Login</button>
-          <button class="ghost-btn" id="openRegisterBtn">Cadastro</button>
-          <button class="ghost-btn" id="syncNowBtn">Sincronizar</button>
-          <button class="ghost-btn" id="logOutBtn">Sair da conta</button>
+          <button class="ghost-btn" id="newSongBtn">Nova música</button>
+          <button class="ghost-btn" id="saveSongBtn">Salvar música</button>
         </div>
 
-        <div class="sync-status-note" id="syncStatusNote">Sincronização local ativa.</div>
+        <div class="small-row">
+          <button class="ghost-btn" id="syncSuggestionsBtn">Atualizar sugestões</button>
+          <button class="ghost-btn" id="openSuggestionsBtn">Sugestões</button>
+        </div>
 
+        <div class="field">
+          <div class="value-row"><span>Tamanho da fonte</span><span id="fontSizeValue">30 px</span></div>
+          <input id="fontSize" type="range" min="18" max="60" step="1" value="30" />
+        </div>
+
+        <div class="field">
+          <div class="value-row"><span>Espaçamento entre linhas</span><span id="lineHeightValue">1.6</span></div>
+          <input id="lineHeight" type="range" min="1.1" max="2.4" step="0.05" value="1.6" />
+        </div>
+
+        <div class="field">
+          <div class="value-row"><span>Largura do texto</span><span id="textWidthValue">84 vw</span></div>
+          <input id="textWidth" type="range" min="56" max="96" step="1" value="84" />
+        </div>
+
+        <div class="field">
+          <div class="value-row"><span>Escurecimento do fundo</span><span id="overlayOpacityValue">16%</span></div>
+          <input id="overlayOpacity" type="range" min="0" max="60" step="1" value="16" />
+        </div>
+
+        <div class="field">
+          <div class="value-row"><span>Velocidade base</span><span id="baseSpeedValue">20</span></div>
+          <input id="baseSpeed" type="range" min="5" max="80" step="1" value="20" />
+        </div>
+
+        <div class="field">
+          <div class="value-row"><span>Força do acompanhamento por voz</span><span id="voiceFollowSpeedValue">62%</span></div>
+          <input id="voiceFollowSpeed" type="range" min="0" max="100" step="1" value="62" />
+        </div>
 
         <div class="toggle-row">
-          <span>Reconhecimento por fala</span>
-          <label class="switch"><input id="voiceToggle" type="checkbox" /><span class="slider"></span></label>
+          <span>Reconhecimento por voz</span>
+          <label class="switch">
+            <input id="voiceToggle" type="checkbox" />
+            <span class="slider"></span>
+          </label>
         </div>
 
         <div class="toggle-row">
-          <span>Espelhar letra</span>
-          <label class="switch"><input id="mirrorToggle" type="checkbox" /><span class="slider"></span></label>
+          <span>Espelhar texto</span>
+          <label class="switch">
+            <input id="mirrorToggle" type="checkbox" />
+            <span class="slider"></span>
+          </label>
         </div>
 
-        <div class="field">
-          <label for="fontSize">Tamanho da letra</label>
-          <input id="fontSize" type="range" min="20" max="64" value="30" />
-          <div class="value-row"><span>Menor</span><strong id="fontSizeValue">30 px</strong><span>Maior</span></div>
+        <div class="small-row">
+          <button class="ghost-btn" id="loginOpenBtn">Conta</button>
+          <button class="ghost-btn" id="showSongActionsBtn">Ações da música</button>
         </div>
 
-        <div class="field">
-          <label for="lineHeight">Altura das linhas</label>
-          <input id="lineHeight" type="range" min="1.2" max="2.2" step="0.05" value="1.6" />
-          <div class="value-row"><span>Fechado</span><strong id="lineHeightValue">1.60</strong><span>Aberto</span></div>
+        <div class="social-actions">
+          <a class="social-btn" href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+            <img src="instagram.ico" alt="Instagram" />
+            Instagram
+          </a>
+          <a class="social-btn" href="https://wa.me/" target="_blank" rel="noopener noreferrer">
+            <img src="instagram.ico" alt="WhatsApp" />
+            WhatsApp
+          </a>
         </div>
 
-        <div class="field">
-          <label for="textWidth">Largura da leitura</label>
-          <input id="textWidth" type="range" min="55" max="96" value="84" />
-          <div class="value-row"><span>Menor</span><strong id="textWidthValue">84 vw</strong><span>Maior</span></div>
-        </div>
-
-        <div class="field">
-          <label for="overlayOpacity">Controle de fundo da letra</label>
-          <input id="overlayOpacity" type="range" min="0" max="70" value="16" />
-          <div class="value-row"><span>Transparente</span><strong id="overlayOpacityValue">16%</strong><span>Forte</span></div>
-        </div>
-
-        <div class="field">
-          <label for="baseSpeed">Velocidade</label>
-          <input id="baseSpeed" type="range" min="4" max="80" value="20" />
-          <div class="value-row"><span>Lenta</span><strong id="baseSpeedValue">20 px/s</strong><span>Rápida</span></div>
-        </div>
-
-        <div class="field">
-          <label for="voiceFollowSpeed">Resposta do reconhecimento</label>
-          <input id="voiceFollowSpeed" type="range" min="20" max="100" value="62" />
-          <div class="value-row"><span>Suave</span><strong id="voiceFollowSpeedValue">62%</strong><span>Rápida</span></div>
-        </div>
-
-        <div class="field">
-          <label>Bluetooth</label>
-          <div class="panel-note">Os controles de teclado e botões Bluetooth continuam aceitando setas, espaço e Enter para ajudar no uso ao vivo.</div>
-        </div>
-
-        <div class="field">
-          <label>Espelhamento</label>
-          <div class="panel-note">O espelhamento permanece disponível para situações em que a leitura invertida fizer sentido no seu palco.</div>
-        </div>
+        <p class="panel-note">Tudo continua funcional. Os ajustes mantêm a experiência premium do app e a base preparada para instalação PWA.</p>
       </div>
     </div>
 
-    <div class="fullscreen-screen auth-panel" id="authPanel">
+    <div class="fullscreen-screen" id="authPanel">
       <div class="fullscreen-shell">
         <div class="fullscreen-header">
           <div class="fullscreen-title-wrap">
-            <h2 class="fullscreen-title">Login</h2>
-            <p class="fullscreen-subtitle">Entre na sua conta para sincronizar seu repertório no celular.</p>
+            <h2 class="fullscreen-title">Conta</h2>
+            <p class="fullscreen-subtitle">Entre para sincronizar repertório, sugestões e preferências do seu uso no palco.</p>
           </div>
           <button class="mini-btn" id="hideAuthPanelBtn">×</button>
         </div>
 
         <div class="fullscreen-card">
           <div class="field">
-            <label for="authEmailInput">Login</label>
-            <input id="authEmailInput" type="text" placeholder="Seu Gmail" />
+            <label for="emailInput">Login</label>
+            <input id="emailInput" type="text" placeholder="Seu Gmail" />
           </div>
 
           <div class="field">
-            <label for="authPasswordInput">Senha</label>
-            <input id="authPasswordInput" type="password" placeholder="Sua senha" />
-            <label class="password-visibility-row" for="showPasswordToggle">
-              <input id="showPasswordToggle" type="checkbox" />
-              <span>Visualizar senha</span>
-            </label>
+            <label for="passwordInput">Senha</label>
+            <input id="passwordInput" type="password" placeholder="Sua senha" />
           </div>
 
           <div class="auth-actions-row">
@@ -1229,122 +1207,59 @@
       </div>
     </div>
 
-    <div class="fullscreen-screen recover-panel" id="recoverPanel">
+    <div class="fullscreen-screen" id="accountPanel">
       <div class="fullscreen-shell">
         <div class="fullscreen-header">
           <div class="fullscreen-title-wrap">
-            <h2 class="fullscreen-title">Recuperar senha</h2>
-            <p class="fullscreen-subtitle">Coloque seu Gmail para recuperação de senha e enviaremos as instruções.</p>
+            <h2 class="fullscreen-title">Sua conta</h2>
+            <p class="fullscreen-subtitle">Veja sua sessão, sincronização e acesso atual.</p>
           </div>
-          <button class="mini-btn" id="hideRecoverPanelBtn">×</button>
+          <button class="mini-btn" id="hideAccountPanelBtn">×</button>
         </div>
 
         <div class="fullscreen-card">
-          <div class="field">
-            <label for="recoverEmailInput">Gmail para recuperação</label>
-            <input id="recoverEmailInput" type="text" placeholder="seuemail@gmail.com" />
+          <div class="field account-identity-row">
+            <label>Conta conectada</label>
+            <button class="ghost-btn account-identity-btn" id="accountIdentityBtn">Nenhuma conta conectada.</button>
           </div>
 
-          <div class="auth-actions-row">
-            <button class="ghost-btn" id="sendRecoveryBtn">Enviar recuperação</button>
+          <div class="account-actions-row">
+            <button class="ghost-btn" id="openRegisterPanelBtn">Criar cadastro</button>
+            <button class="ghost-btn" id="signOutBtn">Sair da conta</button>
           </div>
 
-          <div class="sync-status-note" id="recoverStatusNote">Informe o Gmail da conta para receber a recuperação.</div>
+          <div class="sync-status-note" id="syncStatusNote">Sincronização pronta para uso.</div>
         </div>
       </div>
     </div>
 
-    <div class="fullscreen-screen song-editor-panel" id="songEditorPanel">
-      <div class="fullscreen-shell">
-        <div class="fullscreen-header">
-          <div class="fullscreen-title-wrap">
-            <h2 class="fullscreen-title">Cadastrar música</h2>
-            <p class="fullscreen-subtitle">Preencha os dados da música e salve no repertório.</p>
-          </div>
-          <button class="mini-btn" id="hideSongEditorBtn">×</button>
-        </div>
-
-        <div class="fullscreen-card">
-          <div class="editor-actions-row">
-            <button class="ghost-btn" id="openSuggestionsBtn">Sugestões</button>
-          </div>
-
-          <div class="field">
-            <label for="songTitleInput">Título da música</label>
-            <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
-          </div>
-
-          <div class="field">
-            <label for="artistInput">Cantor / artista</label>
-            <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
-          </div>
-
-          <div class="field">
-            <label for="styleInput">Estilo musical</label>
-            <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
-          </div>
-
-          <div class="field" style="flex:1; min-height: 0;">
-            <label for="scriptInput">Letra da música</label>
-            <textarea id="scriptInput" style="min-height: 220px;">Cole aqui a letra da sua música.
-
-Use uma estrofe por bloco para facilitar a leitura no palco.
-
-O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
-          </div>
-
-          <div class="field" style="margin-top: 2px;">
-            <button class="ghost-btn" id="saveSongBtn">Salvar música</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fullscreen-screen suggestions-panel" id="suggestionsPanel">
+    <div class="fullscreen-screen" id="suggestionsPanel">
       <div class="fullscreen-shell">
         <div class="fullscreen-header">
           <div class="fullscreen-title-wrap">
             <h2 class="fullscreen-title">Sugestões</h2>
-            <p class="fullscreen-subtitle">Pesquise músicas sugeridas e toque em uma delas para preencher o cadastro.</p>
+            <p class="fullscreen-subtitle">Músicas aprovadas para uso rápido no seu repertório.</p>
           </div>
           <button class="mini-btn" id="hideSuggestionsPanelBtn">×</button>
         </div>
 
         <div class="fullscreen-card">
-          <div class="field">
-            <input id="suggestionsSearchInput" type="text" placeholder="Buscar por música, artista ou estilo" />
-          </div>
-
-          <div class="small-row">
-            <button class="ghost-btn" id="refreshSuggestionsBtn">Atualizar sugestões</button>
-          </div>
-
-          <div class="sync-status-note" id="suggestionsStatusNote">Carregue as sugestões disponíveis para pesquisar.</div>
-
-          <div class="suggestions-results" id="suggestionsList"></div>
+          <div class="library-results" id="suggestionsList"></div>
         </div>
       </div>
     </div>
 
-    <div class="controls-bar">
-      <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
-      <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
-      <button class="mode-switch-btn" id="toggleCleanModeBtn" aria-label="Modo limpo">☰</button>
-      <button class="mini-btn" id="nextSongBtn" aria-label="Próxima música">↠</button>
-      <button class="mini-btn" id="openLibraryBtn" aria-label="Abrir repertório">♫</button>
-    </div>
-
-    <div class="app-toast" id="appToast" aria-live="polite"></div>
-
-    <div class="song-actions-panel" id="songActionsPanel">
-      <div class="panel-title">
-        <h2>Ações da música</h2>
-        <button class="mini-btn" id="hideSongActionsBtn">×</button>
-      </div>
-      <p class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer.</p>
-      <div class="panel-grid">
-        <button class="ghost-btn" id="editSongActionBtn">Editar música</button>
-        <button class="ghost-btn" id="deleteSongActionBtn">Excluir música</button>
+    <div class="fullscreen-screen" id="songActionsPanel">
+      <div class="fullscreen-shell">
+        <div class="panel-title">
+          <h2>Ações da música</h2>
+          <button class="mini-btn" id="hideSongActionsBtn">×</button>
+        </div>
+        <p class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer.</p>
+        <div class="panel-grid">
+          <button class="ghost-btn" id="editSongActionBtn">Editar música</button>
+          <button class="ghost-btn" id="deleteSongActionBtn">Excluir música</button>
+        </div>
       </div>
     </div>
 
@@ -1395,770 +1310,43 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const voiceFollowSpeed = $('voiceFollowSpeed');
     const mirrorToggle = $('mirrorToggle');
     const voiceToggle = $('voiceToggle');
-    const fontSizeValue = $('fontSizeValue');
-    const lineHeightValue = $('lineHeightValue');
-    const textWidthValue = $('textWidthValue');
-    const overlayOpacityValue = $('overlayOpacityValue');
-    const baseSpeedValue = $('baseSpeedValue');
-    const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
+    const playPauseBtn = $('playPauseBtn');
+    const cleanToggleBtn = $('cleanToggleBtn');
+    const cleanReturnBtn = $('cleanReturnBtn');
+    const detailModeBtn = $('detailModeBtn');
+    const detailPanel = $('detailPanel');
     const authPanel = $('authPanel');
-    const authEmailInput = $('authEmailInput');
-    const authPasswordInput = $('authPasswordInput');
-    const authStatusNote = $('authStatusNote');
     const registerPanel = $('registerPanel');
-    const registerNameInput = $('registerNameInput');
-    const registerEmailInput = $('registerEmailInput');
-    const registerPasswordInput = $('registerPasswordInput');
-    const registerPasswordConfirmInput = $('registerPasswordConfirmInput');
-    const registerStatusNote = $('registerStatusNote');
-    const recoverPanel = $('recoverPanel');
-    const recoverEmailInput = $('recoverEmailInput');
-    const recoverStatusNote = $('recoverStatusNote');
-    const syncStatusNote = $('syncStatusNote');
-    const accountIdentityBtn = $('accountIdentityBtn');
-    const songEditorPanel = $('songEditorPanel');
+    const accountPanel = $('accountPanel');
     const suggestionsPanel = $('suggestionsPanel');
-    const suggestionsSearchInput = $('suggestionsSearchInput');
-    const suggestionsStatusNote = $('suggestionsStatusNote');
     const suggestionsList = $('suggestionsList');
-    const refreshSuggestionsBtn = $('refreshSuggestionsBtn');
-    const appToast = $('appToast');
     const songActionsPanel = $('songActionsPanel');
-    const songActionsSubtitle = $('songActionsSubtitle');
+    const toast = $('toast');
 
-    const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
-    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
-
-    function createSongId() {
-      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-        return window.crypto.randomUUID();
-      }
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = Math.random() * 16 | 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    }
-
-    function ensureSongIdsAreValid() {
-      let changed = false;
-      state.songs = state.songs.map((song) => {
-        const validId = typeof song.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(song.id);
-        if (validId) return song;
-        changed = true;
-        return { ...song, id: createSongId() };
-      });
-      if (changed) {
-        if (state.currentSongId && !state.songs.some(song => song.id === state.currentSongId)) {
-          state.currentSongId = null;
-        }
-        saveSongs();
-      }
+    function showToast(message) {
+      if (!toast) return;
+      clearTimeout(state.toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      state.toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
     }
 
     function createSupabaseClient() {
-      if (!window.supabase || state.supabase) return;
-      state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      });
-    }
-
-    function formatSyncTime(ts) {
-      if (!ts) return '';
-      try {
-        return new Date(ts).toLocaleString('pt-BR');
-      } catch (_) {
-        return '';
-      }
-    }
-
-    function updateAuthStatus(message) {
-      if (authStatusNote) authStatusNote.textContent = message;
-    }
-
-    function updateRegisterStatus(message) {
-      if (registerStatusNote) registerStatusNote.textContent = message;
-    }
-
-    function updateRecoverStatus(message) {
-      if (recoverStatusNote) recoverStatusNote.textContent = message;
-    }
-
-    function updateSyncStatus(message) {
-      if (syncStatusNote) syncStatusNote.textContent = message;
-    }
-
-    function updateSuggestionsStatus(message) {
-      if (suggestionsStatusNote) suggestionsStatusNote.textContent = message;
-    }
-
-    function getSuggestionSearchQuery() {
-      return (suggestionsSearchInput?.value || '').trim().toLowerCase();
-    }
-
-    function filterSuggestionSongs() {
-      const query = getSuggestionSearchQuery();
-      let songs = state.suggestionSongs.slice().sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
-      if (!query) return songs;
-      return songs.filter((song) => {
-        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(query);
-      });
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function renderSuggestionList() {
-      if (!suggestionsList) return;
-      const songs = filterSuggestionSongs();
-      suggestionsList.innerHTML = '';
-      if (!songs.length) {
-        const empty = document.createElement('div');
-        empty.className = 'suggestion-empty';
-        empty.textContent = state.suggestionSongs.length ? 'Nenhuma sugestão encontrada para essa busca.' : 'Nenhuma sugestão disponível no momento.';
-        suggestionsList.appendChild(empty);
-        return;
-      }
-      songs.forEach((song) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'suggestion-item';
-        button.innerHTML = `<span class="suggestion-item-title">${escapeHtml(song.title || 'Sem título')}</span><span class="suggestion-item-meta">${escapeHtml([song.artist, song.style].filter(Boolean).join(' • ') || 'Sugestão disponível')}</span>`;
-        button.addEventListener('click', () => applySuggestionSong(song));
-        suggestionsList.appendChild(button);
-      });
-    }
-
-    function normalizeSuggestionRow(song) {
-      return {
-        id: song.id,
-        title: song.song_title || song.title || 'Sem título',
-        artist: song.artist || '',
-        style: song.style || '',
-        lyrics: sanitizeLyrics(song.lyrics || '')
-      };
-    }
-
-    function isSuggestionActive(value) {
-      return value === true || value === 'true' || value === 1 || value === '1';
-    }
-
-    async function fetchApprovedSuggestionsRows() {
-      const attempts = [
-        () => state.supabase.schema('public').from('approved_suggestions').select('id, source_song_id, song_title, artist, style, lyrics, active, created_at').eq('active', true).order('song_title', { ascending: true }),
-        () => state.supabase.from('approved_suggestions').select('id, source_song_id, song_title, artist, style, lyrics, active, created_at').eq('active', true).order('song_title', { ascending: true }),
-        () => state.supabase.schema('public').from('approved_suggestions').select('id, source_song_id, song_title, artist, style, lyrics, active, created_at').order('song_title', { ascending: true })
-      ];
-
-      let lastError = null;
-      for (const run of attempts) {
-        const { data, error } = await run();
-        if (error) {
-          lastError = error;
-          console.error('[Palco Pro] Falha ao consultar sugestões aprovadas:', error);
-          continue;
-        }
-        const rows = Array.isArray(data) ? data : [];
-        if (!rows.length) continue;
-        return rows.filter((row) => isSuggestionActive(row.active));
-      }
-      if (lastError) throw lastError;
-      return [];
-    }
-
-    async function loadSuggestionSongs(force = false) {
-      if (refreshSuggestionsBtn) {
-        refreshSuggestionsBtn.disabled = true;
-        refreshSuggestionsBtn.textContent = 'Atualizando...';
-      }
-      if (!state.supabase) createSupabaseClient();
-      if (!state.supabase) {
-        updateSuggestionsStatus('Não foi possível iniciar as sugestões agora.');
-        renderSuggestionList();
-        if (refreshSuggestionsBtn) {
-          refreshSuggestionsBtn.disabled = false;
-          refreshSuggestionsBtn.textContent = 'Atualizar sugestões';
-        }
-        return;
-      }
-      if (force) {
-        state.suggestionsLoadedAt = 0;
-      }
-      const cacheFresh = state.suggestionsLoadedAt && (Date.now() - state.suggestionsLoadedAt) < 60000;
-      if (!force && cacheFresh && state.suggestionSongs.length) {
-        updateSuggestionsStatus(`Sugestões prontas: ${state.suggestionSongs.length}.`);
-        renderSuggestionList();
-        if (refreshSuggestionsBtn) {
-          refreshSuggestionsBtn.disabled = false;
-          refreshSuggestionsBtn.textContent = 'Atualizar sugestões';
-        }
-        return;
-      }
-      updateSuggestionsStatus('Carregando sugestões...');
-      try {
-        const rows = await fetchApprovedSuggestionsRows();
-        state.suggestionSongs = rows.map(normalizeSuggestionRow);
-        state.suggestionsLoadedAt = Date.now();
-        console.log('[Palco Pro] Sugestões aprovadas carregadas:', state.suggestionSongs.length, rows);
-        updateSuggestionsStatus(state.suggestionSongs.length
-          ? `Sugestões carregadas: ${state.suggestionSongs.length}. Toque em uma música para preencher o cadastro.`
-          : 'Nenhuma sugestão aprovada foi encontrada no momento.');
-      } catch (error) {
-        console.error('[Palco Pro] Erro ao carregar sugestões aprovadas:', error);
-        state.suggestionSongs = [];
-        updateSuggestionsStatus(`Não foi possível carregar as sugestões agora. ${error?.message || 'Verifique a conexão com o Supabase e tente novamente.'}`);
-      } finally {
-        if (refreshSuggestionsBtn) {
-          refreshSuggestionsBtn.disabled = false;
-          refreshSuggestionsBtn.textContent = 'Atualizar sugestões';
-        }
-      }
-      renderSuggestionList();
-    }
-
-    function applySuggestionSong(song) {
-      if (!song) return;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      persistCurrentDraft();
-      hideSuggestionsPanel();
-      openSongEditor();
-      showToast('Sugestão aplicada', 1400);
-    }
-
-    function getUserIdentityLabel() {
-      if (!state.currentUser) return '';
-      const meta = state.currentUser.user_metadata || {};
-      return (meta.display_name || meta.name || state.currentUser.email || 'Conta conectada').trim();
-    }
-
-    function updateAccountControls() {
-      const isLoggedIn = !!state.currentUser;
-      const loginBtn = $('openLoginBtn');
-      const registerBtn = $('openRegisterBtn');
-      const logoutBtn = $('logOutBtn');
-      const syncBtn = $('syncNowBtn');
-      const accountIdentityRow = $('accountIdentityRow');
-      if (loginBtn) loginBtn.classList.toggle('hidden', isLoggedIn);
-      if (registerBtn) registerBtn.classList.toggle('hidden', isLoggedIn);
-      if (logoutBtn) {
-        logoutBtn.classList.toggle('hidden', !isLoggedIn);
-        logoutBtn.textContent = 'Sair da conta';
-      }
-      if (syncBtn) syncBtn.classList.toggle('hidden', !isLoggedIn);
-      if (accountIdentityRow) accountIdentityRow.classList.toggle('hidden', !isLoggedIn);
-      if (accountIdentityBtn) {
-        if (isLoggedIn) {
-          accountIdentityBtn.textContent = getUserIdentityLabel();
-          accountIdentityBtn.title = state.currentUser.email || getUserIdentityLabel();
-          accountIdentityBtn.classList.remove('hidden');
-        } else {
-          accountIdentityBtn.textContent = '';
-          accountIdentityBtn.title = '';
-          accountIdentityBtn.classList.add('hidden');
-        }
-      }
-    }
-
-    function showToast(message, duration = 1100) {
-      if (!appToast) return;
-      appToast.textContent = message;
-      appToast.classList.add('show');
-      if (state.toastTimer) clearTimeout(state.toastTimer);
-      state.toastTimer = setTimeout(() => {
-        appToast.classList.remove('show');
-      }, duration);
-    }
-
-    function setSyncStatusFromState(extraMessage = '') {
-      updateAccountControls();
-      const base = state.currentUser
-        ? `Conta conectada: ${state.currentUser.email || 'usuário logado'}.`
-        : 'Sincronização local ativa.';
-      const time = state.lastSyncAt ? ` Última sincronização: ${formatSyncTime(state.lastSyncAt)}.` : '';
-      updateSyncStatus(`${base}${time}${extraMessage ? ` ${extraMessage}` : ''}`.trim());
-    }
-
-    function hideRegisterPanel() {
-      registerPanel.classList.remove('open');
-    }
-
-    function hideRecoverPanel() {
-      recoverPanel.classList.remove('open');
-    }
-
-    function openAuthPanel() {
-      hidePanel();
-      hideLibraryPanel();
-      hideSongEditor();
-      hideSongActions();
-      hideRegisterPanel();
-      hideRecoverPanel();
-      authPanel.classList.add('open');
-    }
-
-    function hideAuthPanel() {
-      authPanel.classList.remove('open');
-    }
-
-    function openRegisterPanel() {
-      hidePanel();
-      hideLibraryPanel();
-      hideSongEditor();
-      hideSuggestionsPanel();
-      hideSongActions();
-      hideAuthPanel();
-      hideRecoverPanel();
-      registerPanel.classList.add('open');
-    }
-
-    function openRecoverPanel() {
-      hidePanel();
-      hideLibraryPanel();
-      hideSongEditor();
-      hideSuggestionsPanel();
-      hideSongActions();
-      hideAuthPanel();
-      hideRegisterPanel();
-      recoverPanel.classList.add('open');
-    }
-
-    function openSongEditor() {
-      hidePanel();
-      hideAuthPanel();
-      hideRegisterPanel();
-      hideRecoverPanel();
-      hideSuggestionsPanel();
-      songEditorPanel.classList.add('open');
-    }
-
-    function hideSongEditor() {
-      songEditorPanel.classList.remove('open');
-    }
-
-    function openSuggestionsPanel() {
-      hidePanel();
-      hideAuthPanel();
-      hideRegisterPanel();
-      hideRecoverPanel();
-      hideSongEditor();
-      suggestionsPanel.classList.add('open');
-      if (suggestionsSearchInput) suggestionsSearchInput.value = '';
-      loadSuggestionSongs(true);
-      renderSuggestionList();
-    }
-
-    function hideSuggestionsPanel() {
-      if (!suggestionsPanel) return;
-      suggestionsPanel.classList.remove('open');
-    }
-
-    function openSongActions(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song || !songActionsPanel) return;
-      state.selectedSongActionId = song.id;
-      if (songActionsSubtitle) songActionsSubtitle.textContent = song.title || 'Sem título';
-      songActionsPanel.classList.add('open');
-    }
-
-    function hideSongActions() {
-      if (!songActionsPanel) return;
-      songActionsPanel.classList.remove('open');
-      state.selectedSongActionId = null;
-    }
-
-    function closeAllLibrarySwipes(exceptSongId = null) {
-      libraryList.querySelectorAll('.library-song-swipe.revealed').forEach((row) => {
-        if (exceptSongId && row.dataset.songId === exceptSongId) return;
-        row.classList.remove('revealed');
-      });
-      state.revealedSongId = exceptSongId || null;
-    }
-
-    function openSongById(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      loadScript();
-      repertoireSelect.value = song.id;
-      resetSongToTopStart();
-      persistCurrentDraft();
-      hideLibraryPanel();
-    }
-
-    function attachLibrarySwipe(row, card, songId) {
-      let startX = 0;
-      let startY = 0;
-      let dragging = false;
-      let horizontalIntent = false;
-      let moved = false;
-      const revealWidth = 108;
-
-      const finishSwipe = (offset) => {
-        if (offset <= -(revealWidth * 0.45)) {
-          closeAllLibrarySwipes(songId);
-          row.classList.add('revealed');
-          state.revealedSongId = songId;
-        } else {
-          row.classList.remove('revealed');
-          if (state.revealedSongId === songId) state.revealedSongId = null;
-        }
-        row.classList.remove('swiping');
-      };
-
-      const resetDragState = () => {
-        card.style.transition = '';
-        card.style.transform = '';
-        dragging = false;
-        horizontalIntent = false;
-      };
-
-      const onPointerDown = (event) => {
-        if (event.target.closest('.library-song-action-btn')) return;
-        startX = event.clientX;
-        startY = event.clientY;
-        dragging = true;
-        horizontalIntent = false;
-        moved = false;
-        card.style.transition = 'none';
-      };
-
-      const onPointerMove = (event) => {
-        if (!dragging) return;
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
-        if (!horizontalIntent) {
-          if (Math.abs(deltaX) < 8) return;
-          horizontalIntent = Math.abs(deltaX) > Math.abs(deltaY);
-          if (!horizontalIntent) {
-            resetDragState();
-            return;
-          }
-        }
-        moved = true;
-        row.classList.add('swiping');
-        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
-        const nextOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
-        card.style.transform = `translateX(${nextOffset}px)`;
-      };
-
-      const onPointerUp = (event) => {
-        if (!dragging) return;
-        const deltaX = event.clientX - startX;
-        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
-        const finalOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
-        resetDragState();
-        finishSwipe(finalOffset);
-      };
-
-      card.addEventListener('pointerdown', onPointerDown);
-      card.addEventListener('pointermove', onPointerMove);
-      card.addEventListener('pointerup', onPointerUp);
-      card.addEventListener('pointercancel', () => {
-        row.classList.remove('swiping');
-        resetDragState();
-      });
-      card.addEventListener('click', (event) => {
-        if (event.target.closest('.library-song-action-btn')) return;
-        if (moved || horizontalIntent) {
-          moved = false;
-          horizontalIntent = false;
-          return;
-        }
-        if (row.classList.contains('revealed')) {
-          closeAllLibrarySwipes();
-          return;
-        }
-        openSongById(songId);
-      });
-    }
-
-    function editSongById(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      loadScript();
-      repertoireSelect.value = song.id;
-      persistCurrentDraft();
-      hideSongActions();
-      hideLibraryPanel();
-      openSongEditor();
-    }
-
-    function prepareNewSong() {
-      state.currentSongId = null;
-      songTitleInput.value = '';
-      artistInput.value = '';
-      styleInput.value = '';
-      scriptInput.value = '';
-      persistCurrentDraft();
-      openSongEditor();
-    }
-
-    function getAuthCredentials() {
-      return {
-        email: (authEmailInput?.value || '').trim(),
-        password: authPasswordInput?.value || ''
-      };
-    }
-
-    function sanitizeCloudSong(song) {
-      return {
-        id: song.id,
-        title: song.song_title || 'Sem título',
-        artist: song.artist || '',
-        style: song.style || '',
-        lyrics: sanitizeLyrics(song.lyrics || '')
-      };
-    }
-
-    async function pullSongsFromCloud() {
-      if (!state.supabase || !state.currentUser) return;
-      const { data, error } = await state.supabase
-        .from('songs')
-        .select('id, song_title, artist, style, lyrics, updated_at')
-        .eq('user_id', state.currentUser.id)
-        .order('updated_at', { ascending: true });
-      if (error) throw error;
-      state.songs = (data || []).map(sanitizeCloudSong);
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-    }
-
-    async function syncSongsToCloud(options = {}) {
-      ensureSongIdsAreValid();
-      const manual = !!options.manual;
-      if (!state.supabase || !state.currentUser || state.syncInFlight) {
-        if (manual && !state.currentUser) updateSyncStatus('Faça login para sincronizar com a nuvem.');
-        return;
-      }
-      if (!navigator.onLine) {
-        updateSyncStatus('Sem internet no momento. Seus dados continuam salvos localmente.');
-        return;
-      }
-      state.syncInFlight = true;
-      updateSyncStatus(manual ? 'Sincronizando repertório...' : 'Sincronização automática em andamento...');
-      try {
-        const payload = state.songs.map(song => ({
-          id: song.id,
-          user_id: state.currentUser.id,
-          song_title: song.title || 'Sem título',
-          artist: song.artist || '',
-          style: song.style || '',
-          lyrics: sanitizeLyrics(song.lyrics || ''),
-          updated_at: new Date().toISOString()
-        }));
-
-        const { error: deleteError } = await state.supabase
-          .from('songs')
-          .delete()
-          .eq('user_id', state.currentUser.id);
-        if (deleteError) throw deleteError;
-
-        if (payload.length) {
-          const { error: insertError } = await state.supabase
-            .from('songs')
-            .insert(payload);
-          if (insertError) throw insertError;
-        }
-
-        await pullSongsFromCloud();
-        state.lastSyncAt = Date.now();
-        setSyncStatusFromState('Tudo salvo na nuvem.');
-      } catch (error) {
-        updateSyncStatus(`Falha na sincronização. ${error.message || 'Tente novamente.'}`.trim());
-      } finally {
-        state.syncInFlight = false;
-      }
-    }
-
-    async function signUpWithSupabase() {
-      const name = (registerNameInput?.value || '').trim();
-      const email = (registerEmailInput?.value || '').trim();
-      const password = registerPasswordInput?.value || '';
-      const passwordConfirm = registerPasswordConfirmInput?.value || '';
-      if (!name || !email || !password || !passwordConfirm) {
-        updateRegisterStatus('Preencha cadastro, login, senha e confirmação para concluir.');
-        return;
-      }
-      if (password !== passwordConfirm) {
-        updateRegisterStatus('As senhas informadas não coincidem.');
-        return;
-      }
-      if (!state.supabase) {
-        createSupabaseClient();
-      }
-      if (!state.supabase) {
-        updateRegisterStatus('Não foi possível iniciar o cadastro agora.');
-        return;
-      }
-      try {
-        const { data, error } = await state.supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { display_name: name } }
-        });
-        if (error) throw error;
-        state.currentUser = data.user || data.session?.user || null;
-        updateRegisterStatus(state.currentUser
-          ? `Cadastro concluído para ${state.currentUser.email || email}.`
-          : 'Cadastro concluído. Verifique seu e-mail para finalizar, se necessário.');
-        showToast('Cadastro concluído', 1500);
-        setSyncStatusFromState('Cadastro concluído.');
-        if (state.currentUser) {
-          await syncSongsToCloud({ manual: true });
-        }
-        setTimeout(() => {
-          hideRegisterPanel();
-        }, 1100);
-      } catch (error) {
-        updateRegisterStatus(`Não foi possível cadastrar. ${error.message || 'Tente novamente.'}`.trim());
-      }
-    }
-
-    async function signInWithSupabase() {
-      const { email, password } = getAuthCredentials();
-      if (!email || !password) {
-        updateAuthStatus('Preencha login e senha para entrar.');
-        return;
-      }
-      if (!state.supabase) {
-        createSupabaseClient();
-      }
-      if (!state.supabase) {
-        updateAuthStatus('Não foi possível iniciar o login agora.');
-        return;
-      }
-      try {
-        const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        const user = data?.user || data?.session?.user || null;
-        if (!user) throw new Error('Sessão não confirmada.');
-        state.currentUser = user;
-        updateAuthStatus(`Conta conectada: ${state.currentUser.email || email}.`);
-        setSyncStatusFromState('Login concluído.');
-        showToast('Login realizado');
-        setTimeout(() => {
-          hideAuthPanel();
-        }, 950);
-
-        try {
-          await pullSongsFromCloud();
-          state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório carregado da nuvem.');
-        } catch (_) {
-          setSyncStatusFromState('Login concluído. Não foi possível atualizar o repertório da nuvem agora.');
-        }
-      } catch (error) {
-        state.currentUser = null;
-        updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
-      }
-    }
-
-    async function signOutFromSupabase() {
-      if (!state.supabase) return;
-      try {
-        await state.supabase.auth.signOut();
-      } catch (_) {}
-      state.currentUser = null;
-      updateAuthStatus('Nenhuma conta conectada.');
-      setSyncStatusFromState('Sincronização online pausada.');
-      showToast('Log-out realizado');
-    }
-
-    async function recoverPasswordWithSupabase() {
-      const email = (recoverEmailInput?.value || '').trim();
-      if (!email) {
-        updateRecoverStatus('Coloque seu Gmail para recuperação de senha.');
-        return;
-      }
-      if (!state.supabase) {
-        createSupabaseClient();
-      }
-      if (!state.supabase) {
-        updateRecoverStatus('Não foi possível iniciar a recuperação agora.');
-        return;
-      }
-      try {
-        const { error } = await state.supabase.auth.resetPasswordForEmail(email);
-        if (error) throw error;
-        updateRecoverStatus(`Um e-mail foi enviado para ${email}.`);
-        showToast('E-mail de recuperação enviado', 1600);
-        setTimeout(() => {
-          hideRecoverPanel();
-        }, 1100);
-      } catch (error) {
-        updateRecoverStatus(`Não foi possível enviar a recuperação. ${error.message || 'Tente novamente.'}`.trim());
-      }
-    }
-
-    async function restoreSupabaseSession() {
-      if (!state.supabase) return;
-      try {
-        const { data } = await state.supabase.auth.getSession();
-        state.currentUser = data?.session?.user || null;
-        if (state.currentUser) {
-          updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
-          setSyncStatusFromState();
-          try {
-            await pullSongsFromCloud();
-            state.lastSyncAt = Date.now();
-            setSyncStatusFromState('Repertório carregado da nuvem.');
-          } catch (_) {
-            setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da nuvem agora.');
-          }
-        } else {
-          updateAuthStatus('Nenhuma conta conectada.');
-          setSyncStatusFromState();
-        }
-      } catch (_) {
-        updateAuthStatus('Nenhuma conta conectada.');
-        setSyncStatusFromState();
-      }
-    }
-
-    function normalizeWord(word) {
-      return (word || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9à-ÿÀ-Ÿ]/g, '')
-        .toLowerCase()
-        .trim();
-    }
-
-    function splitWords(text) {
-      return (text || '').split(/\s+/).map(normalizeWord).filter(Boolean);
+      if (state.supabase) return state.supabase;
+      const SUPABASE_URL = 'https://example.supabase.co';
+      const SUPABASE_ANON_KEY = 'public-anon-key';
+      if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+      state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return state.supabase;
     }
 
     function updateValueLabels() {
-      fontSizeValue.textContent = `${fontSize.value} px`;
-      lineHeightValue.textContent = Number(lineHeight.value).toFixed(2);
-      textWidthValue.textContent = `${textWidth.value} vw`;
-      overlayOpacityValue.textContent = `${overlayOpacity.value}%`;
-      baseSpeedValue.textContent = `${baseSpeed.value} px/s`;
-      voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
+      $('fontSizeValue').textContent = `${fontSize.value} px`;
+      $('lineHeightValue').textContent = Number(lineHeight.value).toFixed(2).replace(/\.00$/, '');
+      $('textWidthValue').textContent = `${textWidth.value} vw`;
+      $('overlayOpacityValue').textContent = `${overlayOpacity.value}%`;
+      $('baseSpeedValue').textContent = baseSpeed.value;
+      $('voiceFollowSpeedValue').textContent = `${voiceFollowSpeed.value}%`;
     }
 
     function applyStyles() {
@@ -2166,566 +1354,631 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       document.documentElement.style.setProperty('--line-height', lineHeight.value);
       document.documentElement.style.setProperty('--text-width', `${textWidth.value}vw`);
       document.documentElement.style.setProperty('--overlay-opacity', Number(overlayOpacity.value) / 100);
-      scriptInner.classList.toggle('mirror', state.mirror);
+      state.baseSpeed = Number(baseSpeed.value);
+      detailSpeedSlider.value = String(state.baseSpeed);
+      if (state.mirror) {
+        scriptInner.classList.add('mirror');
+      } else {
+        scriptInner.classList.remove('mirror');
+      }
     }
 
-    function getLineElements() { return Array.from(scriptInner.querySelectorAll('.line')); }
-    function captureAnchor() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const progress = (activeRect.top + activeRect.height / 2 - contentRect.top) / contentRect.height; state.anchorIndex = state.currentLine; state.anchorProgress = Math.max(0.05, Math.min(0.9, progress)); }
-    function restoreAnchor() { const lines = getLineElements(); const target = lines[state.anchorIndex] || lines[state.currentLine]; if (!target) return; const contentRect = promptContent.getBoundingClientRect(); const targetRect = target.getBoundingClientRect(); const desiredY = contentRect.top + contentRect.height * state.anchorProgress; const currentY = targetRect.top + targetRect.height / 2; state.scrollOffset += desiredY - currentY; applyScroll(true); }
-    function sanitizeLyrics(raw) { return (raw || '').replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').split('\n').map(v => v.replace(/[ \t]{2,}/g, ' ').trimEnd()).join('\n').trim(); }
-    function renderScript() { scriptInner.innerHTML = ''; state.lines.forEach((line) => { const span = document.createElement('span'); span.className = 'line'; span.textContent = line || ' '; scriptInner.appendChild(span); }); markLines(); placeActiveLineAtStart(); }
-    function markLines() { const lines = getLineElements(); lines.forEach((line, index) => { line.classList.toggle('active', index === state.currentLine); line.classList.toggle('done', index < state.currentLine); }); }
-    function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
-    function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
-    function placeActiveLineAtStart() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + contentRect.height * 0.18; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
-    function placeActiveLineAtTop() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const topGuide = contentRect.top + 8; state.scrollOffset += topGuide - activeRect.top; applyScroll(true); markLines(); }
-    function resetSongToTopStart() {
-      state.currentLine = 0;
-      state.speechCursor = 0;
-      state.anchorIndex = 0;
-      state.anchorProgress = 0.25;
-      state.voiceLastProcessed = '';
-      state.voiceLastMatchAt = 0;
-      state.scrollOffset = 0;
-      applyScroll(true);
-      const placeAtDefaultStart = () => {
-        state.currentLine = 0;
-        markLines();
-        placeActiveLineAtTop();
+    function persistSettings() {
+      const payload = {
+        fontSize: fontSize.value,
+        lineHeight: lineHeight.value,
+        textWidth: textWidth.value,
+        overlayOpacity: overlayOpacity.value,
+        baseSpeed: baseSpeed.value,
+        voiceFollowSpeed: voiceFollowSpeed.value,
+        mirror: mirrorToggle.checked,
+        voiceEnabled: voiceToggle.checked
       };
-      requestAnimationFrame(() => {
-        placeAtDefaultStart();
-        requestAnimationFrame(placeAtDefaultStart);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(payload));
+    }
+
+    function loadSettings() {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if (!raw) return;
+      try {
+        const saved = JSON.parse(raw);
+        if (saved.fontSize) fontSize.value = saved.fontSize;
+        if (saved.lineHeight) lineHeight.value = saved.lineHeight;
+        if (saved.textWidth) textWidth.value = saved.textWidth;
+        if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity;
+        if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed;
+        if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed;
+        mirrorToggle.checked = !!saved.mirror;
+        voiceToggle.checked = !!saved.voiceEnabled;
+        state.mirror = !!saved.mirror;
+      } catch (error) {
+        console.warn('Falha ao carregar ajustes:', error);
+      }
+    }
+
+    function persistCurrentDraft() {
+      const payload = {
+        title: songTitleInput.value.trim(),
+        artist: artistInput.value.trim(),
+        style: styleInput.value.trim(),
+        script: scriptInput.value
+      };
+      localStorage.setItem(CURRENT_KEY, JSON.stringify(payload));
+    }
+
+    function loadCurrentDraft() {
+      const raw = localStorage.getItem(CURRENT_KEY);
+      if (!raw) return;
+      try {
+        const draft = JSON.parse(raw);
+        songTitleInput.value = draft.title || '';
+        artistInput.value = draft.artist || '';
+        styleInput.value = draft.style || '';
+        scriptInput.value = draft.script || '';
+      } catch (error) {
+        console.warn('Falha ao carregar rascunho:', error);
+      }
+    }
+
+    function persistSongs() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs));
+    }
+
+    function updateRepertoireSelect() {
+      repertoireSelect.innerHTML = '';
+      state.songs.forEach((song) => {
+        const option = document.createElement('option');
+        option.value = song.id;
+        option.textContent = song.title || 'Sem título';
+        repertoireSelect.appendChild(option);
       });
-    }
-    function centerActiveLine() { const lines = getLineElements(); const active = lines[state.currentLine]; if (!active) return; const contentRect = promptContent.getBoundingClientRect(); const activeRect = active.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.42; state.scrollOffset += guideY - (activeRect.top + activeRect.height / 2); applyScroll(true); markLines(); }
-    function setActiveLine(index) { const lines = getLineElements(); if (!lines.length) return; state.currentLine = Math.max(0, Math.min(index, lines.length - 1)); markLines(); centerActiveLine(); }
-    function refreshLayoutPreservingPoint() { captureAnchor(); applyStyles(); restoreAnchor(); }
-    function advanceLinesByPosition() { const lines = getLineElements(); const next = lines[state.currentLine + 1]; if (!next) return; const contentRect = promptContent.getBoundingClientRect(); const nextRect = next.getBoundingClientRect(); const trigger = contentRect.top + contentRect.height * 0.44; if (nextRect.top <= trigger) { state.currentLine += 1; markLines(); } }
-    function animateScroll(ts) { if (!state.playing) return; if (!state.lastFrameTs) state.lastFrameTs = ts; const dt = (ts - state.lastFrameTs) / 1000; state.lastFrameTs = ts; let speed = state.baseSpeed + state.manualBoost; if (performance.now() < state.temporaryBoostUntil) speed += state.voiceBoostStrength; state.scrollOffset -= speed * dt; applyScroll(); advanceLinesByPosition(); state.rafId = requestAnimationFrame(animateScroll); }
-    function startScroll() { if (state.playing) return; state.playing = true; state.lastFrameTs = 0; syncPlayPauseIcon(); state.rafId = requestAnimationFrame(animateScroll); }
-    function pauseScroll() { state.playing = false; if (state.rafId) cancelAnimationFrame(state.rafId); state.rafId = null; syncPlayPauseIcon(); }
-    function jumpLine(delta) { setActiveLine(state.currentLine + delta); }
-    function togglePlayPause() { state.playing ? pauseScroll() : startScroll(); }
-    function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
-    function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
-    function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; let closestRect = null; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; closestRect = rect; } }); state.currentLine = closestIndex; const lineWords = getLineWords(closestIndex); const lineStart = getLineStartIndex(closestIndex); let spokenInsideLine = 0; if (closestRect && lineWords.length) { const relative = Math.max(0, Math.min(1, (guideY - closestRect.top) / Math.max(1, closestRect.height))); spokenInsideLine = Math.max(0, Math.min(lineWords.length - 1, Math.floor(relative * lineWords.length))); } state.speechCursor = Math.min(state.flatWords.length, lineStart + spokenInsideLine); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
-    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
-    function updateTranscript(text) { transcriptPill.textContent = text; }
-    function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
-    function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
-    function getLineWindowIndices() { const start = Math.max(0, state.currentLine - 1); const end = Math.min(state.lines.length - 1, state.currentLine + 2); const indices = []; for (let i = start; i <= end; i++) indices.push(i); return indices; }
-    function getHeardTailMatchesCurrentLineEnd(heardWords, currentWords) { const maxSize = Math.min(5, heardWords.length, currentWords.length); for (let size = maxSize; size >= 2; size--) { const heardTail = heardWords.slice(-size).join(' '); const lineTail = currentWords.slice(-size).join(' '); if (heardTail === lineTail) return size; } return 0; }
-    function getLineStartIndex(lineIndex) { return state.lineWordStarts[lineIndex] || 0; }
-    function getLineWords(lineIndex) { return state.lineWords[lineIndex] || []; }
-
-    function findBestNearbyVoiceMatch(heardWords) {
-      const candidates = [];
-      const grams = makeNgrams(heardWords, 2, 5);
-
-      getLineWindowIndices().forEach((lineIndex) => {
-        const lineWords = getLineWords(lineIndex);
-        if (!lineWords.length) return;
-
-        let bestBlockSize = 0;
-        let bestBlockEnd = -1;
-        grams.forEach((gram) => {
-          const joinedGram = gram.join(' ');
-          for (let start = 0; start <= lineWords.length - gram.length; start++) {
-            if (lineWords.slice(start, start + gram.length).join(' ') === joinedGram) {
-              if (gram.length > bestBlockSize || (gram.length === bestBlockSize && start + gram.length > bestBlockEnd)) {
-                bestBlockSize = gram.length;
-                bestBlockEnd = start + gram.length;
-              }
-            }
-          }
-        });
-
-        const orderedMatches = countOrderedMatches(heardWords, lineWords);
-        const lineStart = getLineStartIndex(lineIndex);
-        const lineEnd = lineStart + lineWords.length;
-        const reachedLineEnd = bestBlockEnd === lineWords.length || getHeardTailMatchesCurrentLineEnd(heardWords, lineWords) >= 2;
-        const score = (bestBlockSize * 4) + orderedMatches - (Math.abs(lineIndex - state.currentLine) * 2);
-
-        candidates.push({
-          lineIndex,
-          lineStart,
-          lineEnd,
-          lineWords,
-          bestBlockSize,
-          bestBlockEnd,
-          orderedMatches,
-          reachedLineEnd,
-          score
-        });
-      });
-
-      candidates.sort((a, b) => b.score - a.score || b.bestBlockSize - a.bestBlockSize || b.orderedMatches - a.orderedMatches || a.lineIndex - b.lineIndex);
-      return candidates[0] || null;
+      if (state.currentSongId) repertoireSelect.value = state.currentSongId;
     }
 
-    function applyNearbyVoiceMatch(match) {
-      if (!match) return false;
-      const minStrongBlock = match.lineIndex === state.currentLine ? 2 : 3;
-      const strongEnough = match.bestBlockSize >= minStrongBlock || (match.bestBlockSize >= 2 && match.orderedMatches >= 3);
-      if (!strongEnough) return false;
+    function renderLibrarySongs() {
+      const query = (librarySearchInput.value || '').trim().toLowerCase();
+      const songs = [...state.songs]
+        .filter((song) => {
+          const haystack = `${song.title || ''} ${song.artist || ''} ${song.style || ''}`.toLowerCase();
+          return !query || haystack.includes(query);
+        })
+        .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'pt-BR'));
 
-      const matchedCursor = Math.max(match.lineStart, Math.min(match.lineStart + Math.max(match.bestBlockEnd, match.orderedMatches), match.lineEnd));
-      if (matchedCursor > state.speechCursor) {
-        state.speechCursor = matchedCursor;
-      }
+      libraryList.innerHTML = '';
 
-      if (match.lineIndex > state.currentLine) {
-        state.currentLine = match.lineIndex;
-        markLines();
-        placeActiveLineAtStart();
-        return true;
-      }
-
-      if (match.reachedLineEnd && match.lineIndex === state.currentLine && state.currentLine < state.lines.length - 1) {
-        state.speechCursor = Math.max(state.speechCursor, match.lineEnd);
-        state.currentLine = match.lineIndex + 1;
-        markLines();
-        placeActiveLineAtStart();
-        return true;
-      }
-
-      moveTowardSpeechCursor();
-      return true;
-    }
-
-    function handleBluetoothKey(event) { const target = event.target; const tag = target?.tagName; if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return; const key = event.key; const code = event.code; let handled = true; if (key === 'ArrowLeft') previousSong(); else if (key === 'ArrowRight') nextSong(); else if (key === 'ArrowUp') jumpLine(-1); else if (key === 'ArrowDown') jumpLine(1); else if (key === ' ' || code === 'Space') state.playing ? pauseScroll() : startScroll(); else if (key === 'Enter') togglePanel(); else handled = false; if (handled) event.preventDefault(); }
-    function bindBluetoothControls() { if (state.bluetoothBound) return; state.bluetoothBound = true; window.addEventListener('keydown', handleBluetoothKey, { passive: false }); }
-
-    function getCurrentLineSpeechProgress() {
-      const words = getLineWords(state.currentLine);
-      if (!words.length) return 0;
-      const lineStart = getLineStartIndex(state.currentLine);
-      const spokenInsideLine = Math.max(0, state.speechCursor - lineStart);
-      return Math.max(0, Math.min(1, spokenInsideLine / words.length));
-    }
-
-    function followSpeechVisualProgress() {
-      const lines = getLineElements();
-      const active = lines[state.currentLine];
-      if (!active) return;
-
-      const contentRect = promptContent.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      const progress = getCurrentLineSpeechProgress();
-
-      const startGuide = 0.44;
-      const endGuide = 0.16;
-      const desiredGuide = startGuide - ((startGuide - endGuide) * progress);
-      const desiredY = contentRect.top + (contentRect.height * desiredGuide);
-      const currentY = activeRect.top + (activeRect.height / 2);
-      const delta = desiredY - currentY;
-
-      const responseStrength = 0.16 + (state.voiceFollowSpeed * 0.52);
-      state.scrollOffset += delta * responseStrength;
-      applyScroll();
-      captureAnchor();
-    }
-
-    function moveTowardSpeechCursor() {
-      let matchedLine = state.currentLine;
-      for (let i = state.currentLine; i < state.lines.length; i++) {
-        const start = getLineStartIndex(i);
-        const end = start + getLineWords(i).length;
-        if (state.speechCursor < end || i === state.lines.length - 1) {
-          matchedLine = i;
-          break;
-        }
-      }
-
-      if (matchedLine > state.currentLine) {
-        state.currentLine = matchedLine;
-        markLines();
-      }
-
-      state.temporaryBoostUntil = performance.now() + state.voiceBoostDuration;
-      followSpeechVisualProgress();
-    }
-
-    function advanceSpeechCursorForward(heardWords) {
-      if (!heardWords.length || !state.flatWords.length) return 0;
-      const hardAdvanceLimit = Math.min(state.flatWords.length, state.speechCursor + 4);
-      let cursor = state.speechCursor;
-      let matched = 0;
-
-      for (const word of heardWords) {
-        let foundIndex = -1;
-        for (let i = cursor; i < hardAdvanceLimit; i++) {
-          if (state.flatWords[i] === word) {
-            foundIndex = i;
-            break;
-          }
-        }
-        if (foundIndex >= 0) {
-          cursor = foundIndex + 1;
-          matched += 1;
-        }
-      }
-
-      if (matched > 0 && cursor > state.speechCursor) {
-        const advance = Math.min(2, cursor - state.speechCursor);
-        state.speechCursor = Math.min(state.flatWords.length, state.speechCursor + advance);
-        return advance;
-      }
-
-      return 0;
-    }
-
-    function setupVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        updateTranscript('Reconhecimento de voz não disponível neste navegador.');
-        voiceToggle.disabled = true;
+      if (!songs.length) {
+        const empty = document.createElement('p');
+        empty.className = 'panel-note';
+        empty.textContent = 'Nenhuma música encontrada no repertório.';
+        libraryList.appendChild(empty);
         return;
       }
 
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.interimResults = true;
-      recognition.continuous = true;
-      recognition.maxAlternatives = 1;
+      songs.forEach((song) => {
+        const item = document.createElement('div');
+        item.className = 'library-song-swipe';
+        item.dataset.songId = song.id;
 
-      recognition.onstart = () => {
-        state.recognitionRunning = true;
-      };
+        const actions = document.createElement('div');
+        actions.className = 'library-song-actions';
 
-      recognition.onend = () => {
-        state.recognitionRunning = false;
-        if (state.voiceEnabled) {
-          setTimeout(() => {
-            try { recognition.start(); } catch (e) {}
-          }, 250);
-        }
-      };
+        const editButton = document.createElement('button');
+        editButton.className = 'library-song-action-btn edit';
+        editButton.innerHTML = '<img src="editar.png" alt="Editar" />';
+        editButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          loadSong(song.id);
+          openSongActionsPanel(song.id);
+        });
 
-      recognition.onresult = (event) => {
-        let joined = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          joined += event.results[i][0].transcript + ' ';
-        }
-        joined = joined.trim();
-        if (!joined) return;
-        updateTranscript(`Você disse: ${joined}`);
-        handleVoiceContinuous(joined);
-      };
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'library-song-action-btn delete';
+        deleteButton.innerHTML = '<img src="excluir.png" alt="Excluir" />';
+        deleteButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          deleteSong(song.id);
+        });
 
-      state.recognition = recognition;
-      state.recognitionReady = true;
-    }
+        actions.append(editButton, deleteButton);
 
-    function handleVoiceContinuous(transcript) {
-      const normalizedTranscript = splitWords(transcript).join(' ');
-      if (!normalizedTranscript || !state.flatWords.length) return;
-      if (normalizedTranscript === state.voiceLastProcessed) return;
-      state.voiceLastProcessed = normalizedTranscript;
+        const card = document.createElement('button');
+        card.className = 'library-song-card';
+        card.innerHTML = `<div class="library-song-line">${song.title || 'Sem título'} <small>• ${song.artist || 'Sem artista'}</small></div>`;
+        card.addEventListener('click', () => loadSong(song.id));
 
-      const heardWords = normalizedTranscript.split(' ').filter(Boolean);
-      if (!heardWords.length) return;
-
-      const advancedBy = advanceSpeechCursorForward(heardWords);
-      if (!advancedBy) return;
-
-      state.voiceLastMatchAt = performance.now();
-      moveTowardSpeechCursor();
-    }
-
-    function enableVoice(enabled) {
-      state.voiceEnabled = enabled;
-      state.voiceLastProcessed = '';
-      state.voiceLastMatchAt = 0;
-      if (!state.recognitionReady) return;
-      if (enabled) {
-        updateTranscript('Reconhecimento de voz ligado. Comece a falar.');
-        try { state.recognition.start(); } catch (e) {}
-      } else if (state.recognitionRunning) {
-        state.recognition.stop();
-        updateTranscript('A transcrição aparecerá aqui quando a fala estiver ligada.');
-      }
-    }
-
-    function toggleMirror() { state.mirror = !state.mirror; mirrorToggle.checked = state.mirror; refreshLayoutPreservingPoint(); persistSettings(); }
-    function syncPlayPauseIcon() { $('playPauseBtn').textContent = state.playing ? '❚❚' : '▶'; }
-    function toggleCleanMode() {
-      if (state.cleanMode) {
-        state.cleanMode = false;
-        app.classList.add('detail-mode');
-        app.classList.remove('clean-mode');
-        $('detailPanel').classList.add('open');
-      } else {
-        returnToCleanMode();
-      }
-    }
-    function returnToCleanMode() {
-      state.cleanMode = true;
-      app.classList.add('clean-mode');
-      app.classList.remove('detail-mode');
-      $('detailPanel').classList.remove('open');
-    }
-    function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
-    function hidePanel() { sidePanel.classList.remove('open'); }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
-    function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
-    function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue })); }
-    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
-    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
-    function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
-    function getSampleSongs() {
-      return [
-        { id: createSongId(), title: 'Vive', artist: 'Djavan', style: 'MPB', lyrics: 'Vive\n\nNo silêncio da manhã\nA canção encontra luz.' },
-        { id: createSongId(), title: 'Serrado', artist: 'Djavan', style: 'MPB', lyrics: 'Serrado\n\nPasso lento pela estrada\nO vento acompanha a voz.' },
-        { id: createSongId(), title: 'Oceano', artist: 'Djavan', style: 'MPB', lyrics: 'Oceano\n\nMeu olhar procura calma\nNa maré do teu refrão.' }
-      ];
+        item.append(actions, card);
+        libraryList.appendChild(item);
+      });
     }
 
     function loadSongs() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        state.songs = [];
+        updateRepertoireSelect();
+        renderLibrarySongs();
+        return;
+      }
       try {
-        state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      } catch (_) {
+        state.songs = JSON.parse(raw) || [];
+      } catch (error) {
+        console.warn('Falha ao carregar músicas:', error);
         state.songs = [];
       }
-      if (!Array.isArray(state.songs) || !state.songs.length) {
-        state.songs = getSampleSongs();
-        saveSongs();
-      }
-      ensureSongIdsAreValid();
-      renderRepertoire();
+      updateRepertoireSelect();
+      renderLibrarySongs();
     }
-    function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
-    function saveCurrentSong() {
-      const title = songTitleInput.value.trim() || 'Sem título';
-      const lyrics = sanitizeLyrics(scriptInput.value);
-      const artist = artistInput.value.trim();
-      const style = styleInput.value.trim();
 
-      scriptInput.value = lyrics;
-      if (!lyrics) return;
+    function resetCurrentSong() {
+      state.currentSongId = null;
+      songTitleInput.value = '';
+      artistInput.value = '';
+      styleInput.value = '';
+      scriptInput.value = '';
+      loadScript();
+      persistCurrentDraft();
+      updateRepertoireSelect();
+    }
 
-      const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+    function saveSong() {
       const payload = {
-        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(),
-        title,
-        artist,
-        style,
-        lyrics
+        id: state.currentSongId || crypto.randomUUID(),
+        title: songTitleInput.value.trim(),
+        artist: artistInput.value.trim(),
+        style: styleInput.value.trim(),
+        script: scriptInput.value
       };
 
+      const existingIndex = state.songs.findIndex((song) => song.id === payload.id);
       if (existingIndex >= 0) {
         state.songs[existingIndex] = payload;
       } else {
         state.songs.unshift(payload);
       }
-
       state.currentSongId = payload.id;
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      repertoireSelect.value = payload.id;
+      persistSongs();
       persistCurrentDraft();
-      loadScript();
-      hideSongEditor();
-      openLibraryPanel();
-      syncSongsToCloud();
+      updateRepertoireSelect();
+      renderLibrarySongs();
+      showToast('Música salva com sucesso.');
     }
 
-    function getNormalizedLibrarySongs(term = '') {
-      const query = (term || '').toLowerCase().trim();
-      let songs = state.songs.slice();
-
-      if (state.librarySortMode === 'alpha') {
-        songs.sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
-      } else if (state.librarySortMode === 'created_oldest') {
-        songs = songs.slice().reverse();
-      } else if (state.librarySortMode === 'artist' && state.libraryFilterValue) {
-        songs = songs.filter(song => (song.artist || '').trim() === state.libraryFilterValue);
-      } else if (state.librarySortMode === 'style' && state.libraryFilterValue) {
-        songs = songs.filter(song => (song.style || '').trim() === state.libraryFilterValue);
-      }
-
-      if (query) {
-        songs = songs.filter(song => {
-          const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-          return hay.includes(query);
-        });
-      }
-
-      return songs;
-    }
-
-    function getLibraryFacetValues(mode) {
-      const values = state.songs
-        .map(song => mode === 'artist' ? (song.artist || '').trim() : (song.style || '').trim())
-        .filter(Boolean);
-
-      return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
-    }
-
-    function renderLibraryFilterOptions() {
-      if (!libraryFilterOptions) return;
-      const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
-      libraryFilterOptions.innerHTML = '';
-
-      if (!needsFacet) {
-        libraryFilterOptions.classList.add('hidden');
-        return;
-      }
-
-      const values = getLibraryFacetValues(state.librarySortMode);
-      if (!values.length) {
-        libraryFilterOptions.classList.add('hidden');
-        return;
-      }
-
-      values.forEach((value) => {
-        const btn = document.createElement('button');
-        btn.className = 'library-filter-chip';
-        if (state.libraryFilterValue === value) btn.classList.add('active');
-        btn.type = 'button';
-        btn.textContent = value;
-        btn.addEventListener('click', () => {
-          state.libraryFilterValue = value;
-          persistSettings();
-          renderLibraryFilterOptions();
-          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-        });
-        libraryFilterOptions.appendChild(btn);
-      });
-
-      libraryFilterOptions.classList.remove('hidden');
-    }
-
-    function openSelectedSong() { const id = repertoireSelect.value; if (!id) return; openSongById(id); }
-    function deleteSongById(songId) { if (!songId) return; state.songs = state.songs.filter(song => song.id !== songId); if (state.currentSongId === songId) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); hideSongActions(); syncSongsToCloud(); }
-    function confirmDeleteSong(songId) {
-      if (!songId) return;
-      const song = state.songs.find(item => item.id === songId);
-      const songName = song && song.title ? song.title : 'esta música';
-      const confirmed = window.confirm(`Deseja realmente apagar "${songName}" do repertório?`);
-      if (!confirmed) return;
-      deleteSongById(songId);
-    }
-    function getPlaybackSongList() {
-      let songs = getNormalizedLibrarySongs('');
-      if (!songs.length) songs = state.songs.slice();
-      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
-        songs = state.songs.slice();
-      }
-      return songs;
-    }
-    function getCurrentSongIndex() {
-      const playbackSongs = getPlaybackSongList();
-      if (!playbackSongs.length) return -1;
-      const selectedId = state.currentSongId || repertoireSelect.value || playbackSongs[0]?.id;
-      return playbackSongs.findIndex(song => song.id === selectedId);
-    }
-    function loadSongByIndex(index) {
-      const playbackSongs = getPlaybackSongList();
-      if (!playbackSongs.length) return;
-      const normalized = ((index % playbackSongs.length) + playbackSongs.length) % playbackSongs.length;
-      const song = playbackSongs[normalized];
+    function loadSong(songId) {
+      const song = state.songs.find((item) => item.id === songId);
       if (!song) return;
       state.currentSongId = song.id;
-      repertoireSelect.value = song.id;
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
+      scriptInput.value = song.script || '';
       loadScript();
-      resetSongToTopStart();
       persistCurrentDraft();
+      updateRepertoireSelect();
+      closeLibrary();
+      closeSongActionsPanel();
+      showToast('Música carregada.');
     }
-    function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
-    function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
-    function renderLibraryList(term = '') {
-      renderLibraryFilterOptions();
 
-      const normalized = getNormalizedLibrarySongs(term);
-      libraryList.innerHTML = '';
+    function deleteSong(songId) {
+      state.songs = state.songs.filter((song) => song.id !== songId);
+      if (state.currentSongId === songId) resetCurrentSong();
+      persistSongs();
+      updateRepertoireSelect();
+      renderLibrarySongs();
+      closeSongActionsPanel();
+      showToast('Música excluída.');
+    }
 
-      if (!state.songs.length) {
-        const emptyAll = document.createElement('div');
-        emptyAll.className = 'panel-note';
-        emptyAll.textContent = 'Nenhuma música salva no repertório.';
-        libraryList.appendChild(emptyAll);
-        return;
-      }
-
-      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
-        const selectNote = document.createElement('div');
-        selectNote.className = 'panel-note';
-        selectNote.textContent = state.librarySortMode === 'artist'
-          ? 'Selecione um artista para ver as músicas.'
-          : 'Selecione um estilo para ver as músicas.';
-        libraryList.appendChild(selectNote);
-        return;
-      }
-
-      if (!normalized.length) {
-        const empty = document.createElement('div');
-        empty.className = 'panel-note';
-        empty.textContent = 'Nenhuma música encontrada para essa busca.';
-        libraryList.appendChild(empty);
-        return;
-      }
-
-      normalized.forEach(song => {
-        const row = document.createElement('div');
-        row.className = 'library-song-swipe';
-        row.dataset.songId = song.id;
-        if (state.revealedSongId === song.id) row.classList.add('revealed');
-
-        const actions = document.createElement('div');
-        actions.className = 'library-song-actions';
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'library-song-action-btn edit';
-        editBtn.type = 'button';
-        editBtn.setAttribute('aria-label', 'Editar música');
-        editBtn.innerHTML = '<img src="editar.png" alt="" />';
-        editBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          closeAllLibrarySwipes();
-          editSongById(song.id);
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'library-song-action-btn delete';
-        deleteBtn.type = 'button';
-        deleteBtn.setAttribute('aria-label', 'Excluir música');
-        deleteBtn.innerHTML = '<img src="excluir.png" alt="" />';
-        deleteBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          closeAllLibrarySwipes();
-          confirmDeleteSong(song.id);
-        });
-
-        actions.appendChild(editBtn);
-        actions.appendChild(deleteBtn);
-
-        const card = document.createElement('button');
-        card.className = 'library-song-card';
-        card.type = 'button';
-        const artistText = song.artist || 'Sem cantor';
-        const styleText = song.style || 'Sem estilo';
-        card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'} <small>- ${artistText} - ${styleText}</small></span>`;
-
-        row.appendChild(actions);
-        row.appendChild(card);
-        libraryList.appendChild(row);
-        attachLibrarySwipe(row, card, song.id);
+    function renderScriptLines() {
+      const text = scriptInput.value || '';
+      const lines = text.split(/\n+/).filter(Boolean);
+      state.lines = lines;
+      scriptInner.innerHTML = '';
+      lines.forEach((line) => {
+        const span = document.createElement('span');
+        span.className = 'line';
+        span.textContent = line;
+        scriptInner.appendChild(span);
       });
     }
 
-    function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
-      $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
-      $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
+    function loadScript() {
+      renderScriptLines();
+      refreshLayoutPreservingPoint();
+    }
+
+    function refreshLayoutPreservingPoint() {
+      scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`);
+    }
+
+    function tick(ts) {
+      if (!state.playing) return;
+      if (!state.lastFrameTs) state.lastFrameTs = ts;
+      const delta = (ts - state.lastFrameTs) / 1000;
+      state.lastFrameTs = ts;
+      state.scrollOffset -= state.baseSpeed * delta;
+      refreshLayoutPreservingPoint();
+      state.rafId = requestAnimationFrame(tick);
+    }
+
+    function syncPlayPauseIcon() {
+      playPauseBtn.textContent = state.playing ? '❚❚' : '▶';
+    }
+
+    function play() {
+      if (state.playing) return;
+      state.playing = true;
+      state.lastFrameTs = 0;
+      syncPlayPauseIcon();
+      state.rafId = requestAnimationFrame(tick);
+    }
+
+    function pause() {
+      state.playing = false;
+      if (state.rafId) cancelAnimationFrame(state.rafId);
+      state.rafId = null;
+      syncPlayPauseIcon();
+    }
+
+    function togglePlayPause() {
+      if (state.playing) pause(); else play();
+    }
+
+    function toggleCleanMode() {
+      state.cleanMode = !state.cleanMode;
+      app.classList.toggle('clean-mode', state.cleanMode);
+      detailPanel.classList.toggle('open', !state.cleanMode);
+    }
+
+    function openPanel() {
+      sidePanel.classList.add('open');
+    }
+
+    function closePanel() {
+      sidePanel.classList.remove('open');
+    }
+
+    function openLibrary() {
+      libraryPanel.classList.add('open');
+      renderLibrarySongs();
+    }
+
+    function closeLibrary() {
+      libraryPanel.classList.remove('open');
+    }
+
+    function openAuthPanel() {
+      authPanel.classList.add('open');
+    }
+
+    function closeAuthPanel() {
+      authPanel.classList.remove('open');
+    }
+
+    function openRegisterPanel() {
+      registerPanel.classList.add('open');
+    }
+
+    function closeRegisterPanel() {
+      registerPanel.classList.remove('open');
+    }
+
+    function openAccountPanel() {
+      accountPanel.classList.add('open');
+    }
+
+    function closeAccountPanel() {
+      accountPanel.classList.remove('open');
+    }
+
+    function openSuggestionsPanel() {
+      suggestionsPanel.classList.add('open');
+      renderSuggestions();
+    }
+
+    function closeSuggestionsPanel() {
+      suggestionsPanel.classList.remove('open');
+    }
+
+    function openSongActionsPanel(songId = state.currentSongId) {
+      state.selectedSongActionId = songId;
+      songActionsPanel.classList.add('open');
+      const song = state.songs.find((item) => item.id === songId);
+      $('songActionsSubtitle').textContent = song ? `Escolha o que deseja fazer com ${song.title || 'esta música'}.` : 'Escolha o que deseja fazer.';
+    }
+
+    function closeSongActionsPanel() {
+      songActionsPanel.classList.remove('open');
+      state.selectedSongActionId = null;
+    }
+
+    function updateAccountControls() {
+      const email = state.currentUser?.email || 'Nenhuma conta conectada.';
+      $('accountIdentityBtn').textContent = email;
+      $('authStatusNote').textContent = state.currentUser ? 'Conta conectada com sucesso.' : 'Nenhuma conta conectada.';
+      $('syncStatusNote').textContent = state.currentUser ? 'Sincronização pronta para uso.' : 'Faça login para sincronizar dados com a nuvem.';
+    }
+
+    function getUserEmail() {
+      return state.currentUser?.email || '';
+    }
+
+    async function restoreSupabaseSession() {
+      const client = createSupabaseClient();
+      if (!client) return;
+      try {
+        const { data } = await client.auth.getSession();
+        state.currentUser = data?.session?.user || null;
+        updateAccountControls();
+      } catch (error) {
+        console.warn('Falha ao restaurar sessão:', error);
+      }
+    }
+
+    async function signIn() {
+      const client = createSupabaseClient();
+      if (!client) {
+        showToast('Configure o Supabase para usar login.');
+        return;
+      }
+      const email = $('emailInput').value.trim();
+      const password = $('passwordInput').value;
+      if (!email || !password) {
+        showToast('Preencha login e senha.');
+        return;
+      }
+      try {
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        state.currentUser = data.user;
+        updateAccountControls();
+        closeAuthPanel();
+        openAccountPanel();
+        showToast('Login realizado com sucesso.');
+      } catch (error) {
+        console.warn(error);
+        showToast('Não foi possível entrar.');
+      }
+    }
+
+    async function signOut() {
+      const client = createSupabaseClient();
+      if (!client) return;
+      await client.auth.signOut();
+      state.currentUser = null;
+      updateAccountControls();
+      showToast('Conta desconectada.');
+    }
+
+    async function recoverPassword() {
+      const client = createSupabaseClient();
+      if (!client) {
+        showToast('Configure o Supabase para recuperação.');
+        return;
+      }
+      const email = $('emailInput').value.trim();
+      if (!email) {
+        showToast('Digite seu login para recuperar a senha.');
+        return;
+      }
+      try {
+        const { error } = await client.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        showToast('E-mail de recuperação enviado.');
+      } catch (error) {
+        console.warn(error);
+        showToast('Falha ao enviar recuperação.');
+      }
+    }
+
+    async function submitRegister() {
+      const client = createSupabaseClient();
+      if (!client) {
+        showToast('Configure o Supabase para cadastro.');
+        return;
+      }
+      const name = $('registerNameInput').value.trim();
+      const email = $('registerEmailInput').value.trim();
+      const password = $('registerPasswordInput').value;
+      const confirm = $('registerPasswordConfirmInput').value;
+      if (!name || !email || !password || !confirm) {
+        showToast('Preencha todos os dados do cadastro.');
+        return;
+      }
+      if (password !== confirm) {
+        showToast('As senhas não coincidem.');
+        return;
+      }
+      try {
+        const { error } = await client.auth.signUp({
+          email,
+          password,
+          options: { data: { name } }
+        });
+        if (error) throw error;
+        showToast('Cadastro enviado com sucesso.');
+        closeRegisterPanel();
+      } catch (error) {
+        console.warn(error);
+        showToast('Falha ao concluir cadastro.');
+      }
+    }
+
+    async function syncSongsToCloud() {
+      if (!state.currentUser || state.syncInFlight) return;
+      state.syncInFlight = true;
+      try {
+        state.lastSyncAt = Date.now();
+      } finally {
+        state.syncInFlight = false;
+      }
+    }
+
+    async function fetchSuggestionSongs() {
+      const client = createSupabaseClient();
+      if (!client) return [];
+      try {
+        const { data, error } = await client
+          .from('songs')
+          .select('*')
+          .eq('suggestion_enabled', true)
+          .order('title', { ascending: true });
+        if (error) throw error;
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.warn('Falha ao carregar sugestões:', error);
+        return [];
+      }
+    }
+
+    async function syncSuggestions(force = false) {
+      if (!force && state.suggestionSongs.length) return state.suggestionSongs;
+      state.suggestionSongs = await fetchSuggestionSongs();
+      state.suggestionsLoadedAt = Date.now();
+      renderSuggestions();
+      return state.suggestionSongs;
+    }
+
+    function renderSuggestions() {
+      if (!suggestionsList) return;
+      suggestionsList.innerHTML = '';
+      if (!state.suggestionSongs.length) {
+        const empty = document.createElement('p');
+        empty.className = 'panel-note';
+        empty.textContent = 'Nenhuma sugestão aprovada disponível no momento.';
+        suggestionsList.appendChild(empty);
+        return;
+      }
+      state.suggestionSongs.forEach((song) => {
+        const button = document.createElement('button');
+        button.className = 'ghost-btn';
+        button.textContent = `${song.title || 'Sem título'} • ${song.artist || 'Sem artista'}`;
+        button.addEventListener('click', () => {
+          songTitleInput.value = song.title || '';
+          artistInput.value = song.artist || '';
+          styleInput.value = song.style || '';
+          scriptInput.value = song.lyrics || song.script || '';
+          loadScript();
+          persistCurrentDraft();
+          closeSuggestionsPanel();
+          closePanel();
+          showToast('Sugestão carregada no palco.');
+        });
+        suggestionsList.appendChild(button);
+      });
+    }
+
+    function bindTextDrag() {
+      promptContent.addEventListener('pointerdown', (event) => {
+        state.textDragging = true;
+        state.textDragPointerId = event.pointerId;
+        state.textDragStartY = event.clientY;
+        state.textDragLastY = event.clientY;
+        state.textDragMoved = false;
+        promptContent.classList.add('dragging-text');
+        promptContent.setPointerCapture(event.pointerId);
+      });
+
+      promptContent.addEventListener('pointermove', (event) => {
+        if (!state.textDragging || event.pointerId !== state.textDragPointerId) return;
+        const delta = event.clientY - state.textDragLastY;
+        if (Math.abs(event.clientY - state.textDragStartY) > 2) state.textDragMoved = true;
+        state.scrollOffset += delta;
+        state.textDragLastY = event.clientY;
+        refreshLayoutPreservingPoint();
+      });
+
+      const endDrag = (event) => {
+        if (!state.textDragging || event.pointerId !== state.textDragPointerId) return;
+        state.textDragging = false;
+        promptContent.classList.remove('dragging-text');
+        try { promptContent.releasePointerCapture(event.pointerId); } catch (_) {}
+      };
+
+      promptContent.addEventListener('pointerup', endDrag);
+      promptContent.addEventListener('pointercancel', endDrag);
+    }
+
+    function bindBluetoothControls() {
+      if (state.bluetoothBound) return;
+      state.bluetoothBound = true;
+      window.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          togglePlayPause();
+        }
+        if (event.code === 'ArrowUp') {
+          event.preventDefault();
+          state.baseSpeed = Math.min(80, state.baseSpeed + 1);
+          baseSpeed.value = String(state.baseSpeed);
+          detailSpeedSlider.value = String(state.baseSpeed);
+          updateValueLabels();
+          persistSettings();
+        }
+        if (event.code === 'ArrowDown') {
+          event.preventDefault();
+          state.baseSpeed = Math.max(5, state.baseSpeed - 1);
+          baseSpeed.value = String(state.baseSpeed);
+          detailSpeedSlider.value = String(state.baseSpeed);
+          updateValueLabels();
+          persistSettings();
+        }
+      });
+    }
+
+    function toggleMirror() {
+      state.mirror = mirrorToggle.checked;
+      applyStyles();
+      persistSettings();
+    }
+
+    function enableVoice(enabled) {
+      state.voiceEnabled = enabled;
+      if (!enabled && state.recognitionRunning && state.recognition) {
+        state.recognition.stop();
+        state.recognitionRunning = false;
+      }
+      if (enabled && state.recognitionReady && state.recognition && !state.recognitionRunning) {
+        state.recognition.start();
+        state.recognitionRunning = true;
+      }
+    }
+
+    function setupVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.interimResults = true;
+      recognition.continuous = true;
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results).map((result) => result[0].transcript).join(' ').trim();
+        if (!transcript || transcript === state.voiceLastProcessed) return;
+        state.voiceLastProcessed = transcript;
+      };
+      recognition.onend = () => {
+        state.recognitionRunning = false;
+        if (state.voiceEnabled) {
+          try {
+            recognition.start();
+            state.recognitionRunning = true;
+          } catch (_) {}
+        }
+      };
+      state.recognition = recognition;
+      state.recognitionReady = true;
+    }
+
+    function openEntryScreen() {
+      $('entryScreen').classList.add('open');
+      $('entryScreen').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeEntryScreen() {
+      $('entryScreen').classList.remove('open');
+      $('entryScreen').setAttribute('aria-hidden', 'true');
+    }
+
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
 
@@ -2776,11 +2029,108 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+      window.addEventListener('load', async () => {
+        try {
+          await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+        } catch (error) {
           console.warn('Falha ao registrar Service Worker:', error);
-        });
+        }
+      }, { once: true });
+    }
+
+    function bindEvents() {
+      $('settingsBtn').addEventListener('click', openPanel);
+      $('hidePanelBtn').addEventListener('click', closePanel);
+      $('libraryBtn').addEventListener('click', openLibrary);
+      $('hideLibraryBtn').addEventListener('click', closeLibrary);
+      $('playPauseBtn').addEventListener('click', togglePlayPause);
+      $('cleanToggleBtn').addEventListener('click', toggleCleanMode);
+      $('detailModeBtn').addEventListener('click', () => detailPanel.classList.toggle('open'));
+      $('cleanReturnBtn').addEventListener('click', toggleCleanMode);
+      $('increaseBtn').addEventListener('click', () => {
+        state.baseSpeed = Math.min(80, state.baseSpeed + 1);
+        baseSpeed.value = String(state.baseSpeed);
+        detailSpeedSlider.value = String(state.baseSpeed);
+        updateValueLabels();
+        persistSettings();
       });
+      $('decreaseBtn').addEventListener('click', () => {
+        state.baseSpeed = Math.max(5, state.baseSpeed - 1);
+        baseSpeed.value = String(state.baseSpeed);
+        detailSpeedSlider.value = String(state.baseSpeed);
+        updateValueLabels();
+        persistSettings();
+      });
+      detailSpeedSlider.addEventListener('input', () => {
+        state.baseSpeed = Number(detailSpeedSlider.value);
+        baseSpeed.value = detailSpeedSlider.value;
+        updateValueLabels();
+        persistSettings();
+      });
+      fontSize.addEventListener('input', () => { updateValueLabels(); applyStyles(); persistSettings(); });
+      lineHeight.addEventListener('input', () => { updateValueLabels(); applyStyles(); persistSettings(); });
+      textWidth.addEventListener('input', () => { updateValueLabels(); applyStyles(); persistSettings(); });
+      overlayOpacity.addEventListener('input', () => { updateValueLabels(); applyStyles(); persistSettings(); });
+      baseSpeed.addEventListener('input', () => {
+        state.baseSpeed = Number(baseSpeed.value);
+        detailSpeedSlider.value = baseSpeed.value;
+        updateValueLabels();
+        persistSettings();
+      });
+      voiceFollowSpeed.addEventListener('input', () => {
+        updateValueLabels();
+        const raw = Number(voiceFollowSpeed.value);
+        state.voiceFollowSpeed = raw / 100;
+        state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+        state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
+        persistSettings();
+      });
+      voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); });
+      mirrorToggle.addEventListener('change', toggleMirror);
+      songTitleInput.addEventListener('input', persistCurrentDraft);
+      artistInput.addEventListener('input', persistCurrentDraft);
+      styleInput.addEventListener('input', persistCurrentDraft);
+      scriptInput.addEventListener('input', () => { persistCurrentDraft(); loadScript(); });
+      librarySearchInput.addEventListener('input', renderLibrarySongs);
+      $('newSongBtn').addEventListener('click', resetCurrentSong);
+      $('saveSongBtn').addEventListener('click', saveSong);
+      $('showSongActionsBtn').addEventListener('click', () => openSongActionsPanel());
+      $('hideSongActionsBtn').addEventListener('click', closeSongActionsPanel);
+      $('editSongActionBtn').addEventListener('click', () => {
+        if (state.selectedSongActionId) loadSong(state.selectedSongActionId);
+      });
+      $('deleteSongActionBtn').addEventListener('click', () => {
+        if (state.selectedSongActionId) deleteSong(state.selectedSongActionId);
+      });
+      $('loginOpenBtn').addEventListener('click', openAccountPanel);
+      $('hideAuthPanelBtn').addEventListener('click', closeAuthPanel);
+      $('hideRegisterPanelBtn').addEventListener('click', closeRegisterPanel);
+      $('hideAccountPanelBtn').addEventListener('click', closeAccountPanel);
+      $('openRegisterPanelBtn').addEventListener('click', openRegisterPanel);
+      $('signInBtn').addEventListener('click', signIn);
+      $('signOutBtn').addEventListener('click', signOut);
+      $('recoverPasswordBtn').addEventListener('click', recoverPassword);
+      $('submitRegisterBtn').addEventListener('click', submitRegister);
+      $('openSuggestionsBtn').addEventListener('click', async () => {
+        await syncSuggestions(true);
+        openSuggestionsPanel();
+      });
+      $('syncSuggestionsBtn').addEventListener('click', async () => {
+        await syncSuggestions(true);
+        showToast('Sugestões atualizadas.');
+      });
+      $('hideSuggestionsPanelBtn').addEventListener('click', closeSuggestionsPanel);
+      $('entryOpenLoginBtn').addEventListener('click', () => {
+        closeEntryScreen();
+        openAuthPanel();
+      });
+      $('entryOpenRegisterBtn').addEventListener('click', () => {
+        closeEntryScreen();
+        openRegisterPanel();
+      });
+      window.addEventListener('resize', () => refreshLayoutPreservingPoint());
+      window.addEventListener('online', () => syncSongsToCloud());
+      if (!isStandaloneMode() && isMobilePhoneBrowser()) openEntryScreen();
     }
 
     async function init() {
