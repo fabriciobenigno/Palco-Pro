@@ -1,23 +1,26 @@
 {
   "name": "Palco Pro",
   "short_name": "Palco Pro",
-  "description": "App premium para músicos em apresentações ao vivo, com repertório persistente, leitura confortável no palco e experiência profissional no celular.",
-  "start_url": "./",
+  "description": "App premium para músicos com repertório persistente, leitura confortável e reconhecimento por fala.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "portrait",
+  "lang": "pt-BR",
   "icons": [
     {
-      "src": "palco-pro-icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "palco-pro-icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
