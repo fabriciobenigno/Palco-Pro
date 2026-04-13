@@ -25,6 +25,7 @@
   <meta name="twitter:image" content="https://fabriciobenigno.github.io/Palco-Pro/palco-pro-share.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="palco-pro-icon.png" />
   <link rel="apple-touch-icon" href="palco-pro-icon.png" />
+  <link rel="manifest" href="manifest.json" />
   <style>
     :root {
       --font-size: 30px;
@@ -556,48 +557,29 @@
 
     .detail-mode .detail-panel { display: flex; }
 
-        .app-launch-splash {
-      position: fixed;
-      inset: 0;
-      z-index: 9998;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding:
-        calc(var(--safe-top) + 24px)
-        max(20px, env(safe-area-inset-right))
-        calc(var(--safe-bottom) + 24px)
-        max(20px, env(safe-area-inset-left));
+
+    .app-launch-splash {
+      position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center;
+      padding: calc(var(--safe-top) + 24px) max(20px, env(safe-area-inset-right)) calc(var(--safe-bottom) + 24px) max(20px, env(safe-area-inset-left));
       background:
         radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
         radial-gradient(circle at 50% 18%, rgba(255,255,255,0.06), transparent 34%),
         linear-gradient(180deg, rgba(2,4,9,0.92) 0%, rgba(9,16,29,0.95) 45%, rgba(4,7,13,0.98) 100%);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+      opacity: 0; visibility: hidden; pointer-events: none;
       transition: opacity 0.32s ease, visibility 0.32s ease;
     }
 
     .app-launch-splash.active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
+      opacity: 1; visibility: visible; pointer-events: auto;
     }
 
     .app-launch-splash.fade-out {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+      opacity: 0; visibility: hidden; pointer-events: none;
     }
 
     .app-launch-shell {
-      width: min(100%, 420px);
-      padding: 28px 24px;
-      border-radius: 32px;
-      display: grid;
-      gap: 20px;
-      justify-items: center;
-      text-align: center;
+      width: min(100%, 420px); padding: 28px 24px; border-radius: 32px;
+      display: grid; gap: 20px; justify-items: center; text-align: center;
       background: linear-gradient(180deg, rgba(13, 19, 31, 0.88), rgba(7, 11, 19, 0.82));
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow: 0 26px 70px rgba(0,0,0,0.42), 0 12px 30px rgba(76, 152, 255, 0.16), inset 0 1px 0 rgba(255,255,255,0.05);
@@ -605,78 +587,46 @@
     }
 
     .app-launch-mark {
-      position: relative;
-      width: 88px;
-      height: 88px;
-      display: grid;
-      place-items: center;
+      position: relative; width: 88px; height: 88px; display: grid; place-items: center;
     }
 
     .app-launch-ring {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
+      position: absolute; inset: 0; border-radius: 50%;
       border: 1px solid rgba(123, 231, 255, 0.22);
       box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
     }
 
-    .app-launch-ring-a {
-      animation: splashPulse 2.2s ease-in-out infinite;
-    }
+    .app-launch-ring-a { animation: splashPulse 2.2s ease-in-out infinite; }
 
     .app-launch-ring-b {
-      inset: 10px;
-      border-color: rgba(134, 107, 255, 0.28);
+      inset: 10px; border-color: rgba(134, 107, 255, 0.28);
       animation: splashPulse 2.2s ease-in-out infinite 0.24s;
     }
 
     .app-launch-core {
-      width: 52px;
-      height: 52px;
-      border-radius: 18px;
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      color: #f7f9ff;
+      width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center;
+      font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: #f7f9ff;
       background: linear-gradient(135deg, rgba(96, 182, 255, 0.96), rgba(72, 126, 255, 0.94), rgba(128, 101, 255, 0.92));
       box-shadow: 0 18px 36px rgba(0,0,0,0.28), 0 10px 26px rgba(77, 160, 255, 0.20), inset 0 1px 0 rgba(255,255,255,0.20);
       animation: splashFloat 2.4s ease-in-out infinite;
     }
 
-    .app-launch-copy {
-      display: grid;
-      gap: 8px;
-    }
+    .app-launch-copy { display: grid; gap: 8px; }
 
     .app-launch-title {
-      margin: 0;
-      font-size: 26px;
-      line-height: 1.1;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: #fff;
+      margin: 0; font-size: 26px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em; color: #fff;
     }
 
     .app-launch-subtitle {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.7;
-      color: rgba(255,255,255,0.74);
+      margin: 0; font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.74);
     }
 
     .app-launch-loader {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 14px;
+      display: inline-flex; align-items: center; gap: 8px; min-height: 14px;
     }
 
     .app-launch-loader span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 8px; height: 8px; border-radius: 50%;
       background: linear-gradient(180deg, rgba(123,231,255,0.95), rgba(95,146,255,0.9));
       box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
       animation: splashDot 0.95s ease-in-out infinite;
@@ -700,7 +650,8 @@
       50% { transform: translateY(-6px); opacity: 1; }
     }
 
-.browser-entry-gate {
+
+    .browser-entry-gate {
       position: fixed; inset: 0; z-index: 9999; display: none;
       background:
         radial-gradient(circle at 50% 0%, rgba(96, 146, 255, 0.28), transparent 30%),
@@ -1052,7 +1003,6 @@
 </head>
 <body>
   <div class="app" id="app">
-
     <div class="app-launch-splash" id="appLaunchSplash" aria-hidden="true">
       <div class="app-launch-shell">
         <div class="app-launch-mark" aria-hidden="true">
@@ -2778,6 +2728,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function isStandaloneMode() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
+
     const appLaunchState = {
       ready: false,
       visible: false,
@@ -2823,8 +2774,18 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }, 180);
     }
 
+    function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) return;
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+          console.warn('Falha ao registrar Service Worker:', error);
+        });
+      });
+    }
+
     async function init() {
       scheduleLaunchSplash();
+      registerServiceWorker();
       try {
         createSupabaseClient();
         loadSettings();
@@ -2853,7 +2814,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         hideLaunchSplash();
       }
     }
-
     init();
   </script>
 </body>
