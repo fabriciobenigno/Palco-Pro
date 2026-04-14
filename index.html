@@ -1914,7 +1914,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           if (insertError) throw insertError;
         }
 
-        await pullSongsFromCloud();
         state.lastSyncAt = Date.now();
         setSyncStatusFromState('Tudo salvo na nuvem.');
       } catch (error) {
@@ -2535,7 +2534,37 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function openSelectedSong() { const id = repertoireSelect.value; if (!id) return; openSongById(id); }
-    function deleteSongById(songId) { if (!songId) return; state.songs = state.songs.filter(song => song.id !== songId); if (state.currentSongId === songId) state.currentSongId = null; saveSongs(); renderRepertoire(); renderLibraryList(librarySearchInput ? librarySearchInput.value : ''); hideSongActions(); syncSongsToCloud(); }
+    async function deleteSongById(songId) {
+      if (!songId) return;
+
+      state.songs = state.songs.filter(song => song.id !== songId);
+      if (state.currentSongId === songId) state.currentSongId = null;
+      if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
+
+      saveSongs();
+      renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      hideSongActions();
+      showToast('Música removida do repertório', 1400);
+
+      if (state.supabase && state.currentUser && navigator.onLine) {
+        try {
+          const { error } = await state.supabase
+            .from('songs')
+            .delete()
+            .eq('user_id', state.currentUser.id)
+            .eq('id', songId);
+          if (error) throw error;
+          state.lastSyncAt = Date.now();
+          setSyncStatusFromState('Exclusão sincronizada com a nuvem.');
+        } catch (error) {
+          updateSyncStatus(`A música foi removida do aparelho, mas não foi possível excluir da nuvem agora. ${error.message || 'Tente sincronizar novamente.'}`.trim());
+        }
+        return;
+      }
+
+      syncSongsToCloud();
+    }
     function confirmDeleteSong(songId) {
       if (!songId) return;
       const song = state.songs.find(item => item.id === songId);
