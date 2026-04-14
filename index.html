@@ -47,16 +47,22 @@
     .app {
       position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
       background:
-        radial-gradient(circle at 50% -10%, rgba(79,140,255,0.22), transparent 28%),
-        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.04), transparent 34%),
-        linear-gradient(180deg, #020409 0%, #08111e 42%, #04070d 100%);
+        radial-gradient(circle at 18% 16%, rgba(92,146,255,0.10), transparent 26%),
+        radial-gradient(circle at 82% 18%, rgba(92,146,255,0.09), transparent 28%),
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.025), transparent 34%),
+        radial-gradient(circle at 24% 78%, rgba(92,146,255,0.07), transparent 30%),
+        radial-gradient(circle at 78% 80%, rgba(92,146,255,0.07), transparent 30%),
+        linear-gradient(180deg, #030712 0%, #08111d 52%, #040915 100%);
     }
 
     .stage-layer {
       position: absolute; inset: 0;
       background:
-        radial-gradient(circle at 50% 18%, rgba(96,146,255,0.14), transparent 24%),
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+        radial-gradient(circle at 50% 14%, rgba(255,255,255,0.03), transparent 24%),
+        radial-gradient(circle at 14% 48%, rgba(96,146,255,0.04), transparent 26%),
+        radial-gradient(circle at 86% 50%, rgba(96,146,255,0.04), transparent 26%),
+        radial-gradient(circle at 50% 86%, rgba(255,255,255,0.018), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0.008));
       pointer-events: none;
     }
 
@@ -74,7 +80,9 @@
 
     .prompt-bg {
       position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(10,14,22,0.08), rgba(10,14,22,0));
+      background:
+        radial-gradient(circle at 50% 50%, rgba(12,16,24,0.05), transparent 58%),
+        linear-gradient(180deg, rgba(10,14,22,0.045), rgba(10,14,22,0.02));
       pointer-events: none;
     }
 
@@ -140,9 +148,17 @@
       display: grid; place-items: center; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.22);
     }
 
+    .close-icon-btn {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      padding: 0;
+    }
+
     .close-icon-btn img {
-      width: 18px;
-      height: 18px;
+      width: 40px;
+      height: 40px;
       object-fit: contain;
       display: block;
       pointer-events: none;
