@@ -45,79 +45,19 @@
     }
 
     .app {
-      position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #07111d;
+      position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
       background:
-        linear-gradient(180deg, #06101b 0%, #0a1626 48%, #08111d 100%);
+        radial-gradient(circle at 50% -10%, rgba(79,140,255,0.22), transparent 28%),
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,0.04), transparent 34%),
+        linear-gradient(180deg, #020409 0%, #08111e 42%, #04070d 100%);
     }
 
     .stage-layer {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
+      position: absolute; inset: 0;
       background:
-        linear-gradient(180deg, #07111d 0%, #091525 50%, #08121e 100%);
-    }
-
-    .stage-base-wash {
-      position: absolute;
-      inset: 0;
+        radial-gradient(circle at 50% 18%, rgba(96,146,255,0.14), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
       pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(86, 140, 235, 0.08), transparent 52%),
-        linear-gradient(180deg, rgba(10, 18, 30, 0.08), rgba(10, 18, 30, 0.02) 32%, rgba(10, 18, 30, 0.08) 100%);
-      opacity: 0.95;
-    }
-
-    .stage-ambient {
-      position: absolute;
-      inset: -24%;
-      pointer-events: none;
-      filter: blur(82px);
-      mix-blend-mode: screen;
-      opacity: 1;
-    }
-
-    .stage-ambient::before,
-    .stage-ambient::after {
-      background:
-        radial-gradient(circle at 24% 12%, rgba(255,255,255,0.07), transparent 5.2%),
-        radial-gradient(circle at 68% 24%, rgba(255,255,255,0.052), transparent 5.8%),
-        radial-gradient(circle at 76% 58%, rgba(255,255,255,0.048), transparent 6.4%),
-        radial-gradient(circle at 18% 64%, rgba(255,255,255,0.042), transparent 5.8%),
-        radial-gradient(circle at 48% 84%, rgba(255,255,255,0.036), transparent 6.8%),
-        radial-gradient(circle at 88% 40%, rgba(255,255,255,0.032), transparent 5.2%),
-        radial-gradient(circle at 10% 34%, rgba(255,255,255,0.034), transparent 5.2%),
-        radial-gradient(circle at 92% 72%, rgba(255,255,255,0.028), transparent 5.8%);
-      background-size: 185% 185%;
-      opacity: 0.34;
-    }
-
-    .stage-vignette {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 50% 50%, transparent 0%, rgba(3, 7, 13, 0.04) 42%, rgba(2, 5, 10, 0.22) 100%),
-        linear-gradient(180deg, rgba(2, 5, 10, 0.08), rgba(2, 5, 10, 0.01) 28%, rgba(2, 5, 10, 0.08) 100%);
-      opacity: 0.84;
-    }
-
-          18% {
-        background-position: 16% 10%, 88% 18%, 82% 70%, 10% 52%, 44% 90%, 82% 24%, 8% 22%, 90% 84%;
-      }
-      38% {
-        background-position: 4% 24%, 72% 32%, 66% 44%, 24% 78%, 60% 66%, 96% 52%, 22% 42%, 78% 58%;
-      }
-      58% {
-        background-position: 30% 8%, 92% 38%, 90% 78%, 14% 60%, 48% 96%, 72% 18%, 2% 54%, 94% 40%;
-      }
-      78% {
-        background-position: 12% 30%, 68% 12%, 78% 58%, 30% 70%, 66% 84%, 90% 40%, 14% 12%, 82% 92%;
-      }
-      100% {
-        background-position: 36% 16%, 86% 28%, 72% 38%, 8% 86%, 54% 98%, 76% 30%, 26% 36%, 64% 74%;
-      }
     }
 
     .teleprompter-overlay {
@@ -134,10 +74,7 @@
 
     .prompt-bg {
       position: absolute; inset: 0;
-      background:
-        linear-gradient(180deg, rgba(10,14,22,0.1), rgba(10,14,22,0.01) 24%, rgba(10,14,22,0.08) 100%),
-        radial-gradient(circle at 50% 20%, rgba(110, 170, 255, 0.08), transparent 32%);
-      backdrop-filter: blur(12px);
+      background: linear-gradient(180deg, rgba(10,14,22,0.08), rgba(10,14,22,0));
       pointer-events: none;
     }
 
@@ -963,13 +900,7 @@
       </div>
     </div>
 
-    <div class="stage-layer">
-      <div class="stage-base-wash"></div>
-      <div class="stage-ambient"></div>
-      <div class="stage-vignette"></div>
-    </div>
-      <div class="stage-vignette"></div>
-    </div>
+    <div class="stage-layer"></div>
 
     <div class="teleprompter-overlay">
       <div class="transcript-pill hidden" id="transcriptPill" aria-hidden="true">A transcrição aparecerá aqui quando a fala estiver ligada.</div>
