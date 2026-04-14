@@ -1380,6 +1380,18 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       return Array.from(mergedMap.values());
     }
 
+    function replaceSongsState(nextSongs = []) {
+      state.songs = Array.isArray(nextSongs) ? nextSongs.map(normalizeLocalSong) : [];
+      saveSongs();
+      renderRepertoire();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+    }
+
+    function persistSongsState(nextSongs = []) {
+      replaceSongsState(nextSongs);
+      return state.songs;
+    }
+
     function ensureSongIdsAreValid() {
       let changed = false;
       state.songs = state.songs.map((song) => {
@@ -1894,12 +1906,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }
 
       const cloudSongs = Array.isArray(data) ? data.map(sanitizeCloudSong) : [];
-
-      state.songs = cloudSongs;
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-
       return { ok: true, songs: cloudSongs };
     }
 
@@ -1921,21 +1927,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       try {
         const result = await pullSongsFromCloud();
         if (!result?.ok) {
-          state.songs = localSnapshot;
-          saveSongs();
-          renderRepertoire();
-          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+          replaceSongsState(localSnapshot);
           updateSyncStatus('Não foi possível validar a conta agora. Seu repertório local foi mantido.');
           return;
         }
 
+        const mergedSongs = mergeSongCollections(localSnapshot, result.songs || []);
+        persistSongsState(mergedSongs);
         state.lastSyncAt = Date.now();
-        setSyncStatusFromState('Repertório resgatado da conta.');
+        setSyncStatusFromState('Repertório do usuário sincronizado com o servidor.');
       } catch (error) {
-        state.songs = localSnapshot;
-        saveSongs();
-        renderRepertoire();
-        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        replaceSongsState(localSnapshot);
         updateSyncStatus(`Falha na sincronização. Seu repertório local foi mantido. ${error.message || 'Tente novamente.'}`.trim());
       } finally {
         state.syncInFlight = false;
@@ -2010,6 +2012,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         showToast('Login realizado');
         const result = await pullSongsFromCloud();
         if (result?.ok) {
+          const mergedSongs = mergeSongCollections(state.songs, result.songs || []);
+          persistSongsState(mergedSongs);
           state.lastSyncAt = Date.now();
           setSyncStatusFromState('Repertório carregado da conta.');
         } else {
@@ -2072,6 +2076,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           try {
             const result = await pullSongsFromCloud();
             if (result?.ok) {
+              const mergedSongs = mergeSongCollections(state.songs, result.songs || []);
+              persistSongsState(mergedSongs);
               state.lastSyncAt = Date.now();
               setSyncStatusFromState('Repertório carregado da conta.');
             } else {
@@ -2464,16 +2470,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         lyrics
       };
 
+      const nextSongs = Array.isArray(state.songs) ? state.songs.map(song => ({ ...song })) : [];
       if (existingIndex >= 0) {
-        state.songs[existingIndex] = payload;
+        nextSongs[existingIndex] = payload;
       } else {
-        state.songs.unshift(payload);
+        nextSongs.unshift(payload);
       }
 
+      persistSongsState(nextSongs);
       state.currentSongId = payload.id;
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
       repertoireSelect.value = payload.id;
       persistCurrentDraft();
       loadScript();
@@ -2563,13 +2568,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!songId) return;
 
       const previousSongs = Array.isArray(state.songs) ? state.songs.map(song => ({ ...song })) : [];
-      state.songs = state.songs.filter(song => song.id !== songId);
+      const nextSongs = previousSongs.filter(song => song.id !== songId);
+
+      persistSongsState(nextSongs);
       if (state.currentSongId === songId) state.currentSongId = null;
       if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
-
-      saveSongs();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
       hideSongActions();
       showToast('Música removida do repertório', 1400);
 
@@ -2584,20 +2587,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           state.lastSyncAt = Date.now();
           setSyncStatusFromState('Exclusão sincronizada com a conta.');
         } catch (error) {
-          state.songs = previousSongs;
-          saveSongs();
-          renderRepertoire();
-          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+          persistSongsState(previousSongs);
           updateSyncStatus(`Não foi possível excluir da conta agora. A música foi restaurada no repertório local. ${error.message || 'Tente novamente.'}`.trim());
         }
         return;
       }
 
       if (state.currentUser && !navigator.onLine) {
-        state.songs = previousSongs;
-        saveSongs();
-        renderRepertoire();
-        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        persistSongsState(previousSongs);
         updateSyncStatus('Para excluir definitivamente da conta, conecte-se à internet e tente novamente. A música foi restaurada no repertório local.');
       }
     }
