@@ -2562,6 +2562,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     async function deleteSongById(songId) {
       if (!songId) return;
 
+      const previousSongs = Array.isArray(state.songs) ? state.songs.map(song => ({ ...song })) : [];
       state.songs = state.songs.filter(song => song.id !== songId);
       if (state.currentSongId === songId) state.currentSongId = null;
       if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
@@ -2583,9 +2584,21 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           state.lastSyncAt = Date.now();
           setSyncStatusFromState('Exclusão sincronizada com a conta.');
         } catch (error) {
-          updateSyncStatus(`A música foi removida do aparelho, mas não foi possível excluir da conta agora. ${error.message || 'Tente novamente.'}`.trim());
+          state.songs = previousSongs;
+          saveSongs();
+          renderRepertoire();
+          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+          updateSyncStatus(`Não foi possível excluir da conta agora. A música foi restaurada no repertório local. ${error.message || 'Tente novamente.'}`.trim());
         }
         return;
+      }
+
+      if (state.currentUser && !navigator.onLine) {
+        state.songs = previousSongs;
+        saveSongs();
+        renderRepertoire();
+        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        updateSyncStatus('Para excluir definitivamente da conta, conecte-se à internet e tente novamente. A música foi restaurada no repertório local.');
       }
     }
     function confirmDeleteSong(songId) {
