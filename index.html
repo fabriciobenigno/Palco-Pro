@@ -1570,7 +1570,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function applySuggestionSong(song) {
       if (!song) return;
       const personalCopy = cloneSongForUser(song);
-      state.currentSongId = personalCopy.id;
+      state.currentSongId = null;
       if (repertoireSelect) repertoireSelect.value = '';
       songTitleInput.value = personalCopy.title || '';
       artistInput.value = personalCopy.artist || '';
@@ -1579,7 +1579,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistCurrentDraft();
       hideSuggestionsPanel();
       openSongEditor();
-      showToast('Sugestão pronta para salvar como cópia pessoal', 1500);
+      showToast('Sugestão pronta para salvar como música pessoal', 1500);
     }
 
     function getUserIdentityLabel() {
@@ -1883,7 +1883,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         .from('songs')
         .select('id, song_title, artist, style, lyrics, updated_at')
         .eq('user_id', state.currentUser.id)
-        .order('updated_at', { ascending: true });
+        .order('updated_at', { ascending: false });
       if (error) throw error;
 
       const cloudSongs = (data || []).map(sanitizeCloudSong);
@@ -1894,11 +1894,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function syncSongsToCloud(options = {}) {
-      ensureSongIdsAreValid();
       const manual = !!options.manual;
-      const pullOnly = !!options.pullOnly;
       if (!state.supabase || !state.currentUser || state.syncInFlight) {
-        if (manual && !state.currentUser) updateSyncStatus('Faça login para sincronizar com a nuvem.');
+        if (manual && !state.currentUser) updateSyncStatus('Faça login para sincronizar com a conta.');
         return;
       }
       if (!navigator.onLine) {
@@ -1906,40 +1904,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         return;
       }
       state.syncInFlight = true;
-      updateSyncStatus(pullOnly ? 'Resgatando repertório da conta...' : (manual ? 'Sincronizando repertório...' : 'Sincronização automática em andamento...'));
+      updateSyncStatus('Resgatando repertório da conta...');
       try {
-        if (pullOnly) {
-          await pullSongsFromCloud();
-          state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório resgatado da conta.');
-          return;
-        }
-
-        const payload = state.songs.map(song => ({
-          id: song.id,
-          user_id: state.currentUser.id,
-          song_title: song.title || 'Sem título',
-          artist: song.artist || '',
-          style: song.style || '',
-          lyrics: sanitizeLyrics(song.lyrics || ''),
-          updated_at: new Date().toISOString()
-        }));
-
-        const { error: deleteError } = await state.supabase
-          .from('songs')
-          .delete()
-          .eq('user_id', state.currentUser.id);
-        if (deleteError) throw deleteError;
-
-        if (payload.length) {
-          const { error: insertError } = await state.supabase
-            .from('songs')
-            .insert(payload);
-          if (insertError) throw insertError;
-        }
-
+        await pullSongsFromCloud();
         state.lastSyncAt = Date.now();
-        setSyncStatusFromState('Tudo salvo na nuvem.');
+        setSyncStatusFromState('Repertório resgatado da conta.');
       } catch (error) {
         updateSyncStatus(`Falha na sincronização. ${error.message || 'Tente novamente.'}`.trim());
       } finally {
@@ -2013,18 +1982,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         updateAuthStatus(`Conta conectada: ${state.currentUser.email || email}.`);
         setSyncStatusFromState('Login concluído.');
         showToast('Login realizado');
+        await pullSongsFromCloud();
+        state.lastSyncAt = Date.now();
+        setSyncStatusFromState('Repertório carregado da conta.');
         setTimeout(() => {
           hideAuthPanel();
         }, 950);
-
-        try {
-          await syncSongsToCloud({ manual: true });
-          await pullSongsFromCloud();
-          state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório local e conta sincronizados com sucesso.');
-        } catch (_) {
-          setSyncStatusFromState('Login concluído. Não foi possível atualizar o repertório da nuvem agora.');
-        }
       } catch (error) {
         state.currentUser = null;
         updateAuthStatus(`Não foi possível entrar. ${error.message || 'Tente novamente.'}`.trim());
@@ -2077,12 +2040,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
           setSyncStatusFromState();
           try {
-            await syncSongsToCloud({ manual: true });
             await pullSongsFromCloud();
             state.lastSyncAt = Date.now();
-            setSyncStatusFromState('Repertório local e conta restaurados.');
+            setSyncStatusFromState('Repertório carregado da conta.');
           } catch (_) {
-            setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da nuvem agora.');
+            setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da conta agora.');
           }
         } else {
           updateAuthStatus('Nenhuma conta conectada.');
@@ -2432,11 +2394,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
     function getSampleSongs() {
-      return [
-        { id: createSongId(), title: 'Vive', artist: 'Djavan', style: 'MPB', lyrics: 'Vive\n\nNo silêncio da manhã\nA canção encontra luz.' },
-        { id: createSongId(), title: 'Serrado', artist: 'Djavan', style: 'MPB', lyrics: 'Serrado\n\nPasso lento pela estrada\nO vento acompanha a voz.' },
-        { id: createSongId(), title: 'Oceano', artist: 'Djavan', style: 'MPB', lyrics: 'Oceano\n\nMeu olhar procura calma\nNa maré do teu refrão.' }
-      ];
+      return [];
     }
 
     function loadSongs() {
@@ -2445,12 +2403,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       } catch (_) {
         state.songs = [];
       }
-      if (!Array.isArray(state.songs) || !state.songs.length) {
-        state.songs = getSampleSongs();
-        saveSongs();
+      if (!Array.isArray(state.songs)) {
+        state.songs = [];
       }
       state.songs = state.songs.map(normalizeLocalSong);
       ensureSongIdsAreValid();
+      saveSongs();
       renderRepertoire();
     }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
@@ -2465,7 +2423,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const payload = {
-        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : (state.currentSongId || createSongId()),
+        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(),
         title,
         artist,
         style,
@@ -2489,7 +2447,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.supabase && state.currentUser && navigator.onLine) {
         try {
           await upsertSongInCloud(payload);
-          setSyncStatusFromState('Música salva na conta.');
+          setSyncStatusFromState(existingIndex >= 0 ? 'Música atualizada na conta.' : 'Música salva na conta.');
         } catch (error) {
           updateSyncStatus(`A música foi salva no aparelho, mas não foi possível salvar na conta agora. ${error.message || 'Tente novamente.'}`.trim());
         }
@@ -2497,7 +2455,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       hideSongEditor();
       openLibraryPanel();
-      showToast('Música salva no seu repertório', 1400);
+      showToast(existingIndex >= 0 ? 'Música atualizada' : 'Música salva no seu repertório', 1400);
     }
 
     function getNormalizedLibrarySongs(term = '') {
@@ -2719,7 +2677,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
       $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
-      $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true, pullOnly: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
+      $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
