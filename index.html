@@ -2571,7 +2571,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         editBtn.className = 'library-song-action-btn edit';
         editBtn.type = 'button';
         editBtn.setAttribute('aria-label', 'Editar música');
-        editBtn.textContent = '✎';
+        editBtn.innerHTML = '<img src="editar.png" alt="" aria-hidden="true" style="width:18px;height:18px;object-fit:contain;display:block;" />';
         editBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           closeAllLibrarySwipes();
@@ -2582,7 +2582,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         deleteBtn.className = 'library-song-action-btn delete';
         deleteBtn.type = 'button';
         deleteBtn.setAttribute('aria-label', 'Excluir música');
-        deleteBtn.textContent = '🗑';
+        deleteBtn.innerHTML = '<img src="excluir.png" alt="" aria-hidden="true" style="width:18px;height:18px;object-fit:contain;display:block;" />';
         deleteBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           closeAllLibrarySwipes();
