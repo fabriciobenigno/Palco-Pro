@@ -859,7 +859,7 @@
             <h1 class="entry-title">Palco Pro</h1>
             <p class="entry-subtitle">Instale o app para usar sua leitura de letras e repertório com mais praticidade no palco.</p>
             <div class="entry-actions">
-              <button class="entry-nav-btn" type="button" data-entry-target="install">Tutorial de instalação</button>
+              <button class="entry-nav-btn" type="button" id="entryInstallCtaBtn" data-entry-target="install">Tutorial de instalação</button>
               <button class="entry-nav-btn" type="button" data-entry-target="usage">Tutorial de uso do app</button>
               <a class="entry-link-btn" href="https://instagram.com/fabricio_benigno" target="_blank" rel="noopener noreferrer">
                 <img src="instagram.ico" alt="Instagram" />
@@ -869,8 +869,12 @@
           </section>
 
           <section class="entry-screen" id="entryInstallScreen">
-            <h2 class="entry-title">Tutorial de instalação</h2>
-            <ol class="entry-steps">
+            <h2 class="entry-title">Instalação do app</h2>
+            <p class="entry-subtitle" id="entryInstallSubtitle">Siga o passo a passo para instalar o Palco Pro no seu celular.</p>
+            <div class="entry-actions hidden" id="entryAndroidInstallActions">
+              <button class="entry-nav-btn" type="button" id="androidInstallBtn">Instalar app</button>
+            </div>
+            <ol class="entry-steps" id="entryInstallSteps">
               <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o menu do navegador no seu celular.</span></li>
               <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Toque em <strong>Instalar app</strong>, <strong>Adicionar à tela inicial</strong> ou opção equivalente.</span></li>
               <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Confirme a instalação e aguarde o ícone do app aparecer na tela inicial.</span></li>
@@ -1242,7 +1246,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
-      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], suggestionsLoadedAt: 0
+      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], suggestionsLoadedAt: 0,
+      deferredInstallPrompt: null, installPromptAvailable: false
     };
 
     const app = $('app');
@@ -1299,6 +1304,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const appToast = $('appToast');
     const songActionsPanel = $('songActionsPanel');
     const songActionsSubtitle = $('songActionsSubtitle');
+    const entryInstallCtaBtn = $('entryInstallCtaBtn');
+    const entryInstallSubtitle = $('entryInstallSubtitle');
+    const entryInstallSteps = $('entryInstallSteps');
+    const entryAndroidInstallActions = $('entryAndroidInstallActions');
+    const androidInstallBtn = $('androidInstallBtn');
 
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
@@ -2615,8 +2625,57 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const launchedFromAndroidApp = document.referrer.startsWith('android-app://');
       return displayModeStandalone || displayModeFullscreen || displayModeMinimalUi || iosStandalone || launchedFromAndroidApp;
     }
+    function isAndroidDevice() { return /Android/i.test(navigator.userAgent || ''); }
+    function isIosDevice() { return /iPhone|iPod/i.test(navigator.userAgent || ''); }
     function isMobilePhoneBrowser() { const ua = navigator.userAgent || ''; return /Android|iPhone|iPod/i.test(ua); }
     function shouldShowBrowserEntryGate() { return isMobilePhoneBrowser() && !isStandaloneMode(); }
+    function buildIosInstallSteps() {
+      return `
+        <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o menu <strong>Compartilhar</strong> do Safari.</span></li>
+        <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Role as opções e toque em <strong>Adicionar à Tela de Início</strong>.</span></li>
+        <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Confirme a instalação para o ícone do Palco Pro aparecer na sua tela inicial.</span></li>
+        <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o Palco Pro pelo ícone instalado para usar normalmente.</span></li>
+      `;
+    }
+    function buildAndroidInstallSteps() {
+      return `
+        <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Toque em <strong>Instalar app</strong> para abrir a instalação oficial do Android.</span></li>
+        <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Confirme a instalação quando o Android solicitar.</span></li>
+        <li class="entry-step"><span class="entry-step-number">3</span><span class="entry-step-text">Aguarde o ícone do Palco Pro aparecer na tela inicial do aparelho.</span></li>
+        <li class="entry-step"><span class="entry-step-number">4</span><span class="entry-step-text">Depois, abra o app pelo ícone instalado para usar em tela cheia.</span></li>
+      `;
+    }
+    function updateInstallExperience() {
+      if (!entryInstallSteps || !entryInstallSubtitle || !entryInstallCtaBtn || !entryAndroidInstallActions) return;
+      if (isAndroidDevice()) {
+        entryInstallCtaBtn.textContent = state.installPromptAvailable ? 'Instalar app' : 'Como instalar o app';
+        entryInstallSubtitle.textContent = state.installPromptAvailable
+          ? 'No Android, você pode instalar o Palco Pro diretamente por este botão e abrir como aplicativo.'
+          : 'No Android, o botão oficial de instalação aparece assim que o navegador liberar a instalação do app.';
+        entryInstallSteps.innerHTML = buildAndroidInstallSteps();
+        entryAndroidInstallActions.classList.toggle('hidden', !state.installPromptAvailable);
+      } else {
+        entryInstallCtaBtn.textContent = 'Tutorial de instalação';
+        entryInstallSubtitle.textContent = 'No iPhone, siga o passo a passo abaixo para adicionar o Palco Pro à tela de início.';
+        entryInstallSteps.innerHTML = buildIosInstallSteps();
+        entryAndroidInstallActions.classList.add('hidden');
+      }
+    }
+    async function triggerAndroidInstallPrompt() {
+      const deferredPrompt = state.deferredInstallPrompt;
+      if (!deferredPrompt) {
+        showEntryScreen('install');
+        updateInstallExperience();
+        return;
+      }
+      try {
+        await deferredPrompt.prompt();
+        await deferredPrompt.userChoice.catch(() => null);
+      } catch (_) {}
+      state.deferredInstallPrompt = null;
+      state.installPromptAvailable = false;
+      updateInstallExperience();
+    }
     function updateBrowserEntryGateVisibility() {
       const gate = $('browserEntryGate');
       if (!gate) return;
@@ -2630,8 +2689,26 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!gate) return;
       updateBrowserEntryGateVisibility();
       showEntryScreen('home');
+      updateInstallExperience();
       gate.querySelectorAll('[data-entry-target]').forEach((btn) => {
-        btn.addEventListener('click', () => showEntryScreen(btn.getAttribute('data-entry-target')));
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-entry-target');
+          if (target === 'install' && isAndroidDevice() && state.installPromptAvailable) {
+            triggerAndroidInstallPrompt();
+            return;
+          }
+          showEntryScreen(target);
+          if (target === 'install') updateInstallExperience();
+        });
+      });
+      if (androidInstallBtn) {
+        androidInstallBtn.addEventListener('click', triggerAndroidInstallPrompt);
+      }
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        state.deferredInstallPrompt = event;
+        state.installPromptAvailable = true;
+        updateInstallExperience();
       });
       if (typeof window.matchMedia === 'function') {
         ['(display-mode: standalone)', '(display-mode: fullscreen)', '(display-mode: minimal-ui)'].forEach((query) => {
@@ -2641,9 +2718,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           else if (typeof media.addListener === 'function') media.addListener(handler);
         });
       }
-      window.addEventListener('appinstalled', updateBrowserEntryGateVisibility);
+      window.addEventListener('appinstalled', () => {
+        state.deferredInstallPrompt = null;
+        state.installPromptAvailable = false;
+        updateInstallExperience();
+        updateBrowserEntryGateVisibility();
+      });
       document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) updateBrowserEntryGateVisibility();
+        if (!document.hidden) {
+          updateInstallExperience();
+          updateBrowserEntryGateVisibility();
+        }
       });
     }
     function init() { createSupabaseClient(); registerServiceWorker(); loadSettings(); updateAccountControls(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
