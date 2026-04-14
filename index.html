@@ -140,6 +140,14 @@
       display: grid; place-items: center; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.22);
     }
 
+    .close-icon-btn img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
     .mode-switch-btn {
       min-width: 88px; height: 58px; padding: 0 20px; border-radius: 22px;
       background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
@@ -919,7 +927,7 @@
             <h2 class="library-title">Repertório</h2>
             <p class="library-subtitle">Escolha sua música por nome, cantor, estilo ou pela lista completa.</p>
           </div>
-          <button class="mini-btn" id="hideLibraryBtn" aria-label="Fechar repertório">×</button>
+          <button class="mini-btn close-icon-btn" id="hideLibraryBtn" aria-label="Fechar repertório"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="library-card">
@@ -957,7 +965,7 @@
     <div class="side-panel" id="sidePanel">
       <div class="panel-title">
         <h2>Ajustes</h2>
-        <button class="mini-btn" id="hidePanelBtn">×</button>
+        <button class="mini-btn close-icon-btn" id="hidePanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
       </div>
 
       <div class="panel-grid">
@@ -1040,7 +1048,7 @@
             <h2 class="fullscreen-title">Login</h2>
             <p class="fullscreen-subtitle">Entre na sua conta para sincronizar seu repertório no celular.</p>
           </div>
-          <button class="mini-btn" id="hideAuthPanelBtn">×</button>
+          <button class="mini-btn close-icon-btn" id="hideAuthPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="fullscreen-card">
@@ -1076,7 +1084,7 @@
             <h2 class="fullscreen-title">Cadastro</h2>
             <p class="fullscreen-subtitle">Crie seu acesso com um fluxo mais completo, pensado para uso no celular.</p>
           </div>
-          <button class="mini-btn" id="hideRegisterPanelBtn">×</button>
+          <button class="mini-btn close-icon-btn" id="hideRegisterPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="fullscreen-card">
@@ -1116,7 +1124,7 @@
             <h2 class="fullscreen-title">Recuperar senha</h2>
             <p class="fullscreen-subtitle">Coloque seu Gmail para recuperação de senha e enviaremos as instruções.</p>
           </div>
-          <button class="mini-btn" id="hideRecoverPanelBtn">×</button>
+          <button class="mini-btn close-icon-btn" id="hideRecoverPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="fullscreen-card">
@@ -1141,7 +1149,7 @@
             <h2 class="fullscreen-title">Cadastrar música</h2>
             <p class="fullscreen-subtitle">Preencha os dados da música e salve no repertório.</p>
           </div>
-          <button class="mini-btn" id="hideSongEditorBtn">×</button>
+          <button class="mini-btn close-icon-btn" id="hideSongEditorBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="fullscreen-card">
@@ -1187,7 +1195,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
             <h2 class="fullscreen-title">Sugestões</h2>
             <p class="fullscreen-subtitle">Pesquise músicas sugeridas e toque em uma delas para preencher o cadastro.</p>
           </div>
-          <button class="mini-btn" id="hideSuggestionsPanelBtn">×</button>
+          <button class="mini-btn close-icon-btn" id="hideSuggestionsPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
 
         <div class="fullscreen-card">
@@ -1219,7 +1227,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     <div class="song-actions-panel" id="songActionsPanel">
       <div class="panel-title">
         <h2>Ações da música</h2>
-        <button class="mini-btn" id="hideSongActionsBtn">×</button>
+        <button class="mini-btn close-icon-btn" id="hideSongActionsBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
       </div>
       <p class="song-actions-subtitle" id="songActionsSubtitle">Escolha o que deseja fazer.</p>
       <div class="panel-grid">
