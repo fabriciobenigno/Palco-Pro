@@ -34,6 +34,7 @@
       --overlay-opacity: 0.16;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --app-height: 100dvh;
       --text: #f7f9ff;
       --panel-w: min(380px, calc(100vw - 28px));
       --app-bg:
@@ -67,27 +68,63 @@
       --switch-active-bg: linear-gradient(135deg, #4f8cff, #7cb0ff);
     }
 
-    :root[data-theme="grafite-azul"] {
-      --app-bg:
-        radial-gradient(circle at 16% 18%, rgba(88,164,255,0.11), transparent 28%),
-        radial-gradient(circle at 84% 20%, rgba(120,197,255,0.08), transparent 30%),
-        radial-gradient(circle at 50% 58%, rgba(255,255,255,0.02), transparent 32%),
-        linear-gradient(180deg, #040811 0%, #0a1628 54%, #07111f 100%);
-      --stage-bg:
-        radial-gradient(circle at 18% 50%, rgba(96,168,255,0.04), transparent 26%),
-        radial-gradient(circle at 82% 52%, rgba(96,168,255,0.04), transparent 26%),
-        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.022), transparent 24%),
-        linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0.006));
-      --screen-bg:
-        radial-gradient(circle at 50% 0%, rgba(98,164,255,0.18), transparent 28%),
-        linear-gradient(180deg, rgba(6,11,20,0.96), rgba(5,10,18,0.98));
-      --card-bg: linear-gradient(180deg, rgba(16,24,40,0.88), rgba(10,15,27,0.84));
-      --glass-bg: rgba(18,24,36,0.62);
-      --glass-bg-strong: rgba(18,24,36,0.66);
-      --chip-active-bg: linear-gradient(180deg, rgba(104,181,255,0.26), rgba(58,132,234,0.22));
-      --chip-active-border: rgba(132,190,255,0.38);
-      --switch-active-bg: linear-gradient(135deg, #5aa9ff, #7bc4ff);
-    }
+    :root[data-theme="modo-escuro"] {
+  --app-bg:
+    radial-gradient(circle at 18% 16%, rgba(255,255,255,0.03), transparent 22%),
+    radial-gradient(circle at 82% 20%, rgba(255,255,255,0.025), transparent 24%),
+    radial-gradient(circle at 50% 58%, rgba(255,255,255,0.014), transparent 30%),
+    linear-gradient(180deg, #020304 0%, #06080c 54%, #020305 100%);
+  --stage-bg:
+    radial-gradient(circle at 16% 50%, rgba(255,255,255,0.016), transparent 24%),
+    radial-gradient(circle at 84% 50%, rgba(255,255,255,0.016), transparent 24%),
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,0.014), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0.004));
+  --screen-bg:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.06), transparent 24%),
+    linear-gradient(180deg, rgba(4,5,7,0.98), rgba(2,3,4,0.99));
+  --card-bg: linear-gradient(180deg, rgba(13,14,17,0.90), rgba(7,8,10,0.86));
+  --card-border: rgba(255,255,255,0.10);
+  --glass-bg: rgba(20,22,26,0.66);
+  --glass-bg-strong: rgba(20,22,26,0.70);
+  --glass-border: rgba(255,255,255,0.14);
+  --soft-bg: rgba(255,255,255,0.025);
+  --soft-border: rgba(255,255,255,0.10);
+  --soft-text: rgba(255,255,255,0.76);
+  --note-text: rgba(255,255,255,0.60);
+  --chip-active-bg: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+  --chip-active-border: rgba(255,255,255,0.22);
+  --switch-active-bg: linear-gradient(135deg, #7d8794, #c9d0d8);
+}
+
+:root[data-theme="lumina-clara"] {
+  --text: #0f1722;
+  --app-bg:
+    radial-gradient(circle at 18% 16%, rgba(146,170,205,0.18), transparent 24%),
+    radial-gradient(circle at 82% 20%, rgba(186,206,236,0.18), transparent 26%),
+    radial-gradient(circle at 50% 58%, rgba(255,255,255,0.38), transparent 32%),
+    linear-gradient(180deg, #f5f8fc 0%, #edf2f8 55%, #e8eef5 100%);
+  --stage-bg:
+    radial-gradient(circle at 16% 50%, rgba(161,182,213,0.16), transparent 24%),
+    radial-gradient(circle at 84% 50%, rgba(161,182,213,0.16), transparent 24%),
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,0.40), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+  --screen-bg:
+    radial-gradient(circle at 50% 0%, rgba(176,196,224,0.28), transparent 24%),
+    linear-gradient(180deg, rgba(245,248,252,0.98), rgba(232,238,245,0.99));
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.90), rgba(243,247,252,0.88));
+  --card-border: rgba(103,125,155,0.16);
+  --card-shadow: 0 26px 70px rgba(57,75,99,0.10), inset 0 1px 0 rgba(255,255,255,0.65);
+  --glass-bg: rgba(255,255,255,0.66);
+  --glass-bg-strong: rgba(255,255,255,0.76);
+  --glass-border: rgba(122,145,175,0.16);
+  --soft-bg: rgba(80,104,138,0.06);
+  --soft-border: rgba(110,133,165,0.16);
+  --soft-text: rgba(39,55,77,0.76);
+  --note-text: rgba(46,61,84,0.64);
+  --chip-active-bg: linear-gradient(180deg, rgba(90,126,171,0.16), rgba(90,126,171,0.10));
+  --chip-active-border: rgba(90,126,171,0.24);
+  --switch-active-bg: linear-gradient(135deg, #5e7ea8, #93afcf);
+}
 
     :root[data-theme="esmeralda"] {
       --app-bg:
@@ -157,12 +194,12 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-      margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text);
+      margin: 0; width: 100%; height: 100%; min-height: 100dvh; overflow: hidden; background: #000; color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     .app {
-      position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
+      position: relative; width: 100vw; height: var(--app-height); min-height: 100dvh; overflow: hidden; background: #000;
       background: var(--app-bg);
     }
 
@@ -179,8 +216,9 @@
     .prompt-window {
       position: absolute;
       left: 50%; top: calc(var(--safe-top) + 6px);
+      bottom: calc(var(--safe-bottom) + 100px);
       transform: translateX(-50%);
-      width: 100%; height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 114px);
+      width: 100%; height: auto;
       pointer-events: auto;
     }
 
@@ -726,6 +764,67 @@
     .theme-btn.active {
       background: var(--chip-active-bg);
       border-color: var(--chip-active-border);
+    }
+
+    :root[data-theme="lumina-clara"] .library-title,
+    :root[data-theme="lumina-clara"] .fullscreen-title,
+    :root[data-theme="lumina-clara"] .library-song-line,
+    :root[data-theme="lumina-clara"] .suggestion-item-title,
+    :root[data-theme="lumina-clara"] .ghost-btn,
+    :root[data-theme="lumina-clara"] .mini-btn,
+    :root[data-theme="lumina-clara"] .circle-btn,
+    :root[data-theme="lumina-clara"] .mode-switch-btn,
+    :root[data-theme="lumina-clara"] .theme-btn,
+    :root[data-theme="lumina-clara"] .more-options-toggle,
+    :root[data-theme="lumina-clara"] .themes-toggle,
+    :root[data-theme="lumina-clara"] .field textarea,
+    :root[data-theme="lumina-clara"] .field input[type="text"],
+    :root[data-theme="lumina-clara"] .field input[type="password"],
+    :root[data-theme="lumina-clara"] .field select,
+    :root[data-theme="lumina-clara"] .sync-status-note,
+    :root[data-theme="lumina-clara"] .toggle-row span,
+    :root[data-theme="lumina-clara"] .song-actions-title,
+    :root[data-theme="lumina-clara"] .song-actions-subtitle,
+    :root[data-theme="lumina-clara"] .panel-title h2 {
+      color: #0f1722;
+    }
+
+    :root[data-theme="lumina-clara"] .field textarea,
+    :root[data-theme="lumina-clara"] .field input[type="text"],
+    :root[data-theme="lumina-clara"] .field input[type="password"],
+    :root[data-theme="lumina-clara"] .field select,
+    :root[data-theme="lumina-clara"] .ghost-btn,
+    :root[data-theme="lumina-clara"] .mini-btn,
+    :root[data-theme="lumina-clara"] .circle-btn,
+    :root[data-theme="lumina-clara"] .mode-switch-btn,
+    :root[data-theme="lumina-clara"] .theme-btn,
+    :root[data-theme="lumina-clara"] .more-options-toggle,
+    :root[data-theme="lumina-clara"] .themes-toggle,
+    :root[data-theme="lumina-clara"] .sync-status-note,
+    :root[data-theme="lumina-clara"] .toggle-row {
+      background: rgba(255,255,255,0.72);
+      border-color: rgba(122,145,175,0.16);
+    }
+
+    :root[data-theme="lumina-clara"] .library-song-card,
+    :root[data-theme="lumina-clara"] .suggestion-item,
+    :root[data-theme="lumina-clara"] .song-actions-panel {
+      background: rgba(255,255,255,0.88);
+      color: #0f1722;
+      border-color: rgba(122,145,175,0.16);
+    }
+
+    :root[data-theme="lumina-clara"] .suggestion-item-meta,
+    :root[data-theme="lumina-clara"] .library-subtitle,
+    :root[data-theme="lumina-clara"] .fullscreen-subtitle,
+    :root[data-theme="lumina-clara"] .panel-note,
+    :root[data-theme="lumina-clara"] .value-row,
+    :root[data-theme="lumina-clara"] .field label {
+      color: rgba(39,55,77,0.76);
+    }
+
+    :root[data-theme="lumina-clara"] .close-icon-btn {
+      background: transparent !important;
     }
 
     .detail-panel {
@@ -1306,7 +1405,8 @@
           <div class="themes-panel" id="themesPanel">
             <div class="theme-grid" id="themeGrid">
               <button class="theme-btn active" type="button" data-theme="original">Original</button>
-              <button class="theme-btn" type="button" data-theme="grafite-azul">Grafite azul</button>
+              <button class="theme-btn" type="button" data-theme="modo-escuro">Noite profunda</button>
+              <button class="theme-btn" type="button" data-theme="lumina-clara">Luz de marfim</button>
               <button class="theme-btn" type="button" data-theme="esmeralda">Esmeralda</button>
               <button class="theme-btn" type="button" data-theme="ametista">Ametista</button>
               <button class="theme-btn" type="button" data-theme="ambar-suave">Âmbar suave</button>
