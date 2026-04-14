@@ -520,6 +520,8 @@
     }
     .entry-screen.active { display: flex; }
     .entry-title { margin: 0; font-size: 25px; line-height: 1.18; font-weight: 800; letter-spacing: -0.025em; text-align: center; text-shadow: 0 10px 28px rgba(0,0,0,0.34); }
+    .entry-title-brand { display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 100%; }
+    .entry-title-icon { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; box-shadow: 0 10px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12); flex: 0 0 34px; }
     .entry-subtitle { margin: 0; font-size: 14px; line-height: 1.72; text-align: center; color: rgba(255,255,255,0.76); }
     .entry-actions { display: grid; gap: 12px; margin-top: 10px; }
     .entry-nav-btn, .entry-link-btn, .entry-back-btn {
@@ -856,7 +858,7 @@
       <div class="entry-shell">
         <div class="entry-main">
           <section class="entry-screen active" id="entryHomeScreen">
-            <h1 class="entry-title">Palco Pro</h1>
+            <h1 class="entry-title"><span class="entry-title-brand"><img class="entry-title-icon" src="palco-pro-icon.png" alt="Ícone do app Palco Pro" /><span>Palco Pro</span></span></h1>
             <p class="entry-subtitle">Instale o app para usar sua leitura de letras e repertório com mais praticidade no palco.</p>
             <div class="entry-actions">
               <button class="entry-nav-btn" type="button" id="entryInstallCtaBtn" data-entry-target="install">Tutorial de instalação</button>
@@ -869,7 +871,7 @@
           </section>
 
           <section class="entry-screen" id="entryInstallScreen">
-            <h2 class="entry-title">Instalação do app</h2>
+            <h2 class="entry-title"><span class="entry-title-brand"><img class="entry-title-icon" src="palco-pro-icon.png" alt="Ícone do app Palco Pro" /><span>Instalação do app</span></span></h2>
             <p class="entry-subtitle" id="entryInstallSubtitle">Siga o passo a passo para instalar o Palco Pro no seu celular.</p>
             <div class="entry-actions hidden" id="entryAndroidInstallActions">
               <button class="entry-nav-btn" type="button" id="androidInstallBtn">Instalar app</button>
@@ -884,7 +886,7 @@
           </section>
 
           <section class="entry-screen" id="entryUsageScreen">
-            <h2 class="entry-title">Tutorial de uso do app</h2>
+            <h2 class="entry-title"><span class="entry-title-brand"><img class="entry-title-icon" src="palco-pro-icon.png" alt="Ícone do app Palco Pro" /><span>Tutorial de uso do app</span></span></h2>
             <ol class="entry-steps">
               <li class="entry-step"><span class="entry-step-number">1</span><span class="entry-step-text">Abra o aplicativo já instalado pela tela inicial do seu celular.</span></li>
               <li class="entry-step"><span class="entry-step-number">2</span><span class="entry-step-text">Entre nos ajustes, informe o título, cole a letra e salve no repertório.</span></li>
