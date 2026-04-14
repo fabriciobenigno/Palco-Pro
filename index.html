@@ -1336,6 +1336,24 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       };
     }
 
+    async function upsertSongInCloud(song) {
+      if (!state.supabase || !state.currentUser || !navigator.onLine || !song?.id) return;
+      const payload = {
+        id: song.id,
+        user_id: state.currentUser.id,
+        song_title: song.title || 'Sem título',
+        artist: song.artist || '',
+        style: song.style || '',
+        lyrics: sanitizeLyrics(song.lyrics || ''),
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await state.supabase
+        .from('songs')
+        .upsert(payload, { onConflict: 'id' });
+      if (error) throw error;
+      state.lastSyncAt = Date.now();
+    }
+
     function normalizeLocalSong(song) {
       return {
         id: song.id,
@@ -1552,7 +1570,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function applySuggestionSong(song) {
       if (!song) return;
       const personalCopy = cloneSongForUser(song);
-      state.currentSongId = null;
+      state.currentSongId = personalCopy.id;
       if (repertoireSelect) repertoireSelect.value = '';
       songTitleInput.value = personalCopy.title || '';
       artistInput.value = personalCopy.artist || '';
@@ -1561,7 +1579,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistCurrentDraft();
       hideSuggestionsPanel();
       openSongEditor();
-      showToast('Sugestão pronta para salvar no seu repertório', 1500);
+      showToast('Sugestão pronta para salvar como cópia pessoal', 1500);
     }
 
     function getUserIdentityLabel() {
@@ -2000,10 +2018,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }, 950);
 
         try {
+          await syncSongsToCloud({ manual: true });
           await pullSongsFromCloud();
-          await syncSongsToCloud({ manual: true, pullOnly: true });
           state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório local e nuvem combinados com sucesso.');
+          setSyncStatusFromState('Repertório local e conta sincronizados com sucesso.');
         } catch (_) {
           setSyncStatusFromState('Login concluído. Não foi possível atualizar o repertório da nuvem agora.');
         }
@@ -2059,10 +2077,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
           setSyncStatusFromState();
           try {
+            await syncSongsToCloud({ manual: true });
             await pullSongsFromCloud();
-            await syncSongsToCloud({ manual: true, pullOnly: true });
             state.lastSyncAt = Date.now();
-            setSyncStatusFromState('Repertório local e nuvem restaurados.');
+            setSyncStatusFromState('Repertório local e conta restaurados.');
           } catch (_) {
             setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da nuvem agora.');
           }
@@ -2436,7 +2454,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       renderRepertoire();
     }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
-    function saveCurrentSong() {
+    async function saveCurrentSong() {
       const title = songTitleInput.value.trim() || 'Sem título';
       const lyrics = sanitizeLyrics(scriptInput.value);
       const artist = artistInput.value.trim();
@@ -2447,7 +2465,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const payload = {
-        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(),
+        id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : (state.currentSongId || createSongId()),
         title,
         artist,
         style,
@@ -2467,10 +2485,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       repertoireSelect.value = payload.id;
       persistCurrentDraft();
       loadScript();
+
+      if (state.supabase && state.currentUser && navigator.onLine) {
+        try {
+          await upsertSongInCloud(payload);
+          setSyncStatusFromState('Música salva na conta.');
+        } catch (error) {
+          updateSyncStatus(`A música foi salva no aparelho, mas não foi possível salvar na conta agora. ${error.message || 'Tente novamente.'}`.trim());
+        }
+      }
+
       hideSongEditor();
       openLibraryPanel();
       showToast('Música salva no seu repertório', 1400);
-      syncSongsToCloud();
     }
 
     function getNormalizedLibrarySongs(term = '') {
