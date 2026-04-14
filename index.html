@@ -36,6 +36,123 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --text: #f7f9ff;
       --panel-w: min(380px, calc(100vw - 28px));
+      --app-bg:
+        radial-gradient(circle at 18% 16%, rgba(92,146,255,0.10), transparent 26%),
+        radial-gradient(circle at 82% 18%, rgba(92,146,255,0.09), transparent 28%),
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.025), transparent 34%),
+        radial-gradient(circle at 24% 78%, rgba(92,146,255,0.07), transparent 30%),
+        radial-gradient(circle at 78% 80%, rgba(92,146,255,0.07), transparent 30%),
+        linear-gradient(180deg, #030712 0%, #08111d 52%, #040915 100%);
+      --stage-bg:
+        radial-gradient(circle at 50% 14%, rgba(255,255,255,0.03), transparent 24%),
+        radial-gradient(circle at 14% 48%, rgba(96,146,255,0.04), transparent 26%),
+        radial-gradient(circle at 86% 50%, rgba(96,146,255,0.04), transparent 26%),
+        radial-gradient(circle at 50% 86%, rgba(255,255,255,0.018), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0.008));
+      --screen-bg:
+        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
+        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      --card-bg: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
+      --card-border: rgba(255,255,255,0.12);
+      --card-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      --glass-bg: rgba(14,16,24,0.58);
+      --glass-bg-strong: rgba(14,16,24,0.62);
+      --glass-border: rgba(255,255,255,0.16);
+      --soft-bg: rgba(255,255,255,0.03);
+      --soft-border: rgba(255,255,255,0.12);
+      --soft-text: rgba(255,255,255,0.72);
+      --note-text: rgba(255,255,255,0.6);
+      --chip-active-bg: linear-gradient(180deg, rgba(91,176,255,0.24), rgba(52,131,248,0.2));
+      --chip-active-border: rgba(124,176,255,0.34);
+      --switch-active-bg: linear-gradient(135deg, #4f8cff, #7cb0ff);
+    }
+
+    :root[data-theme="grafite-azul"] {
+      --app-bg:
+        radial-gradient(circle at 16% 18%, rgba(88,164,255,0.11), transparent 28%),
+        radial-gradient(circle at 84% 20%, rgba(120,197,255,0.08), transparent 30%),
+        radial-gradient(circle at 50% 58%, rgba(255,255,255,0.02), transparent 32%),
+        linear-gradient(180deg, #040811 0%, #0a1628 54%, #07111f 100%);
+      --stage-bg:
+        radial-gradient(circle at 18% 50%, rgba(96,168,255,0.04), transparent 26%),
+        radial-gradient(circle at 82% 52%, rgba(96,168,255,0.04), transparent 26%),
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.022), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0.006));
+      --screen-bg:
+        radial-gradient(circle at 50% 0%, rgba(98,164,255,0.18), transparent 28%),
+        linear-gradient(180deg, rgba(6,11,20,0.96), rgba(5,10,18,0.98));
+      --card-bg: linear-gradient(180deg, rgba(16,24,40,0.88), rgba(10,15,27,0.84));
+      --glass-bg: rgba(18,24,36,0.62);
+      --glass-bg-strong: rgba(18,24,36,0.66);
+      --chip-active-bg: linear-gradient(180deg, rgba(104,181,255,0.26), rgba(58,132,234,0.22));
+      --chip-active-border: rgba(132,190,255,0.38);
+      --switch-active-bg: linear-gradient(135deg, #5aa9ff, #7bc4ff);
+    }
+
+    :root[data-theme="esmeralda"] {
+      --app-bg:
+        radial-gradient(circle at 18% 18%, rgba(71,194,156,0.10), transparent 28%),
+        radial-gradient(circle at 82% 20%, rgba(102,225,182,0.08), transparent 30%),
+        radial-gradient(circle at 50% 60%, rgba(255,255,255,0.02), transparent 32%),
+        linear-gradient(180deg, #04110f 0%, #08211d 56%, #061613 100%);
+      --stage-bg:
+        radial-gradient(circle at 16% 48%, rgba(78,196,162,0.04), transparent 26%),
+        radial-gradient(circle at 84% 52%, rgba(78,196,162,0.04), transparent 26%),
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,0.02), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));
+      --screen-bg:
+        radial-gradient(circle at 50% 0%, rgba(73,196,162,0.16), transparent 28%),
+        linear-gradient(180deg, rgba(6,16,15,0.96), rgba(5,12,11,0.98));
+      --card-bg: linear-gradient(180deg, rgba(13,29,26,0.88), rgba(8,18,16,0.84));
+      --glass-bg: rgba(17,29,26,0.62);
+      --glass-bg-strong: rgba(17,29,26,0.66);
+      --chip-active-bg: linear-gradient(180deg, rgba(78,196,162,0.26), rgba(41,150,120,0.2));
+      --chip-active-border: rgba(111,216,185,0.34);
+      --switch-active-bg: linear-gradient(135deg, #45c49c, #7be0be);
+    }
+
+    :root[data-theme="ametista"] {
+      --app-bg:
+        radial-gradient(circle at 18% 18%, rgba(143,118,255,0.10), transparent 28%),
+        radial-gradient(circle at 82% 22%, rgba(198,152,255,0.08), transparent 30%),
+        radial-gradient(circle at 50% 58%, rgba(255,255,255,0.02), transparent 32%),
+        linear-gradient(180deg, #090611 0%, #171028 56%, #0d0818 100%);
+      --stage-bg:
+        radial-gradient(circle at 16% 50%, rgba(154,132,255,0.04), transparent 26%),
+        radial-gradient(circle at 84% 50%, rgba(154,132,255,0.04), transparent 26%),
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,0.022), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));
+      --screen-bg:
+        radial-gradient(circle at 50% 0%, rgba(154,132,255,0.16), transparent 28%),
+        linear-gradient(180deg, rgba(11,9,20,0.96), rgba(8,7,15,0.98));
+      --card-bg: linear-gradient(180deg, rgba(25,20,42,0.88), rgba(14,11,25,0.84));
+      --glass-bg: rgba(24,20,38,0.62);
+      --glass-bg-strong: rgba(24,20,38,0.66);
+      --chip-active-bg: linear-gradient(180deg, rgba(154,132,255,0.25), rgba(111,84,214,0.2));
+      --chip-active-border: rgba(183,166,255,0.34);
+      --switch-active-bg: linear-gradient(135deg, #8f76ff, #c39aff);
+    }
+
+    :root[data-theme="ambar-suave"] {
+      --app-bg:
+        radial-gradient(circle at 18% 18%, rgba(225,170,86,0.10), transparent 28%),
+        radial-gradient(circle at 82% 22%, rgba(255,202,122,0.07), transparent 30%),
+        radial-gradient(circle at 50% 60%, rgba(255,255,255,0.018), transparent 32%),
+        linear-gradient(180deg, #110c06 0%, #22170d 56%, #161008 100%);
+      --stage-bg:
+        radial-gradient(circle at 16% 50%, rgba(225,170,86,0.04), transparent 26%),
+        radial-gradient(circle at 84% 52%, rgba(225,170,86,0.04), transparent 26%),
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,0.02), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));
+      --screen-bg:
+        radial-gradient(circle at 50% 0%, rgba(225,170,86,0.14), transparent 28%),
+        linear-gradient(180deg, rgba(19,13,8,0.96), rgba(13,10,6,0.98));
+      --card-bg: linear-gradient(180deg, rgba(38,27,17,0.88), rgba(23,17,11,0.84));
+      --glass-bg: rgba(34,24,16,0.62);
+      --glass-bg-strong: rgba(34,24,16,0.66);
+      --chip-active-bg: linear-gradient(180deg, rgba(225,170,86,0.24), rgba(180,125,48,0.2));
+      --chip-active-border: rgba(238,195,129,0.34);
+      --switch-active-bg: linear-gradient(135deg, #d9a15a, #f0c67d);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,23 +163,12 @@
 
     .app {
       position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
-      background:
-        radial-gradient(circle at 18% 16%, rgba(92,146,255,0.10), transparent 26%),
-        radial-gradient(circle at 82% 18%, rgba(92,146,255,0.09), transparent 28%),
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.025), transparent 34%),
-        radial-gradient(circle at 24% 78%, rgba(92,146,255,0.07), transparent 30%),
-        radial-gradient(circle at 78% 80%, rgba(92,146,255,0.07), transparent 30%),
-        linear-gradient(180deg, #030712 0%, #08111d 52%, #040915 100%);
+      background: var(--app-bg);
     }
 
     .stage-layer {
       position: absolute; inset: 0;
-      background:
-        radial-gradient(circle at 50% 14%, rgba(255,255,255,0.03), transparent 24%),
-        radial-gradient(circle at 14% 48%, rgba(96,146,255,0.04), transparent 26%),
-        radial-gradient(circle at 86% 50%, rgba(96,146,255,0.04), transparent 26%),
-        radial-gradient(circle at 50% 86%, rgba(255,255,255,0.018), transparent 24%),
-        linear-gradient(180deg, rgba(255,255,255,0.014), rgba(255,255,255,0.008));
+      background: var(--stage-bg);
       pointer-events: none;
     }
 
@@ -143,8 +249,8 @@
     }
 
     .mini-btn, .circle-btn {
-      width: 48px; height: 48px; border-radius: 16px; background: rgba(14,16,24,0.62);
-      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
+      width: 48px; height: 48px; border-radius: 16px; background: var(--glass-bg-strong);
+      border: 1px solid var(--glass-border); backdrop-filter: blur(14px);
       display: grid; place-items: center; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.22);
     }
 
@@ -166,7 +272,7 @@
 
     .mode-switch-btn {
       min-width: 88px; height: 58px; padding: 0 20px; border-radius: 22px;
-      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(14,16,24,0.78); border: 1px solid var(--glass-border);
       backdrop-filter: blur(14px); display: grid; place-items: center;
       font-size: 24px; font-weight: 700; line-height: 1; box-shadow: 0 10px 24px rgba(0,0,0,0.24);
       position: relative; top: 0;
@@ -175,7 +281,7 @@
     .clean-return-btn {
       position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 148px); transform: translateX(-50%);
       z-index: 38; min-width: 56px; height: 34px; padding: 0 14px; border-radius: 18px;
-      background: rgba(14,16,24,0.78); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px);
+      background: rgba(14,16,24,0.78); border: 1px solid var(--glass-border); backdrop-filter: blur(14px);
       display: none; place-items: center; font-size: 18px; font-weight: 700; line-height: 1;
       box-shadow: 0 10px 24px rgba(0,0,0,0.24); pointer-events: auto;
     }
@@ -191,9 +297,7 @@
         max(16px, env(safe-area-inset-right))
         calc(var(--safe-bottom) + 18px)
         max(16px, env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
-        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      background: var(--screen-bg);
       backdrop-filter: blur(20px);
       pointer-events: auto;
       overflow: hidden;
@@ -225,9 +329,9 @@
       gap: 14px;
       padding: 16px;
       border-radius: 28px;
-      background: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
       backdrop-filter: blur(22px);
     }
 
@@ -241,9 +345,7 @@
         max(16px, env(safe-area-inset-right))
         calc(var(--safe-bottom) + 18px)
         max(16px, env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
-        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      background: var(--screen-bg);
       backdrop-filter: blur(20px);
     }
 
@@ -287,7 +389,7 @@
       margin: 0;
       font-size: 13px;
       line-height: 1.5;
-      color: rgba(255,255,255,0.72);
+      color: var(--soft-text);
     }
 
     .library-song-swipe + .library-song-swipe {
@@ -303,8 +405,8 @@
       padding: 16px;
       border-radius: 28px;
       background: linear-gradient(180deg, rgba(13, 19, 31, 0.86), rgba(7, 11, 19, 0.82));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
       backdrop-filter: blur(22px);
       overflow: hidden;
     }
@@ -412,7 +514,7 @@
     .library-song-line small {
       font-size: inherit;
       font-weight: 500;
-      color: rgba(255,255,255,0.72);
+      color: var(--soft-text);
     }
 
     .library-song-swipe + .library-song-swipe {
@@ -452,8 +554,8 @@
     }
 
     .library-sort-btn.active {
-      background: linear-gradient(180deg, rgba(91,176,255,0.24), rgba(52,131,248,0.2));
-      border-color: rgba(124,176,255,0.34);
+      background: var(--chip-active-bg);
+      border-color: var(--chip-active-border);
       color: #fff;
     }
 
@@ -471,8 +573,8 @@
     }
 
     .library-filter-chip.active {
-      background: linear-gradient(180deg, rgba(91,176,255,0.24), rgba(52,131,248,0.2));
-      border-color: rgba(124,176,255,0.34);
+      background: var(--chip-active-bg);
+      border-color: var(--chip-active-border);
       color: #fff;
     }
 
@@ -480,35 +582,35 @@
     .panel-title h2 { margin: 0; font-size: 16px; color: white; }
     .panel-grid { display: grid; gap: 14px; }
     .field { display: grid; gap: 8px; }
-    .field label { font-size: 13px; color: rgba(255,255,255,0.72); }
+    .field label { font-size: 13px; color: var(--soft-text); }
     .field textarea, .field input[type="text"], .field input[type="password"], .field select, .field input[type="range"] { width: 100%; }
     .field textarea, .field input[type="text"], .field input[type="password"], .field select {
-      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: white;
+      border: 1px solid var(--card-border); background: rgba(255,255,255,0.06); color: white;
       border-radius: 18px; padding: 12px 14px; outline: none; font-size: 14px;
     }
     .field textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
-    .value-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: rgba(255,255,255,0.72); font-size: 12px; }
+    .value-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--soft-text); font-size: 12px; }
     .small-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .account-identity-row { display: grid; gap: 0; }
     .account-identity-btn { width: 100%; justify-content: flex-start; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ghost-btn {
-      min-height: 42px; padding: 10px 14px; border-radius: 14px; background: rgba(14,16,24,0.58);
-      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(14px); font-size: 14px; font-weight: 600;
+      min-height: 42px; padding: 10px 14px; border-radius: 14px; background: var(--glass-bg);
+      border: 1px solid var(--glass-border); backdrop-filter: blur(14px); font-size: 14px; font-weight: 600;
       box-shadow: 0 10px 30px rgba(0,0,0,0.22);
     }
     .small-row .ghost-btn { flex: 1; min-width: 110px; }
     .toggle-row {
       display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
-      border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03);
+      border-radius: 14px; border: 1px solid var(--card-border); background: var(--soft-bg);
     }
     .toggle-row span { color: rgba(255,255,255,0.76); font-size: 14px; }
     .switch { position: relative; width: 50px; height: 30px; display: inline-block; }
     .switch input { display: none; }
     .slider { position: absolute; inset: 0; cursor: pointer; background: rgba(255,255,255,0.12); transition: 0.25s; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08); }
     .slider::before { content: ""; position: absolute; width: 22px; height: 22px; left: 4px; top: 3px; border-radius: 50%; background: white; transition: 0.25s; }
-    .switch input:checked + .slider { background: linear-gradient(135deg, #4f8cff, #7cb0ff); }
+    .switch input:checked + .slider { background: var(--switch-active-bg); }
     .switch input:checked + .slider::before { transform: translateX(19px); }
-    .panel-note { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.6); }
+    .panel-note { font-size: 12px; line-height: 1.5; color: var(--note-text); }
     .hidden { display: none !important; }
 
     .more-options-wrap {
@@ -521,8 +623,8 @@
       min-height: 42px;
       padding: 10px 14px;
       border-radius: 14px;
-      background: rgba(14,16,24,0.58);
-      border: 1px solid rgba(255,255,255,0.16);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       backdrop-filter: blur(14px);
       box-shadow: 0 10px 30px rgba(0,0,0,0.22);
       color: #fff;
@@ -556,6 +658,76 @@
       display: grid;
     }
 
+
+    .themes-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .themes-toggle {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .themes-toggle::after {
+      content: "▾";
+      font-size: 14px;
+      line-height: 1;
+      color: var(--soft-text);
+      transition: transform 0.18s ease;
+    }
+
+    .themes-wrap.open .themes-toggle::after {
+      transform: rotate(180deg);
+    }
+
+    .themes-panel {
+      display: none;
+      gap: 10px;
+    }
+
+    .themes-wrap.open .themes-panel {
+      display: grid;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .theme-btn {
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--soft-border);
+      background: var(--soft-bg);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .theme-btn.active {
+      background: var(--chip-active-bg);
+      border-color: var(--chip-active-border);
+    }
+
     .detail-panel {
       position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 82px); transform: translateX(-50%);
       z-index: 37; display: none; align-items: center; justify-content: center; gap: 10px;
@@ -584,7 +756,7 @@
     .entry-screen {
       display: none; flex-direction: column; gap: 16px; padding: 26px 22px; border-radius: 30px;
       background: linear-gradient(180deg, rgba(13, 19, 31, 0.84), rgba(7, 11, 19, 0.76));
-      border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border); box-shadow: var(--card-shadow);
       backdrop-filter: blur(22px);
     }
     .entry-screen.active { display: flex; }
@@ -679,9 +851,7 @@
         max(16px, env(safe-area-inset-right))
         calc(var(--safe-bottom) + 18px)
         max(16px, env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 50% 0%, rgba(96,146,255,0.22), transparent 28%),
-        linear-gradient(180deg, rgba(5,9,16,0.96), rgba(3,6,12,0.98));
+      background: var(--screen-bg);
       backdrop-filter: blur(20px);
     }
 
@@ -725,7 +895,7 @@
       margin: 0;
       font-size: 13px;
       line-height: 1.5;
-      color: rgba(255,255,255,0.72);
+      color: var(--soft-text);
     }
 
     .fullscreen-card {
@@ -736,9 +906,9 @@
       min-height: 0;
       padding: 16px;
       border-radius: 28px;
-      background: linear-gradient(180deg, rgba(13,19,31,0.86), rgba(7,11,19,0.82));
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 26px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.05);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow);
       backdrop-filter: blur(22px);
       overflow: auto;
     }
@@ -749,8 +919,8 @@
     .auth-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .auth-actions-row .ghost-btn { flex: 1; min-width: 110px; }
     .sync-status-note {
-      padding: 10px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.72); font-size: 13px; line-height: 1.5;
+      padding: 10px 12px; border-radius: 14px; border: 1px solid var(--card-border);
+      background: var(--soft-bg); color: var(--soft-text); font-size: 13px; line-height: 1.5;
     }
     .library-actions-row {
       display: flex;
@@ -919,7 +1089,7 @@
       width: min(340px, calc(100vw - 28px));
       border-radius: 24px;
       background: rgba(8,12,18,0.94);
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid var(--card-border);
       backdrop-filter: blur(18px);
       box-shadow: 0 20px 50px rgba(0,0,0,0.34);
       padding: 16px;
@@ -938,7 +1108,7 @@
       margin: 0 0 14px;
       font-size: 13px;
       line-height: 1.5;
-      color: rgba(255,255,255,0.72);
+      color: var(--soft-text);
     }
 
     .library-song-swipe + .library-song-swipe {
@@ -1128,6 +1298,20 @@
               <input id="voiceFollowSpeed" type="range" min="20" max="100" value="62" />
               <div class="value-row"><span>Suave</span><strong id="voiceFollowSpeedValue">62%</strong><span>Rápida</span></div>
             </div>
+          </div>
+        </div>
+
+        <div class="themes-wrap" id="themesWrap">
+          <button class="themes-toggle" id="themesBtn" type="button">Temas</button>
+          <div class="themes-panel" id="themesPanel">
+            <div class="theme-grid" id="themeGrid">
+              <button class="theme-btn active" type="button" data-theme="original">Original</button>
+              <button class="theme-btn" type="button" data-theme="grafite-azul">Grafite azul</button>
+              <button class="theme-btn" type="button" data-theme="esmeralda">Esmeralda</button>
+              <button class="theme-btn" type="button" data-theme="ametista">Ametista</button>
+              <button class="theme-btn" type="button" data-theme="ambar-suave">Âmbar suave</button>
+            </div>
+            <div class="panel-note">Os temas mudam as cores do app, mas mantêm contraste e leitura confortáveis no palco.</div>
           </div>
         </div>
 
@@ -1360,7 +1544,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songs: [], currentSongId: null,
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
       toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
-      deferredInstallPrompt: null, installPromptAvailable: false
+      deferredInstallPrompt: null, installPromptAvailable: false,
+      currentTheme: 'original'
     };
 
     const app = $('app');
@@ -1395,6 +1580,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
     const moreOptionsWrap = $('moreOptionsWrap');
     const moreOptionsBtn = $('moreOptionsBtn');
+    const themesWrap = $('themesWrap');
+    const themesBtn = $('themesBtn');
+    const themeGrid = $('themeGrid');
     const authPanel = $('authPanel');
     const authEmailInput = $('authEmailInput');
     const authPasswordInput = $('authPasswordInput');
@@ -2321,12 +2509,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
     }
 
+    function applyTheme() {
+      document.documentElement.setAttribute('data-theme', state.currentTheme || 'original');
+      if (themeGrid) {
+        themeGrid.querySelectorAll('.theme-btn').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.theme === (state.currentTheme || 'original'));
+        });
+      }
+    }
+
     function applyStyles() {
       document.documentElement.style.setProperty('--font-size', `${fontSize.value}px`);
       document.documentElement.style.setProperty('--line-height', lineHeight.value);
       document.documentElement.style.setProperty('--text-width', `${textWidth.value}vw`);
       document.documentElement.style.setProperty('--overlay-opacity', Number(overlayOpacity.value) / 100);
       scriptInner.classList.toggle('mirror', state.mirror);
+      applyTheme();
     }
 
     function getLineElements() { return Array.from(scriptInner.querySelectorAll('.line')); }
@@ -2629,12 +2827,18 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openPanel() { libraryPanel.classList.remove('open'); authPanel.classList.remove('open'); registerPanel.classList.remove('open'); recoverPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
     function hidePanel() { sidePanel.classList.remove('open'); }
     function toggleMoreOptions() { if (moreOptionsWrap) moreOptionsWrap.classList.toggle('open'); }
+    function toggleThemes() { if (themesWrap) themesWrap.classList.toggle('open'); }
+    function selectTheme(themeName) {
+      state.currentTheme = themeName || 'original';
+      applyTheme();
+      persistSettings();
+    }
     function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) state.currentTheme = saved.theme; state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
     function getSampleSongs() {
@@ -2924,7 +3128,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); } $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
