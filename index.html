@@ -51,11 +51,12 @@
     }
 
     .stage-layer {
-      position: absolute; inset: 0;
-      background:
-        linear-gradient(180deg, rgba(8,16,28,0.18), rgba(8,16,28,0.04) 34%, rgba(8,16,28,0.14) 100%);
+      position: absolute;
+      inset: 0;
       pointer-events: none;
       overflow: hidden;
+      background:
+        linear-gradient(180deg, #07111d 0%, #091525 50%, #08121e 100%);
     }
 
     .stage-base-wash {
@@ -63,19 +64,19 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 50% 50%, rgba(74, 126, 220, 0.08), transparent 52%),
-        linear-gradient(180deg, rgba(10,18,30,0.1), rgba(10,18,30,0.02) 32%, rgba(10,18,30,0.1) 100%);
+        radial-gradient(circle at 50% 50%, rgba(86, 140, 235, 0.08), transparent 52%),
+        linear-gradient(180deg, rgba(10, 18, 30, 0.08), rgba(10, 18, 30, 0.02) 32%, rgba(10, 18, 30, 0.08) 100%);
       opacity: 0.95;
     }
 
     .stage-ambient {
       position: absolute;
-      inset: -18%;
+      inset: -24%;
       pointer-events: none;
-      filter: blur(72px);
+      filter: blur(82px);
       mix-blend-mode: screen;
       opacity: 1;
-      animation: ambientFieldMove 20s ease-in-out infinite alternate;
+      animation: ambientCanvasDrift 22s ease-in-out infinite alternate;
     }
 
     .stage-ambient::before,
@@ -89,34 +90,36 @@
 
     .stage-ambient::before {
       background:
-        radial-gradient(circle at 12% 18%, rgba(92,164,255,0.16), transparent 10%),
-        radial-gradient(circle at 82% 16%, rgba(116,176,255,0.14), transparent 11%),
-        radial-gradient(circle at 52% 48%, rgba(78,136,230,0.13), transparent 13%),
-        radial-gradient(circle at 20% 78%, rgba(120,196,255,0.12), transparent 11%),
-        radial-gradient(circle at 86% 74%, rgba(72,120,222,0.12), transparent 12%),
-        radial-gradient(circle at 50% 86%, rgba(150,205,255,0.09), transparent 10%),
-        radial-gradient(circle at 8% 48%, rgba(92,160,255,0.1), transparent 10%),
-        radial-gradient(circle at 94% 52%, rgba(130,188,255,0.09), transparent 10%);
-      background-size: 165% 165%;
+        radial-gradient(circle at 14% 18%, rgba(88, 154, 255, 0.16), transparent 10%),
+        radial-gradient(circle at 82% 16%, rgba(114, 174, 255, 0.14), transparent 11%),
+        radial-gradient(circle at 52% 46%, rgba(78, 136, 230, 0.13), transparent 14%),
+        radial-gradient(circle at 20% 78%, rgba(120, 196, 255, 0.12), transparent 11%),
+        radial-gradient(circle at 86% 74%, rgba(72, 120, 222, 0.12), transparent 12%),
+        radial-gradient(circle at 50% 86%, rgba(150, 205, 255, 0.09), transparent 10%),
+        radial-gradient(circle at 8% 48%, rgba(92, 160, 255, 0.10), transparent 10%),
+        radial-gradient(circle at 94% 52%, rgba(130, 188, 255, 0.09), transparent 10%),
+        radial-gradient(circle at 34% 8%, rgba(104, 172, 255, 0.08), transparent 9%),
+        radial-gradient(circle at 66% 92%, rgba(90, 150, 240, 0.08), transparent 10%);
+      background-size: 170% 170%;
       animation:
-        ambientPulse 16s ease-in-out infinite,
-        ambientShiftA 36s ease-in-out infinite;
+        ambientGlowFade 16s ease-in-out infinite,
+        ambientGlowTravel 36s ease-in-out infinite;
     }
 
     .stage-ambient::after {
       background:
-        radial-gradient(circle at 24% 12%, rgba(255,255,255,0.075), transparent 5.5%),
-        radial-gradient(circle at 68% 24%, rgba(255,255,255,0.055), transparent 6%),
-        radial-gradient(circle at 76% 58%, rgba(255,255,255,0.05), transparent 7%),
-        radial-gradient(circle at 18% 64%, rgba(255,255,255,0.045), transparent 6%),
-        radial-gradient(circle at 48% 84%, rgba(255,255,255,0.038), transparent 7%),
-        radial-gradient(circle at 88% 40%, rgba(255,255,255,0.032), transparent 5.5%),
-        radial-gradient(circle at 10% 34%, rgba(255,255,255,0.036), transparent 5.5%),
-        radial-gradient(circle at 92% 72%, rgba(255,255,255,0.03), transparent 6%);
-      background-size: 175% 175%;
+        radial-gradient(circle at 24% 12%, rgba(255,255,255,0.07), transparent 5.2%),
+        radial-gradient(circle at 68% 24%, rgba(255,255,255,0.052), transparent 5.8%),
+        radial-gradient(circle at 76% 58%, rgba(255,255,255,0.048), transparent 6.4%),
+        radial-gradient(circle at 18% 64%, rgba(255,255,255,0.042), transparent 5.8%),
+        radial-gradient(circle at 48% 84%, rgba(255,255,255,0.036), transparent 6.8%),
+        radial-gradient(circle at 88% 40%, rgba(255,255,255,0.032), transparent 5.2%),
+        radial-gradient(circle at 10% 34%, rgba(255,255,255,0.034), transparent 5.2%),
+        radial-gradient(circle at 92% 72%, rgba(255,255,255,0.028), transparent 5.8%);
+      background-size: 185% 185%;
       animation:
-        ambientDrift 14s ease-in-out infinite,
-        ambientShiftB 30s ease-in-out infinite;
+        ambientSparkFade 13s ease-in-out infinite,
+        ambientSparkTravel 30s ease-in-out infinite;
     }
 
     .stage-vignette {
@@ -124,59 +127,60 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 50% 50%, transparent 0%, rgba(4,8,14,0.04) 42%, rgba(3,6,11,0.2) 100%),
-        linear-gradient(180deg, rgba(3,6,11,0.08), rgba(3,6,11,0.01) 26%, rgba(3,6,11,0.08) 100%);
+        radial-gradient(circle at 50% 50%, transparent 0%, rgba(3, 7, 13, 0.04) 42%, rgba(2, 5, 10, 0.22) 100%),
+        linear-gradient(180deg, rgba(2, 5, 10, 0.08), rgba(2, 5, 10, 0.01) 28%, rgba(2, 5, 10, 0.08) 100%);
       opacity: 0.84;
     }
 
-    @keyframes ambientFieldMove {
-      0% { transform: translate3d(-2%, -1.8%, 0) scale(1); }
-      50% { transform: translate3d(1.8%, 1.6%, 0) scale(1.04); }
-      100% { transform: translate3d(-1.2%, 1.8%, 0) scale(1.08); }
+    @keyframes ambientCanvasDrift {
+      0% { transform: translate3d(-2.4%, -2%, 0) scale(1); }
+      50% { transform: translate3d(2.2%, 1.8%, 0) scale(1.04); }
+      100% { transform: translate3d(-1.4%, 2.2%, 0) scale(1.08); }
     }
 
-    @keyframes ambientPulse {
+    @keyframes ambientGlowFade {
+      0% { opacity: 0; transform: scale(0.94) translate3d(0, 0, 0); }
+      12% { opacity: 0.74; }
+      26% { opacity: 0.04; transform: scale(1.02) translate3d(2%, -1.2%, 0); }
+      42% { opacity: 0.82; }
+      58% { opacity: 0; transform: scale(1.07) translate3d(-2.2%, 1.8%, 0); }
+      74% { opacity: 0.68; }
+      90% { opacity: 0.03; transform: scale(1.04) translate3d(1.6%, 1.8%, 0); }
+      100% { opacity: 0.5; transform: scale(1.06) translate3d(-1.2%, -1%, 0); }
+    }
+
+    @keyframes ambientSparkFade {
       0% { opacity: 0; transform: scale(0.95) translate3d(0, 0, 0); }
-      14% { opacity: 0.72; }
-      30% { opacity: 0.06; transform: scale(1.02) translate3d(2%, -1.2%, 0); }
-      46% { opacity: 0.82; }
-      62% { opacity: 0; transform: scale(1.07) translate3d(-2.2%, 1.8%, 0); }
-      78% { opacity: 0.68; }
-      100% { opacity: 0.04; transform: scale(1.04) translate3d(1.4%, 1.8%, 0); }
+      16% { opacity: 0.52; }
+      34% { opacity: 0.02; transform: scale(1.03) translate3d(-1.8%, 1.4%, 0); }
+      52% { opacity: 0.66; }
+      70% { opacity: 0; transform: scale(1.07) translate3d(2.2%, -1.8%, 0); }
+      88% { opacity: 0.44; }
+      100% { opacity: 0.02; transform: scale(1.03) translate3d(-1.2%, 1.4%, 0); }
     }
 
-    @keyframes ambientDrift {
-      0% { opacity: 0; transform: scale(0.95) translate3d(0, 0, 0); }
-      18% { opacity: 0.58; }
-      36% { opacity: 0.03; transform: scale(1.04) translate3d(-1.8%, 1.4%, 0); }
-      54% { opacity: 0.74; }
-      72% { opacity: 0; transform: scale(1.08) translate3d(2.2%, -1.8%, 0); }
-      90% { opacity: 0.52; }
-      100% { opacity: 0.02; transform: scale(1.04) translate3d(-1.2%, 1.6%, 0); }
-    }
-
-    @keyframes ambientShiftA {
+    @keyframes ambientGlowTravel {
       0% {
-        background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 50% 100%, 0% 50%, 100% 50%;
+        background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 50% 100%, 0% 50%, 100% 50%, 34% 0%, 66% 100%;
       }
       18% {
-        background-position: 20% 12%, 78% 20%, 60% 34%, 10% 82%, 88% 70%, 42% 78%, 8% 42%, 92% 58%;
+        background-position: 18% 12%, 78% 20%, 60% 34%, 10% 82%, 88% 70%, 42% 78%, 8% 42%, 92% 58%, 26% 14%, 72% 82%;
       }
       38% {
-        background-position: 6% 28%, 92% 34%, 40% 64%, 24% 66%, 72% 88%, 60% 54%, 18% 56%, 84% 42%;
+        background-position: 6% 28%, 92% 34%, 40% 64%, 24% 66%, 72% 88%, 60% 54%, 18% 56%, 84% 42%, 46% 6%, 58% 94%;
       }
       58% {
-        background-position: 30% 8%, 66% 24%, 54% 40%, 4% 92%, 84% 54%, 34% 88%, 2% 64%, 94% 34%;
+        background-position: 30% 8%, 66% 24%, 54% 40%, 4% 92%, 84% 54%, 34% 88%, 2% 64%, 94% 34%, 22% 24%, 78% 72%;
       }
       78% {
-        background-position: 14% 34%, 86% 10%, 44% 58%, 20% 74%, 80% 80%, 66% 66%, 10% 22%, 88% 82%;
+        background-position: 14% 34%, 86% 10%, 44% 58%, 20% 74%, 80% 80%, 66% 66%, 10% 22%, 88% 82%, 40% 12%, 54% 86%;
       }
       100% {
-        background-position: 36% 14%, 62% 36%, 70% 36%, 8% 62%, 70% 96%, 44% 82%, 20% 46%, 78% 64%;
+        background-position: 36% 14%, 62% 36%, 70% 36%, 8% 62%, 70% 96%, 44% 82%, 20% 46%, 78% 64%, 12% 30%, 86% 60%;
       }
     }
 
-    @keyframes ambientShiftB {
+    @keyframes ambientSparkTravel {
       0% {
         background-position: 0% 0%, 100% 0%, 100% 60%, 0% 60%, 50% 100%, 100% 38%, 0% 34%, 100% 72%;
       }
