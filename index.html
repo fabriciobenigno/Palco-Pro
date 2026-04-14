@@ -1878,19 +1878,29 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function pullSongsFromCloud() {
-      if (!state.supabase || !state.currentUser) return;
+      if (!state.supabase || !state.currentUser) {
+        return { ok: false, reason: 'no_session', songs: null };
+      }
+
+      const userId = state.currentUser.id;
       const { data, error } = await state.supabase
         .from('songs')
-        .select('id, song_title, artist, style, lyrics, updated_at')
-        .eq('user_id', state.currentUser.id)
+        .select('id, song_title, artist, style, lyrics, updated_at, user_id')
+        .eq('user_id', userId)
         .order('updated_at', { ascending: false });
-      if (error) throw error;
 
-      const cloudSongs = (data || []).map(sanitizeCloudSong);
+      if (error) {
+        throw error;
+      }
+
+      const cloudSongs = Array.isArray(data) ? data.map(sanitizeCloudSong) : [];
+
       state.songs = cloudSongs;
       saveSongs();
       renderRepertoire();
       renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+
+      return { ok: true, songs: cloudSongs };
     }
 
     async function syncSongsToCloud(options = {}) {
@@ -1903,14 +1913,30 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         updateSyncStatus('Sem internet no momento. Seus dados continuam salvos localmente.');
         return;
       }
+
+      const localSnapshot = Array.isArray(state.songs) ? state.songs.map(song => ({ ...song })) : [];
+
       state.syncInFlight = true;
       updateSyncStatus('Resgatando repertório da conta...');
       try {
-        await pullSongsFromCloud();
+        const result = await pullSongsFromCloud();
+        if (!result?.ok) {
+          state.songs = localSnapshot;
+          saveSongs();
+          renderRepertoire();
+          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+          updateSyncStatus('Não foi possível validar a conta agora. Seu repertório local foi mantido.');
+          return;
+        }
+
         state.lastSyncAt = Date.now();
         setSyncStatusFromState('Repertório resgatado da conta.');
       } catch (error) {
-        updateSyncStatus(`Falha na sincronização. ${error.message || 'Tente novamente.'}`.trim());
+        state.songs = localSnapshot;
+        saveSongs();
+        renderRepertoire();
+        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        updateSyncStatus(`Falha na sincronização. Seu repertório local foi mantido. ${error.message || 'Tente novamente.'}`.trim());
       } finally {
         state.syncInFlight = false;
       }
@@ -1982,9 +2008,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         updateAuthStatus(`Conta conectada: ${state.currentUser.email || email}.`);
         setSyncStatusFromState('Login concluído.');
         showToast('Login realizado');
-        await pullSongsFromCloud();
-        state.lastSyncAt = Date.now();
-        setSyncStatusFromState('Repertório carregado da conta.');
+        const result = await pullSongsFromCloud();
+        if (result?.ok) {
+          state.lastSyncAt = Date.now();
+          setSyncStatusFromState('Repertório carregado da conta.');
+        } else {
+          setSyncStatusFromState('Login concluído, mas não foi possível carregar a conta agora.');
+        }
         setTimeout(() => {
           hideAuthPanel();
         }, 950);
@@ -2040,9 +2070,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
           setSyncStatusFromState();
           try {
-            await pullSongsFromCloud();
-            state.lastSyncAt = Date.now();
-            setSyncStatusFromState('Repertório carregado da conta.');
+            const result = await pullSongsFromCloud();
+            if (result?.ok) {
+              state.lastSyncAt = Date.now();
+              setSyncStatusFromState('Repertório carregado da conta.');
+            } else {
+              setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da conta agora.');
+            }
           } catch (_) {
             setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da conta agora.');
           }
