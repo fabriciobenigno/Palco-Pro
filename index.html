@@ -63,24 +63,49 @@
 
     .stage-ambient {
       position: absolute;
-      inset: -16%;
+      inset: -18%;
       pointer-events: none;
-      filter: blur(54px);
+      filter: blur(58px);
       opacity: 1;
       mix-blend-mode: screen;
-      animation: ambientFloat 12s ease-in-out infinite alternate;
+      animation: ambientFloat 14s ease-in-out infinite alternate;
     }
 
     .stage-ambient::before,
     .stage-ambient::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      will-change: transform, opacity, background-position;
+    }
+
+    .stage-ambient::before {
       background:
-        radial-gradient(circle at 28% 14%, rgba(255,255,255,0.06), transparent 11%),
-        radial-gradient(circle at 66% 24%, rgba(255,255,255,0.045), transparent 10%),
-        radial-gradient(circle at 74% 60%, rgba(255,255,255,0.05), transparent 12%),
-        radial-gradient(circle at 18% 64%, rgba(255,255,255,0.04), transparent 10%),
-        radial-gradient(circle at 50% 84%, rgba(255,255,255,0.035), transparent 13%),
-        radial-gradient(circle at 90% 42%, rgba(255,255,255,0.03), transparent 9%);
-      animation: ambientDrift 14s ease-in-out infinite alternate;
+        radial-gradient(circle at 14% 18%, rgba(91, 176, 255, 0.18), transparent 18%),
+        radial-gradient(circle at 82% 16%, rgba(124, 176, 255, 0.16), transparent 20%),
+        radial-gradient(circle at 52% 48%, rgba(79, 140, 255, 0.13), transparent 24%),
+        radial-gradient(circle at 20% 78%, rgba(120, 196, 255, 0.12), transparent 18%),
+        radial-gradient(circle at 86% 74%, rgba(68, 118, 230, 0.12), transparent 21%),
+        radial-gradient(circle at 50% 86%, rgba(150, 205, 255, 0.09), transparent 17%);
+      background-size: 135% 135%;
+      animation:
+        ambientPulse 9.5s ease-in-out infinite alternate,
+        ambientShiftA 26s ease-in-out infinite alternate;
+    }
+
+    .stage-ambient::after {
+      background:
+        radial-gradient(circle at 26% 14%, rgba(255,255,255,0.085), transparent 10%),
+        radial-gradient(circle at 68% 24%, rgba(255,255,255,0.06), transparent 10%),
+        radial-gradient(circle at 76% 58%, rgba(255,255,255,0.055), transparent 11%),
+        radial-gradient(circle at 18% 62%, rgba(255,255,255,0.05), transparent 10%),
+        radial-gradient(circle at 48% 84%, rgba(255,255,255,0.04), transparent 12%),
+        radial-gradient(circle at 88% 40%, rgba(255,255,255,0.035), transparent 9%);
+      background-size: 145% 145%;
+      animation:
+        ambientDrift 11.5s ease-in-out infinite alternate,
+        ambientShiftB 22s ease-in-out infinite alternate;
     }
 
     .stage-vignette {
@@ -88,36 +113,65 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(circle at 50% 50%, transparent 0%, rgba(3, 7, 13, 0.06) 46%, rgba(2,4,9,0.24) 100%),
-        linear-gradient(180deg, rgba(2,4,9,0.12), rgba(2,4,9,0.01) 28%, rgba(2,4,9,0.1) 100%);
-      opacity: 0.82;
+        radial-gradient(circle at 50% 50%, transparent 0%, rgba(3, 7, 13, 0.05) 44%, rgba(2,4,9,0.22) 100%),
+        linear-gradient(180deg, rgba(2,4,9,0.1), rgba(2,4,9,0.015) 28%, rgba(2,4,9,0.1) 100%);
+      opacity: 0.84;
     }
 
     @keyframes ambientFloat {
-      0% { transform: translate3d(-3.5%, -2.5%, 0) scale(1); }
-      50% { transform: translate3d(2.8%, 2.4%, 0) scale(1.06); }
-      100% { transform: translate3d(-2%, 1.8%, 0) scale(1.1); }
-    }
-      50% { transform: translate3d(1.2%, 1.6%, 0) scale(1.03); }
-      100% { transform: translate3d(-0.8%, 0.8%, 0) scale(1.05); }
+      0% { transform: translate3d(-3%, -2.2%, 0) scale(1); }
+      50% { transform: translate3d(2.6%, 2%, 0) scale(1.05); }
+      100% { transform: translate3d(-1.8%, 1.6%, 0) scale(1.09); }
     }
 
     @keyframes ambientPulse {
-      0% { opacity: 0.78; transform: scale(1) translate3d(0, 0, 0); }
-      50% { opacity: 1; transform: scale(1.08) translate3d(2.4%, -1.8%, 0); }
-      100% { opacity: 0.84; transform: scale(1.04) translate3d(-2%, 2.2%, 0); }
-    }
-      50% { opacity: 0.96; transform: scale(1.04) translate3d(1.2%, -0.8%, 0); }
-      100% { opacity: 0.78; transform: scale(1.02) translate3d(-1%, 1.1%, 0); }
+      0% { opacity: 0.72; transform: scale(0.98) translate3d(0, 0, 0); }
+      30% { opacity: 0.95; transform: scale(1.05) translate3d(2%, -1.4%, 0); }
+      65% { opacity: 0.55; transform: scale(1.02) translate3d(-1.8%, 1.8%, 0); }
+      100% { opacity: 0.86; transform: scale(1.07) translate3d(1.2%, 2.1%, 0); }
     }
 
     @keyframes ambientDrift {
-      0% { opacity: 0.52; transform: translate3d(0, 0, 0) scale(1); }
-      50% { opacity: 0.8; transform: translate3d(-2.8%, 2.1%, 0) scale(1.06); }
-      100% { opacity: 0.6; transform: translate3d(2.2%, -2.4%, 0) scale(1.1); }
+      0% { opacity: 0.34; transform: scale(0.98) translate3d(0, 0, 0); }
+      25% { opacity: 0.72; transform: scale(1.04) translate3d(-2%, 1.4%, 0); }
+      55% { opacity: 0.26; transform: scale(1.08) translate3d(2.4%, -2%, 0); }
+      100% { opacity: 0.62; transform: scale(1.06) translate3d(-1.4%, 2.2%, 0); }
     }
-      50% { opacity: 0.72; transform: translate3d(-1.4%, 1.2%, 0) scale(1.03); }
-      100% { opacity: 0.55; transform: translate3d(1.2%, -1.5%, 0) scale(1.05); }
+
+    @keyframes ambientShiftA {
+      0% {
+        background-position: 0% 0%, 100% 0%, 50% 50%, 0% 100%, 100% 100%, 50% 100%;
+      }
+      20% {
+        background-position: 16% 8%, 84% 14%, 60% 38%, 10% 86%, 92% 72%, 40% 80%;
+      }
+      40% {
+        background-position: 34% 18%, 66% 22%, 44% 60%, 20% 68%, 78% 86%, 58% 58%;
+      }
+      65% {
+        background-position: 12% 28%, 88% 34%, 62% 36%, 6% 94%, 84% 62%, 36% 88%;
+      }
+      100% {
+        background-position: 28% 12%, 72% 18%, 48% 54%, 16% 78%, 82% 88%, 62% 70%;
+      }
+    }
+
+    @keyframes ambientShiftB {
+      0% {
+        background-position: 0% 0%, 100% 0%, 100% 60%, 0% 60%, 50% 100%, 100% 38%;
+      }
+      22% {
+        background-position: 12% 10%, 90% 18%, 82% 68%, 8% 52%, 42% 88%, 84% 28%;
+      }
+      48% {
+        background-position: 30% 8%, 72% 28%, 68% 48%, 22% 74%, 56% 72%, 94% 48%;
+      }
+      72% {
+        background-position: 16% 24%, 84% 36%, 88% 74%, 14% 64%, 48% 94%, 76% 20%;
+      }
+      100% {
+        background-position: 30% 12%, 74% 20%, 80% 58%, 20% 70%, 60% 82%, 92% 34%;
+      }
     }
 
     .teleprompter-overlay {
