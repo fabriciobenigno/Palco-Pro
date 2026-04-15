@@ -1653,6 +1653,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
+    const DELETED_SONG_IDS_KEY = 'palco-pro-deleted-song-ids-v1';
 
     const state = {
       wasPlayingBeforeDrag: false,
@@ -1663,7 +1664,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       speechCursor: 0, mirror: false, cleanMode: true, anchorIndex: 0, anchorProgress: 0.5,
       textDragging: false, textDragPointerId: null, textDragStartY: 0, textDragLastY: 0, textDragMoved: false,
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
-      songs: [], currentSongId: null,
+      songs: [], currentSongId: null, pendingDeletedSongIds: [],
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
       toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
       deferredInstallPrompt: null, installPromptAvailable: false,
@@ -1762,6 +1763,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     async function upsertSongInCloud(song) {
       if (!state.supabase || !state.currentUser || !navigator.onLine || !song?.id) return;
+      clearPendingSongDeletion(song.id);
       const payload = {
         id: song.id,
         user_id: state.currentUser.id,
@@ -1780,24 +1782,92 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function normalizeLocalSong(song) {
       return {
-        id: song.id,
-        title: song.title || 'Sem título',
-        artist: song.artist || '',
-        style: song.style || '',
-        lyrics: sanitizeLyrics(song.lyrics || '')
+        id: song?.id || createSongId(),
+        title: song?.title || 'Sem título',
+        artist: song?.artist || '',
+        style: song?.style || '',
+        lyrics: sanitizeLyrics(song?.lyrics || '')
       };
+    }
+
+    function getPendingDeletedSongIds() {
+      return Array.isArray(state.pendingDeletedSongIds) ? state.pendingDeletedSongIds.filter(Boolean) : [];
+    }
+
+    function savePendingDeletedSongIds() {
+      localStorage.setItem(DELETED_SONG_IDS_KEY, JSON.stringify(getPendingDeletedSongIds()));
+    }
+
+    function loadPendingDeletedSongIds() {
+      try {
+        state.pendingDeletedSongIds = JSON.parse(localStorage.getItem(DELETED_SONG_IDS_KEY) || '[]');
+      } catch (_) {
+        state.pendingDeletedSongIds = [];
+      }
+      if (!Array.isArray(state.pendingDeletedSongIds)) {
+        state.pendingDeletedSongIds = [];
+      }
+      state.pendingDeletedSongIds = Array.from(new Set(state.pendingDeletedSongIds.filter((id) => typeof id === 'string' && id.trim())));
+      savePendingDeletedSongIds();
+    }
+
+    function markSongDeletionPending(songId) {
+      if (!songId) return;
+      const nextIds = new Set(getPendingDeletedSongIds());
+      nextIds.add(songId);
+      state.pendingDeletedSongIds = Array.from(nextIds);
+      savePendingDeletedSongIds();
+    }
+
+    function clearPendingSongDeletion(songIds) {
+      const ids = Array.isArray(songIds) ? songIds : [songIds];
+      const removeSet = new Set(ids.filter(Boolean));
+      if (!removeSet.size) return;
+      state.pendingDeletedSongIds = getPendingDeletedSongIds().filter((id) => !removeSet.has(id));
+      savePendingDeletedSongIds();
+    }
+
+    async function flushPendingSongDeletes() {
+      const pendingIds = getPendingDeletedSongIds();
+      if (!pendingIds.length || !state.supabase || !state.currentUser || !navigator.onLine) return 0;
+
+      let deletedCount = 0;
+      for (const songId of pendingIds) {
+        const { error } = await state.supabase
+          .from('songs')
+          .delete()
+          .eq('user_id', state.currentUser.id)
+          .eq('id', songId);
+        if (error) throw error;
+        deletedCount += 1;
+      }
+
+      clearPendingSongDeletion(pendingIds);
+      state.lastSyncAt = Date.now();
+      return deletedCount;
+    }
+
+    async function pushSongsToCloud(songs = []) {
+      if (!state.supabase || !state.currentUser || !navigator.onLine) return 0;
+      let syncedCount = 0;
+      for (const song of (songs || [])) {
+        await upsertSongInCloud(song);
+        syncedCount += 1;
+      }
+      return syncedCount;
     }
 
     function mergeSongCollections(localSongs = [], cloudSongs = []) {
       const mergedMap = new Map();
+      const pendingDeletedIds = new Set(getPendingDeletedSongIds());
 
       (localSongs || []).forEach((song) => {
-        if (!song?.id) return;
+        if (!song?.id || pendingDeletedIds.has(song.id)) return;
         mergedMap.set(song.id, normalizeLocalSong(song));
       });
 
       (cloudSongs || []).forEach((song) => {
-        if (!song?.id) return;
+        if (!song?.id || pendingDeletedIds.has(song.id)) return;
         mergedMap.set(song.id, normalizeLocalSong(song));
       });
 
@@ -2436,8 +2506,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const localSnapshot = Array.isArray(state.songs) ? state.songs.map(song => ({ ...song })) : [];
 
       state.syncInFlight = true;
-      updateSyncStatus('Resgatando repertório da conta...');
+      updateSyncStatus('Sincronizando repertório da conta...');
       try {
+        await flushPendingSongDeletes();
         const result = await pullSongsFromCloud();
         if (!result?.ok) {
           replaceSongsState(localSnapshot);
@@ -2447,6 +2518,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
         const mergedSongs = mergeSongCollections(localSnapshot, result.songs || []);
         persistSongsState(mergedSongs);
+        await pushSongsToCloud(mergedSongs);
         state.lastSyncAt = Date.now();
         setSyncStatusFromState('Repertório do usuário sincronizado com o servidor.');
       } catch (error) {
@@ -2523,15 +2595,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         updateAuthStatus(`Conta conectada: ${state.currentUser.email || email}.`);
         setSyncStatusFromState('Login concluído.');
         showToast('Login realizado');
-        const result = await pullSongsFromCloud();
-        if (result?.ok) {
-          const mergedSongs = mergeSongCollections(state.songs, result.songs || []);
-          persistSongsState(mergedSongs);
-          state.lastSyncAt = Date.now();
-          setSyncStatusFromState('Repertório carregado da conta.');
-        } else {
-          setSyncStatusFromState('Login concluído, mas não foi possível carregar a conta agora.');
-        }
+        await syncSongsToCloud({ manual: true });
         setTimeout(() => {
           hideAuthPanel();
         }, 950);
@@ -2587,15 +2651,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           updateAuthStatus(`Conta conectada: ${state.currentUser.email || 'usuário logado'}.`);
           setSyncStatusFromState();
           try {
-            const result = await pullSongsFromCloud();
-            if (result?.ok) {
-              const mergedSongs = mergeSongCollections(state.songs, result.songs || []);
-              persistSongsState(mergedSongs);
-              state.lastSyncAt = Date.now();
-              setSyncStatusFromState('Repertório carregado da conta.');
-            } else {
-              setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da conta agora.');
-            }
+            await syncSongsToCloud();
           } catch (_) {
             setSyncStatusFromState('Conta conectada. Não foi possível atualizar o repertório da conta agora.');
           }
@@ -2968,6 +3024,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function loadSongs() {
+      loadPendingDeletedSongIds();
       try {
         state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       } catch (_) {
@@ -2976,7 +3033,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!Array.isArray(state.songs)) {
         state.songs = [];
       }
-      state.songs = state.songs.map(normalizeLocalSong);
+      const pendingDeletedIds = new Set(getPendingDeletedSongIds());
+      state.songs = state.songs
+        .map(normalizeLocalSong)
+        .filter((song) => song?.id && !pendingDeletedIds.has(song.id));
       ensureSongIdsAreValid();
       saveSongs();
       renderRepertoire();
@@ -3101,6 +3161,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const nextSongs = previousSongs.filter(song => song.id !== songId);
 
       persistSongsState(nextSongs);
+      markSongDeletionPending(songId);
       if (state.currentSongId === songId) state.currentSongId = null;
       if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
       hideSongActions();
@@ -3108,24 +3169,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       if (state.supabase && state.currentUser && navigator.onLine) {
         try {
-          const { error } = await state.supabase
-            .from('songs')
-            .delete()
-            .eq('user_id', state.currentUser.id)
-            .eq('id', songId);
-          if (error) throw error;
-          state.lastSyncAt = Date.now();
+          await flushPendingSongDeletes();
           setSyncStatusFromState('Exclusão sincronizada com a conta.');
         } catch (error) {
-          persistSongsState(previousSongs);
-          updateSyncStatus(`Não foi possível excluir da conta agora. A música foi restaurada no repertório local. ${error.message || 'Tente novamente.'}`.trim());
+          updateSyncStatus(`A música foi removida do aparelho e ficará pendente para exclusão na conta. ${error.message || 'Tente novamente.'}`.trim());
         }
         return;
       }
 
       if (state.currentUser && !navigator.onLine) {
-        persistSongsState(previousSongs);
-        updateSyncStatus('Para excluir definitivamente da conta, conecte-se à internet e tente novamente. A música foi restaurada no repertório local.');
+        updateSyncStatus('A música foi removida do aparelho e será excluída da conta quando houver internet.');
       }
     }
     function confirmDeleteSong(songId) {
