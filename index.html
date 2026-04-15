@@ -1236,142 +1236,6 @@
       margin-top: 1px;
     }
 
-
-    .list-editor-panel {
-      z-index: 61;
-      pointer-events: auto;
-    }
-
-    .list-editor-panel .fullscreen-card {
-      gap: 12px;
-      overflow: auto;
-    }
-
-    .library-list-card {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(17,22,31,0.94);
-      color: #fff;
-      text-align: left;
-      padding: 14px 14px;
-      display: grid;
-      gap: 5px;
-      cursor: pointer;
-    }
-
-    .library-list-card:last-child {
-      border-bottom: 0;
-    }
-
-    .library-list-card-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .library-list-card-meta {
-      font-size: 12px;
-      color: var(--soft-text);
-    }
-
-    .library-active-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-left: 8px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(124,176,255,0.18);
-      border: 1px solid rgba(124,176,255,0.28);
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-      vertical-align: middle;
-    }
-
-    .selector-results {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      overflow: auto;
-      border-radius: 22px;
-      background: rgba(9,13,20,0.54);
-      border: 1px solid rgba(255,255,255,0.08);
-      min-height: 240px;
-    }
-
-    .selector-row {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(17,22,31,0.94);
-      color: #fff;
-      text-align: left;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-    }
-
-    .selector-row:last-child {
-      border-bottom: 0;
-    }
-
-    .selector-check {
-      width: 20px;
-      height: 20px;
-      accent-color: #7cb0ff;
-      flex: 0 0 20px;
-    }
-
-    .selector-content {
-      min-width: 0;
-      display: grid;
-      gap: 4px;
-      flex: 1;
-    }
-
-    .selector-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .selector-meta {
-      font-size: 12px;
-      color: var(--soft-text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .list-editor-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: var(--soft-text);
-      font-size: 12px;
-      line-height: 1.45;
-    }
-
-    .list-editor-topbar strong {
-      color: #fff;
-      font-size: 13px;
-    }
-
     @media (max-width: 560px) {
       :root { --text-width: 90vw; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
@@ -1456,17 +1320,15 @@
         <div class="library-card">
           <div class="library-actions-row">
             <button class="ghost-btn" id="newSongBtn">Cadastrar música</button>
-            <button class="ghost-btn" id="createListBtn">Criar lista</button>
           </div>
           <div class="field">
-            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor, estilo ou lista" />
+            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
           </div>
           <div class="library-sort-row" id="librarySortControls">
             <button class="library-sort-btn active" type="button" data-sort="alpha">Alfabética</button>
             <button class="library-sort-btn" type="button" data-sort="artist">Artista</button>
             <button class="library-sort-btn" type="button" data-sort="style">Estilo</button>
             <button class="library-sort-btn" type="button" data-sort="created_oldest">Cadastro</button>
-            <button class="library-sort-btn" type="button" data-sort="lists">Listas</button>
           </div>
           <div class="library-sort-row hidden" id="libraryFilterOptions"></div>
           <div class="field" style="min-height:0; flex:1;">
@@ -1761,37 +1623,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       </div>
     </div>
 
-    <div class="fullscreen-screen list-editor-panel" id="listEditorPanel">
-      <div class="fullscreen-shell">
-        <div class="fullscreen-header">
-          <div class="fullscreen-title-wrap">
-            <h2 class="fullscreen-title" id="listEditorTitle">Criar lista</h2>
-            <p class="fullscreen-subtitle" id="listEditorSubtitle">Escolha um nome e selecione as músicas do seu repertório pessoal.</p>
-          </div>
-          <button class="mini-btn close-icon-btn" id="hideListEditorBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
-        </div>
-
-        <div class="fullscreen-card">
-          <div class="field">
-            <label for="listNameInput">Nome da lista</label>
-            <input id="listNameInput" type="text" placeholder="Ex.: Louvor de domingo" />
-          </div>
-
-          <div class="list-editor-topbar">
-            <div><strong id="listEditorModeLabel">Nova lista</strong><br><span>Marque as músicas que devem fazer parte desta lista.</span></div>
-            <div id="listSelectionCount">0 selecionadas</div>
-          </div>
-
-          <div class="selector-results" id="listSongSelector"></div>
-
-          <div class="editor-actions-row">
-            <button class="ghost-btn hidden" id="deleteListBtn">Excluir lista</button>
-            <button class="ghost-btn" id="saveListBtn">Salvar lista</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="controls-bar">
       <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
@@ -1822,7 +1653,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
-    const LISTS_KEY = 'palco-pro-lists-v1';
     const DELETED_SONG_IDS_KEY = 'palco-pro-deleted-song-ids-v1';
 
     const state = {
@@ -1837,7 +1667,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songs: [], currentSongId: null, pendingDeletedSongIds: [],
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
       toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
-      lists: [], activeListId: null, editingListId: null, listEditorSelection: [],
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original'
     };
@@ -1907,16 +1736,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const entryInstallSteps = $('entryInstallSteps');
     const entryAndroidInstallActions = $('entryAndroidInstallActions');
     const androidInstallBtn = $('androidInstallBtn');
-    const createListBtn = $('createListBtn');
-    const listEditorPanel = $('listEditorPanel');
-    const listEditorTitle = $('listEditorTitle');
-    const listEditorSubtitle = $('listEditorSubtitle');
-    const listEditorModeLabel = $('listEditorModeLabel');
-    const listNameInput = $('listNameInput');
-    const listSongSelector = $('listSongSelector');
-    const listSelectionCount = $('listSelectionCount');
-    const saveListBtn = $('saveListBtn');
-    const deleteListBtn = $('deleteListBtn');
 
     const SUPABASE_URL = 'https://dlcjcsbdabjupsiwlncd.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2JU7mYP9oeeUvzncDuZMRw_8p3lzGfT';
@@ -2927,7 +2746,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function beginTextDrag(pointerId, y) { state.textDragging = true; state.textDragPointerId = pointerId; state.textDragStartY = y; state.textDragLastY = y; state.textDragMoved = false; state.wasPlayingBeforeDrag = state.playing; promptContent.classList.add('dragging-text'); }
     function moveTextDrag(y) { if (!state.textDragging) return; const delta = y - state.textDragLastY; state.textDragLastY = y; if (Math.abs(y - state.textDragStartY) > 2) state.textDragMoved = true; state.scrollOffset += delta; applyScroll(true); }
     function endTextDrag() { if (!state.textDragging) return; state.textDragging = false; state.textDragPointerId = null; promptContent.classList.remove('dragging-text'); const lines = getLineElements(); if (lines.length) { const contentRect = promptContent.getBoundingClientRect(); const guideY = contentRect.top + contentRect.height * 0.24; let closestIndex = state.currentLine; let closestDistance = Infinity; let closestRect = null; lines.forEach((line, index) => { const rect = line.getBoundingClientRect(); const centerY = rect.top + rect.height / 2; const distance = Math.abs(centerY - guideY); if (distance < closestDistance) { closestDistance = distance; closestIndex = index; closestRect = rect; } }); state.currentLine = closestIndex; const lineWords = getLineWords(closestIndex); const lineStart = getLineStartIndex(closestIndex); let spokenInsideLine = 0; if (closestRect && lineWords.length) { const relative = Math.max(0, Math.min(1, (guideY - closestRect.top) / Math.max(1, closestRect.height))); spokenInsideLine = Math.max(0, Math.min(lineWords.length - 1, Math.floor(relative * lineWords.length))); } state.speechCursor = Math.min(state.flatWords.length, lineStart + spokenInsideLine); markLines(); } if (state.wasPlayingBeforeDrag) { startScroll(); } state.wasPlayingBeforeDrag = false; }
-    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open') || listEditorPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
+    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || authPanel.classList.contains('open') || registerPanel.classList.contains('open') || recoverPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
     function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
@@ -3192,206 +3011,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       applyTheme();
       persistSettings();
     }
-    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); hideListEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
+    function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, activeListId: state.activeListId, theme: state.currentTheme })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.activeListId === 'string') state.activeListId = saved.activeListId || null; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
-
     function getSampleSongs() {
       return [];
-    }
-
-    function normalizeListItem(listItem) {
-      if (!listItem || typeof listItem !== 'object') return null;
-      const name = typeof listItem.name === 'string' ? listItem.name.trim() : '';
-      const songIds = Array.isArray(listItem.songIds) ? listItem.songIds.filter((id) => typeof id === 'string' && id.trim()) : [];
-      return {
-        id: typeof listItem.id === 'string' && listItem.id ? listItem.id : createSongId(),
-        name: name || 'Minha lista',
-        songIds: Array.from(new Set(songIds)),
-        createdAt: listItem.createdAt || new Date().toISOString(),
-        updatedAt: listItem.updatedAt || new Date().toISOString()
-      };
-    }
-
-    function saveLists() {
-      localStorage.setItem(LISTS_KEY, JSON.stringify(state.lists));
-    }
-
-    function loadLists() {
-      try {
-        state.lists = JSON.parse(localStorage.getItem(LISTS_KEY) || '[]');
-      } catch (_) {
-        state.lists = [];
-      }
-      if (!Array.isArray(state.lists)) state.lists = [];
-      state.lists = state.lists.map(normalizeListItem).filter(Boolean);
-      saveLists();
-      if (state.activeListId && !state.lists.some((list) => list.id === state.activeListId)) {
-        state.activeListId = null;
-      }
-    }
-
-    function getListById(listId) {
-      return state.lists.find((list) => list.id === listId) || null;
-    }
-
-    function getSongsForList(listId) {
-      const list = getListById(listId);
-      if (!list) return [];
-      return list.songIds.map((songId) => state.songs.find((song) => song.id === songId)).filter(Boolean);
-    }
-
-    function syncListsWithSongs() {
-      const validSongIds = new Set(state.songs.map((song) => song.id));
-      let changed = false;
-      state.lists = state.lists.map((list) => {
-        const nextSongIds = list.songIds.filter((songId) => validSongIds.has(songId));
-        if (nextSongIds.length !== list.songIds.length) {
-          changed = true;
-          return { ...list, songIds: nextSongIds, updatedAt: new Date().toISOString() };
-        }
-        return list;
-      });
-      if (changed) saveLists();
-      if (state.activeListId && !getSongsForList(state.activeListId).length) {
-        state.activeListId = null;
-      }
-    }
-
-    function openListEditor(listId = null) {
-      state.editingListId = listId || null;
-      const list = listId ? getListById(listId) : null;
-      listEditorTitle.textContent = list ? 'Editar lista' : 'Criar lista';
-      listEditorSubtitle.textContent = list
-        ? 'Ajuste o nome e as músicas desta lista sem alterar o repertório original.'
-        : 'Escolha um nome e selecione as músicas do seu repertório pessoal.';
-      listEditorModeLabel.textContent = list ? 'Lista personalizada' : 'Nova lista';
-      listNameInput.value = list?.name || '';
-      state.listEditorSelection = Array.isArray(list?.songIds) ? list.songIds.slice() : [];
-      deleteListBtn.classList.toggle('hidden', !list);
-      hideSongEditor();
-      hideSuggestionsPanel();
-      hideAuthPanel();
-      hideRegisterPanel();
-      hideRecoverPanel();
-      listEditorPanel.classList.add('open');
-      renderListSongSelector();
-    }
-
-    function hideListEditor() {
-      state.editingListId = null;
-      state.listEditorSelection = [];
-      listEditorPanel.classList.remove('open');
-    }
-
-    function renderListSongSelector(term = '') {
-      if (!listSongSelector) return;
-      const query = (term || '').trim().toLowerCase();
-      const songs = state.songs.filter((song) => {
-        if (!query) return true;
-        const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-        return hay.includes(query);
-      }).sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
-      listSongSelector.innerHTML = '';
-      if (listSelectionCount) {
-        listSelectionCount.textContent = `${state.listEditorSelection.length} selecionada${state.listEditorSelection.length === 1 ? '' : 's'}`;
-      }
-      if (!songs.length) {
-        const empty = document.createElement('div');
-        empty.className = 'suggestion-empty';
-        empty.textContent = state.songs.length ? 'Nenhuma música encontrada no seu repertório.' : 'Cadastre músicas no repertório para montar sua lista.';
-        listSongSelector.appendChild(empty);
-        return;
-      }
-      songs.forEach((song) => {
-        const row = document.createElement('label');
-        row.className = 'selector-row';
-        const checkbox = document.createElement('input');
-        checkbox.className = 'selector-check';
-        checkbox.type = 'checkbox';
-        checkbox.checked = state.listEditorSelection.includes(song.id);
-        checkbox.addEventListener('change', () => {
-          if (checkbox.checked) {
-            if (!state.listEditorSelection.includes(song.id)) state.listEditorSelection.push(song.id);
-          } else {
-            state.listEditorSelection = state.listEditorSelection.filter((id) => id !== song.id);
-          }
-          renderListSongSelector(term);
-        });
-        const content = document.createElement('div');
-        content.className = 'selector-content';
-        content.innerHTML = `<span class="selector-title">${escapeHtml(song.title || 'Sem título')}</span><span class="selector-meta">${escapeHtml([song.artist || 'Sem cantor', song.style || 'Sem estilo'].join(' • '))}</span>`;
-        row.appendChild(checkbox);
-        row.appendChild(content);
-        listSongSelector.appendChild(row);
-      });
-    }
-
-    function saveCurrentList() {
-      const name = (listNameInput?.value || '').trim();
-      if (!name) {
-        showToast('Informe um nome para a lista', 1400);
-        return;
-      }
-      if (!state.listEditorSelection.length) {
-        showToast('Selecione pelo menos uma música', 1400);
-        return;
-      }
-      const now = new Date().toISOString();
-      const existing = state.editingListId ? getListById(state.editingListId) : null;
-      const payload = normalizeListItem({
-        id: existing?.id || createSongId(),
-        name,
-        songIds: state.listEditorSelection.slice(),
-        createdAt: existing?.createdAt || now,
-        updatedAt: now
-      });
-      const existingIndex = state.lists.findIndex((list) => list.id === payload.id);
-      if (existingIndex >= 0) state.lists.splice(existingIndex, 1, payload);
-      else state.lists.unshift(payload);
-      state.activeListId = payload.id;
-      saveLists();
-      persistSettings();
-      hideListEditor();
-      state.librarySortMode = 'lists';
-      renderLibraryFilterOptions();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      if (!getSongsForList(state.activeListId).some((song) => song.id === state.currentSongId)) {
-        loadSongByIndex(0);
-      }
-      showToast(existingIndex >= 0 ? 'Lista atualizada' : 'Lista criada', 1400);
-    }
-
-    function deleteCurrentList() {
-      if (!state.editingListId) return;
-      const list = getListById(state.editingListId);
-      if (!list) return;
-      const confirmed = window.confirm(`Excluir a lista “${list.name}”?`);
-      if (!confirmed) return;
-      state.lists = state.lists.filter((item) => item.id !== list.id);
-      if (state.activeListId === list.id) state.activeListId = null;
-      saveLists();
-      persistSettings();
-      hideListEditor();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      showToast('Lista excluída', 1400);
-    }
-
-    function activateList(listId, { openEditor = false } = {}) {
-      const list = getListById(listId);
-      if (!list) return;
-      state.activeListId = list.id;
-      persistSettings();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      if (!getSongsForList(list.id).some((song) => song.id === state.currentSongId)) {
-        loadSongByIndex(0);
-      }
-      if (openEditor) openListEditor(list.id);
     }
 
     function loadSongs() {
@@ -3410,7 +3039,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         .filter((song) => song?.id && !pendingDeletedIds.has(song.id));
       ensureSongIdsAreValid();
       saveSongs();
-      syncListsWithSongs();
       renderRepertoire();
     }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
@@ -3461,11 +3089,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function getNormalizedLibrarySongs(term = '') {
       const query = (term || '').toLowerCase().trim();
-      if (state.librarySortMode === 'lists') {
-        let lists = state.lists.slice().sort((a, b) => (a.name || '').localeCompare((b.name || ''), 'pt-BR', { sensitivity: 'base' }));
-        if (query) lists = lists.filter((list) => (list.name || '').toLowerCase().includes(query));
-        return lists;
-      }
       let songs = state.songs.slice();
 
       if (state.librarySortMode === 'alpha') {
@@ -3500,10 +3123,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!libraryFilterOptions) return;
       const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
       libraryFilterOptions.innerHTML = '';
-      if (state.librarySortMode === 'lists') {
-        libraryFilterOptions.classList.add('hidden');
-        return;
-      }
 
       if (!needsFacet) {
         libraryFilterOptions.classList.add('hidden');
@@ -3542,8 +3161,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const nextSongs = previousSongs.filter(song => song.id !== songId);
 
       persistSongsState(nextSongs);
-      syncListsWithSongs();
-      saveLists();
       markSongDeletionPending(songId);
       if (state.currentSongId === songId) state.currentSongId = null;
       if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
@@ -3573,12 +3190,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       deleteSongById(songId);
     }
     function getPlaybackSongList() {
-      if (state.activeListId) {
-        const listSongs = getSongsForList(state.activeListId);
-        if (listSongs.length) return listSongs;
-      }
       let songs = getNormalizedLibrarySongs('');
-      if (!songs.length || state.librarySortMode === 'lists') songs = state.songs.slice();
+      if (!songs.length) songs = state.songs.slice();
       if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
         songs = state.songs.slice();
       }
@@ -3613,35 +3226,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       const normalized = getNormalizedLibrarySongs(term);
       libraryList.innerHTML = '';
-
-      if (state.librarySortMode === 'lists') {
-        if (!state.lists.length) {
-          const emptyAll = document.createElement('div');
-          emptyAll.className = 'panel-note';
-          emptyAll.textContent = 'Nenhuma lista criada ainda.';
-          libraryList.appendChild(emptyAll);
-          return;
-        }
-
-        if (!normalized.length) {
-          const empty = document.createElement('div');
-          empty.className = 'panel-note';
-          empty.textContent = 'Nenhuma lista encontrada para essa busca.';
-          libraryList.appendChild(empty);
-          return;
-        }
-
-        normalized.forEach((list) => {
-          const row = document.createElement('button');
-          row.className = 'library-list-card';
-          row.type = 'button';
-          const songsCount = getSongsForList(list.id).length;
-          row.innerHTML = `<span class="library-list-card-title">${escapeHtml(list.name)}${state.activeListId === list.id ? '<span class="library-active-badge">Ativa</span>' : ''}</span><span class="library-list-card-meta">${songsCount} música${songsCount === 1 ? '' : 's'} na lista</span>`;
-          row.addEventListener('click', () => activateList(list.id, { openEditor: true }));
-          libraryList.appendChild(row);
-        });
-        return;
-      }
 
       if (!state.songs.length) {
         const emptyAll = document.createElement('div');
@@ -3708,8 +3292,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         card.type = 'button';
         const artistText = song.artist || 'Sem cantor';
         const styleText = song.style || 'Sem estilo';
-        card.innerHTML = `<span class="library-song-line">${escapeHtml(song.title || 'Sem título')} <small>- ${escapeHtml(artistText)} - ${escapeHtml(styleText)}</small></span>`;
-        card.addEventListener('click', () => openSongById(song.id));
+        card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'} <small>- ${artistText} - ${styleText}</small></span>`;
 
         row.appendChild(actions);
         row.appendChild(card);
@@ -3718,7 +3301,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       });
     }
 
-    function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong); if (createListBtn) createListBtn.addEventListener('click', () => openListEditor()); if ($('hideListEditorBtn')) $('hideListEditorBtn').addEventListener('click', hideListEditor); if (saveListBtn) saveListBtn.addEventListener('click', saveCurrentList); if (deleteListBtn) deleteListBtn.addEventListener('click', deleteCurrentList);
+    function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
       $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); } $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
@@ -3843,7 +3426,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    function init() { createSupabaseClient(); registerServiceWorker(); loadSettings(); updateAccountControls(); loadCurrentDraft(); loadLists(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
+    function init() { createSupabaseClient(); registerServiceWorker(); loadSettings(); updateAccountControls(); loadCurrentDraft(); loadSongs(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); restoreSupabaseSession(); }
     init();
   </script>
 </body>
