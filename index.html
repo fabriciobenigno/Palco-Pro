@@ -1236,6 +1236,30 @@
       margin-top: 1px;
     }
 
+
+    .library-context-bar {
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 14px; border-radius:18px; background: rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.10); margin-bottom:2px;
+    }
+    .library-context-texts { display:grid; gap:4px; min-width:0; flex:1; }
+    .library-context-texts strong { font-size:13px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .library-context-texts span { font-size:12px; line-height:1.45; color: var(--soft-text); }
+    .library-list-card {
+      width:100%; border:0; border-bottom:1px solid rgba(255,255,255,0.08);
+      background: rgba(17,22,31,0.94); color:#fff; text-align:left; padding:14px; display:grid; gap:5px; cursor:pointer;
+    }
+    .library-list-card-title { font-size:14px; font-weight:700; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .library-list-card-meta { font-size:12px; color: var(--soft-text); }
+    .list-editor-song-item {
+      width:100%; border:0; border-bottom:1px solid rgba(255,255,255,0.08);
+      background: rgba(17,22,31,0.94); color:#fff; text-align:left; padding:12px 14px; display:flex; align-items:center; gap:12px;
+    }
+    .list-editor-song-check { width:18px; height:18px; accent-color:#7cb0ff; flex:0 0 18px; }
+    .list-editor-song-text { min-width:0; display:grid; gap:4px; flex:1; }
+    .list-editor-song-text strong { font-size:14px; line-height:1.3; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .list-editor-song-text span { font-size:12px; color: var(--soft-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
     @media (max-width: 560px) {
       :root { --text-width: 90vw; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
@@ -1320,6 +1344,7 @@
         <div class="library-card">
           <div class="library-actions-row">
             <button class="ghost-btn" id="newSongBtn">Cadastrar música</button>
+            <button class="ghost-btn" id="createListBtn">Criar lista</button>
           </div>
           <div class="field">
             <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
@@ -1329,6 +1354,7 @@
             <button class="library-sort-btn" type="button" data-sort="artist">Artista</button>
             <button class="library-sort-btn" type="button" data-sort="style">Estilo</button>
             <button class="library-sort-btn" type="button" data-sort="created_oldest">Cadastro</button>
+            <button class="library-sort-btn" type="button" data-sort="lists">Listas</button>
           </div>
           <div class="library-sort-row hidden" id="libraryFilterOptions"></div>
           <div class="field" style="min-height:0; flex:1;">
@@ -1596,6 +1622,34 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       </div>
     </div>
 
+    <div class="fullscreen-screen song-editor-panel" id="listEditorPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title" id="listEditorTitle">Criar lista</h2>
+            <p class="fullscreen-subtitle" id="listEditorSubtitle">Defina um nome e escolha músicas do seu repertório pessoal.</p>
+          </div>
+          <button class="mini-btn close-icon-btn" id="hideListEditorBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
+        </div>
+
+        <div class="fullscreen-card">
+          <div class="field">
+            <label for="listNameInput">Nome da lista</label>
+            <input id="listNameInput" type="text" placeholder="Ex.: Louvor de domingo" />
+          </div>
+
+          <div class="sync-status-note" id="listEditorSelectionNote">Selecione as músicas do seu repertório pessoal que deseja incluir na lista.</div>
+
+          <div class="suggestions-results" id="listSongSelection"></div>
+
+          <div class="editor-actions-row">
+            <button class="ghost-btn" id="cancelListEditorBtn">Cancelar</button>
+            <button class="ghost-btn" id="saveListBtn">Salvar lista</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="fullscreen-screen suggestions-panel" id="suggestionsPanel">
       <div class="fullscreen-shell">
         <div class="fullscreen-header">
@@ -1654,6 +1708,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
     const DELETED_SONG_IDS_KEY = 'palco-pro-deleted-song-ids-v1';
+    const LISTS_STORAGE_KEY = 'palco-pro-song-lists-v1';
+    const DELETED_LIST_IDS_KEY = 'palco-pro-deleted-list-ids-v1';
 
     const state = {
       wasPlayingBeforeDrag: false,
@@ -1667,6 +1723,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songs: [], currentSongId: null, pendingDeletedSongIds: [],
       supabase: null, syncInFlight: false, currentUser: null, lastSyncAt: 0,
       toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
+      songLists: [], pendingDeletedListIds: [], activeListId: null, libraryViewMode: 'songs', listEditorId: null, selectedListSongIds: [],
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original'
     };
@@ -1726,6 +1783,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const suggestionsSearchInput = $('suggestionsSearchInput');
     const suggestionsStatusNote = $('suggestionsStatusNote');
     const suggestionsList = $('suggestionsList');
+    const createListBtn = $('createListBtn');
+    const listEditorPanel = $('listEditorPanel');
+    const listEditorTitle = $('listEditorTitle');
+    const listEditorSubtitle = $('listEditorSubtitle');
+    const listNameInput = $('listNameInput');
+    const listSongSelection = $('listSongSelection');
+    const listEditorSelectionNote = $('listEditorSelectionNote');
     const refreshSuggestionsBtn = $('refreshSuggestionsBtn');
     const saveSelectedSuggestionsBtn = $('saveSelectedSuggestionsBtn');
     const appToast = $('appToast');
@@ -2519,6 +2583,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         const mergedSongs = mergeSongCollections(localSnapshot, result.songs || []);
         persistSongsState(mergedSongs);
         await pushSongsToCloud(mergedSongs);
+        await syncSongListsToCloud();
         state.lastSyncAt = Date.now();
         setSyncStatusFromState('Repertório do usuário sincronizado com o servidor.');
       } catch (error) {
@@ -3014,17 +3079,160 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openLibraryPanel() { hidePanel(); hideAuthPanel(); hideRegisterPanel(); hideRecoverPanel(); hideSongEditor(); hideSuggestionsPanel(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, libraryViewMode: state.libraryViewMode, activeListId: state.activeListId, theme: state.currentTheme })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.libraryViewMode) state.libraryViewMode = saved.libraryViewMode; if (typeof saved.activeListId === 'string') state.activeListId = saved.activeListId || null; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.songs)); }
+
+    function saveSongLists() { localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(state.songLists)); }
+    function getPendingDeletedListIds() { return Array.isArray(state.pendingDeletedListIds) ? state.pendingDeletedListIds.filter(Boolean) : []; }
+    function savePendingDeletedListIds() { localStorage.setItem(DELETED_LIST_IDS_KEY, JSON.stringify(getPendingDeletedListIds())); }
+    function loadPendingDeletedListIds() {
+      try { state.pendingDeletedListIds = JSON.parse(localStorage.getItem(DELETED_LIST_IDS_KEY) || '[]'); } catch (_) { state.pendingDeletedListIds = []; }
+      if (!Array.isArray(state.pendingDeletedListIds)) state.pendingDeletedListIds = [];
+      state.pendingDeletedListIds = Array.from(new Set(state.pendingDeletedListIds.filter((id) => typeof id === 'string' && id.trim())));
+      savePendingDeletedListIds();
+    }
+    function markListDeletionPending(listId) {
+      if (!listId) return;
+      const nextIds = new Set(getPendingDeletedListIds());
+      nextIds.add(listId);
+      state.pendingDeletedListIds = Array.from(nextIds);
+      savePendingDeletedListIds();
+    }
+    function clearPendingListDeletion(listIds) {
+      const ids = Array.isArray(listIds) ? listIds : [listIds];
+      const removeSet = new Set(ids.filter(Boolean));
+      if (!removeSet.size) return;
+      state.pendingDeletedListIds = getPendingDeletedListIds().filter((id) => !removeSet.has(id));
+      savePendingDeletedListIds();
+    }
+    function normalizeSongList(list) {
+      const songIds = Array.isArray(list?.songIds) ? list.songIds : Array.isArray(list?.song_ids) ? list.song_ids : [];
+      return {
+        id: list?.id || createSongId(),
+        name: (list?.name || list?.list_name || 'Nova lista').trim() || 'Nova lista',
+        songIds: Array.from(new Set(songIds.filter((id) => typeof id === 'string' && id.trim()))),
+        updatedAt: list?.updatedAt || list?.updated_at || new Date().toISOString()
+      };
+    }
+    function loadSongLists() {
+      loadPendingDeletedListIds();
+      try { state.songLists = JSON.parse(localStorage.getItem(LISTS_STORAGE_KEY) || '[]'); } catch (_) { state.songLists = []; }
+      if (!Array.isArray(state.songLists)) state.songLists = [];
+      const pendingDeletedIds = new Set(getPendingDeletedListIds());
+      state.songLists = state.songLists.map(normalizeSongList).filter((list) => list?.id && !pendingDeletedIds.has(list.id));
+      cleanupSongListsAgainstSongs();
+      saveSongLists();
+    }
+    function cleanupSongListsAgainstSongs() {
+      const songIds = new Set((state.songs || []).map((song) => song.id));
+      let changed = false;
+      state.songLists = (state.songLists || []).map((list) => {
+        const nextSongIds = (list.songIds || []).filter((id) => songIds.has(id));
+        if (nextSongIds.length !== (list.songIds || []).length) {
+          changed = true;
+          return { ...list, songIds: nextSongIds, updatedAt: new Date().toISOString() };
+        }
+        return list;
+      });
+      if (state.activeListId && !state.songLists.some((list) => list.id === state.activeListId)) {
+        state.activeListId = null;
+        state.libraryViewMode = 'songs';
+        changed = true;
+      }
+      if (changed) saveSongLists();
+    }
+    function replaceSongListsState(nextLists = []) {
+      state.songLists = Array.isArray(nextLists) ? nextLists.map(normalizeSongList) : [];
+      cleanupSongListsAgainstSongs();
+      saveSongLists();
+      if (state.librarySortMode === 'lists' || state.libraryViewMode !== 'songs') {
+        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      }
+    }
+    async function upsertSongListInCloud(list) {
+      if (!state.supabase || !state.currentUser || !navigator.onLine || !list?.id) return;
+      clearPendingListDeletion(list.id);
+      const payload = {
+        id: list.id,
+        user_id: state.currentUser.id,
+        list_name: list.name || 'Nova lista',
+        song_ids: Array.isArray(list.songIds) ? list.songIds : [],
+        updated_at: new Date().toISOString()
+      };
+      let response = await state.supabase.from('song_lists').upsert(payload, { onConflict: 'id' });
+      if (response.error && String(response.error.message || '').toLowerCase().includes('relation')) {
+        response = await state.supabase.from('repertoire_lists').upsert(payload, { onConflict: 'id' });
+      }
+      if (response.error) throw response.error;
+    }
+    async function flushPendingListDeletes() {
+      const pendingIds = getPendingDeletedListIds();
+      if (!pendingIds.length || !state.supabase || !state.currentUser || !navigator.onLine) return 0;
+      let deletedCount = 0;
+      for (const listId of pendingIds) {
+        let response = await state.supabase.from('song_lists').delete().eq('user_id', state.currentUser.id).eq('id', listId);
+        if (response.error && String(response.error.message || '').toLowerCase().includes('relation')) {
+          response = await state.supabase.from('repertoire_lists').delete().eq('user_id', state.currentUser.id).eq('id', listId);
+        }
+        if (response.error) throw response.error;
+        deletedCount += 1;
+      }
+      clearPendingListDeletion(pendingIds);
+      return deletedCount;
+    }
+    async function pullSongListsFromCloud() {
+      if (!state.supabase || !state.currentUser) return { ok: false, lists: [] };
+      let response = await state.supabase.from('song_lists').select('id, list_name, song_ids, updated_at, user_id').eq('user_id', state.currentUser.id).order('updated_at', { ascending: false });
+      if (response.error && String(response.error.message || '').toLowerCase().includes('relation')) {
+        response = await state.supabase.from('repertoire_lists').select('id, list_name, song_ids, updated_at, user_id').eq('user_id', state.currentUser.id).order('updated_at', { ascending: false });
+      }
+      if (response.error) throw response.error;
+      return { ok: true, lists: Array.isArray(response.data) ? response.data.map(normalizeSongList) : [] };
+    }
+    function mergeSongListCollections(localLists = [], cloudLists = []) {
+      const mergedMap = new Map();
+      const pendingDeletedIds = new Set(getPendingDeletedListIds());
+      (localLists || []).forEach((list) => {
+        if (!list?.id || pendingDeletedIds.has(list.id)) return;
+        mergedMap.set(list.id, normalizeSongList(list));
+      });
+      (cloudLists || []).forEach((list) => {
+        if (!list?.id || pendingDeletedIds.has(list.id)) return;
+        mergedMap.set(list.id, normalizeSongList(list));
+      });
+      return Array.from(mergedMap.values());
+    }
+    async function syncSongListsToCloud() {
+      if (!state.supabase || !state.currentUser || !navigator.onLine) return;
+      await flushPendingListDeletes();
+      const result = await pullSongListsFromCloud();
+      if (!result?.ok) return;
+      const mergedLists = mergeSongListCollections(state.songLists, result.lists || []);
+      replaceSongListsState(mergedLists);
+      for (const list of mergedLists) {
+        await upsertSongListInCloud(list);
+      }
+    }
+    function getListById(listId) {
+      return (state.songLists || []).find((list) => list.id === listId) || null;
+    }
+    function getSongsForList(listId) {
+      const list = getListById(listId);
+      if (!list) return [];
+      const ids = new Set(list.songIds || []);
+      return (state.songs || []).filter((song) => ids.has(song.id));
+    }
+
     function getSampleSongs() {
       return [];
     }
 
     function loadSongs() {
       loadPendingDeletedSongIds();
+      loadSongLists();
       try {
         state.songs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       } catch (_) {
@@ -3076,6 +3284,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.supabase && state.currentUser && navigator.onLine) {
         try {
           await upsertSongInCloud(payload);
+          await syncSongListsToCloud();
           setSyncStatusFromState(existingIndex >= 0 ? 'Música atualizada na conta.' : 'Música salva na conta.');
         } catch (error) {
           updateSyncStatus(`A música foi salva no aparelho, mas não foi possível salvar na conta agora. ${error.message || 'Tente novamente.'}`.trim());
@@ -3121,7 +3330,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function renderLibraryFilterOptions() {
       if (!libraryFilterOptions) return;
-      const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
+      const needsFacet = state.libraryViewMode === 'songs' && (state.librarySortMode === 'artist' || state.librarySortMode === 'style');
       libraryFilterOptions.innerHTML = '';
 
       if (!needsFacet) {
@@ -3161,6 +3370,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const nextSongs = previousSongs.filter(song => song.id !== songId);
 
       persistSongsState(nextSongs);
+      const nextLists = (state.songLists || []).map((list) => ({
+        ...list,
+        songIds: (list.songIds || []).filter((id) => id !== songId),
+        updatedAt: new Date().toISOString()
+      }));
+      replaceSongListsState(nextLists);
       markSongDeletionPending(songId);
       if (state.currentSongId === songId) state.currentSongId = null;
       if (repertoireSelect && repertoireSelect.value === songId) repertoireSelect.value = '';
@@ -3170,6 +3385,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.supabase && state.currentUser && navigator.onLine) {
         try {
           await flushPendingSongDeletes();
+          await syncSongListsToCloud();
           setSyncStatusFromState('Exclusão sincronizada com a conta.');
         } catch (error) {
           updateSyncStatus(`A música foi removida do aparelho e ficará pendente para exclusão na conta. ${error.message || 'Tente novamente.'}`.trim());
@@ -3190,10 +3406,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       deleteSongById(songId);
     }
     function getPlaybackSongList() {
-      let songs = getNormalizedLibrarySongs('');
-      if (!songs.length) songs = state.songs.slice();
-      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
-        songs = state.songs.slice();
+      let songs = [];
+      if (state.activeListId) {
+        songs = getSongsForList(state.activeListId);
+      } else {
+        songs = getNormalizedLibrarySongs('');
+        if (!songs.length) songs = state.songs.slice();
+        if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
+          songs = state.songs.slice();
+        }
       }
       return songs;
     }
@@ -3223,9 +3444,62 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
     function renderLibraryList(term = '') {
       renderLibraryFilterOptions();
-
-      const normalized = getNormalizedLibrarySongs(term);
+      const query = (term || '').trim().toLowerCase();
       libraryList.innerHTML = '';
+
+      if (state.libraryViewMode === 'lists' || state.librarySortMode === 'lists') {
+        const lists = (state.songLists || []).filter((list) => !query || list.name.toLowerCase().includes(query));
+        if (!lists.length) {
+          const emptyLists = document.createElement('div');
+          emptyLists.className = 'panel-note';
+          emptyLists.textContent = state.songLists.length ? 'Nenhuma lista encontrada para essa busca.' : 'Nenhuma lista criada ainda.';
+          libraryList.appendChild(emptyLists);
+          return;
+        }
+
+        lists.forEach((list) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'library-list-card';
+          const count = getSongsForList(list.id).length;
+          btn.innerHTML = `<span class="library-list-card-title">${escapeHtml(list.name)}</span><span class="library-list-card-meta">${count} ${count === 1 ? 'música' : 'músicas'}</span>`;
+          btn.addEventListener('click', () => {
+            state.activeListId = list.id;
+            state.libraryViewMode = 'list_songs';
+            persistSettings();
+            renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+          });
+          libraryList.appendChild(btn);
+        });
+        return;
+      }
+
+      let normalized = state.libraryViewMode === 'list_songs' && state.activeListId
+        ? getSongsForList(state.activeListId)
+        : getNormalizedLibrarySongs(term);
+
+      if (state.libraryViewMode === 'list_songs' && state.activeListId) {
+        if (query) {
+          normalized = normalized.filter((song) => {
+            const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
+            return hay.includes(query);
+          });
+        }
+        const activeList = getListById(state.activeListId);
+        if (activeList) {
+          const context = document.createElement('div');
+          context.className = 'library-context-bar';
+          context.innerHTML = `<div class="library-context-texts"><strong>${escapeHtml(activeList.name)}</strong><span>As músicas abaixo seguem esta lista. Arraste para editar ou excluir da lista.</span></div>`;
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'ghost-btn';
+          editBtn.textContent = 'Editar lista';
+          editBtn.style.minWidth = '120px';
+          editBtn.addEventListener('click', () => openListEditor(activeList.id));
+          context.appendChild(editBtn);
+          libraryList.appendChild(context);
+        }
+      }
 
       if (!state.songs.length) {
         const emptyAll = document.createElement('div');
@@ -3235,12 +3509,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         return;
       }
 
-      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
+      if (state.libraryViewMode === 'songs' && (state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !state.libraryFilterValue) {
         const selectNote = document.createElement('div');
         selectNote.className = 'panel-note';
-        selectNote.textContent = state.librarySortMode === 'artist'
-          ? 'Selecione um artista para ver as músicas.'
-          : 'Selecione um estilo para ver as músicas.';
+        selectNote.textContent = state.librarySortMode === 'artist' ? 'Selecione um artista para ver as músicas.' : 'Selecione um estilo para ver as músicas.';
         libraryList.appendChild(selectNote);
         return;
       }
@@ -3248,7 +3520,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!normalized.length) {
         const empty = document.createElement('div');
         empty.className = 'panel-note';
-        empty.textContent = 'Nenhuma música encontrada para essa busca.';
+        empty.textContent = state.libraryViewMode === 'list_songs' ? 'Nenhuma música encontrada nesta lista.' : 'Nenhuma música encontrada para essa busca.';
         libraryList.appendChild(empty);
         return;
       }
@@ -3276,12 +3548,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'library-song-action-btn delete';
         deleteBtn.type = 'button';
-        deleteBtn.setAttribute('aria-label', 'Excluir música');
+        deleteBtn.setAttribute('aria-label', state.libraryViewMode === 'list_songs' ? 'Excluir da lista' : 'Excluir música');
         deleteBtn.innerHTML = '<img src="excluir.png" alt="" aria-hidden="true" style="width:18px;height:18px;object-fit:contain;display:block;" />';
-        deleteBtn.addEventListener('click', (event) => {
+        deleteBtn.addEventListener('click', async (event) => {
           event.stopPropagation();
           closeAllLibrarySwipes();
-          confirmDeleteSong(song.id);
+          if (state.libraryViewMode === 'list_songs' && state.activeListId) {
+            await removeSongFromActiveList(song.id);
+          } else {
+            confirmDeleteSong(song.id);
+          }
         });
 
         actions.appendChild(editBtn);
@@ -3292,7 +3568,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         card.type = 'button';
         const artistText = song.artist || 'Sem cantor';
         const styleText = song.style || 'Sem estilo';
-        card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'} <small>- ${artistText} - ${styleText}</small></span>`;
+        card.innerHTML = `<span class="library-song-line">${escapeHtml(song.title || 'Sem título')} <small>- ${escapeHtml(artistText)} - ${escapeHtml(styleText)}</small></span>`;
+        card.addEventListener('click', () => openSongById(song.id));
 
         row.appendChild(actions);
         row.appendChild(card);
@@ -3301,9 +3578,118 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       });
     }
 
+
+    function renderListSongSelection() {
+      if (!listSongSelection) return;
+      const songs = (state.songs || []).slice().sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
+      listSongSelection.innerHTML = '';
+      const count = Array.isArray(state.selectedListSongIds) ? state.selectedListSongIds.length : 0;
+      if (listEditorSelectionNote) {
+        listEditorSelectionNote.textContent = songs.length
+          ? `${count} ${count === 1 ? 'música selecionada' : 'músicas selecionadas'} para esta lista.`
+          : 'Você ainda não possui músicas pessoais no repertório.';
+      }
+      if (!songs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'suggestion-empty';
+        empty.textContent = 'Adicione músicas ao seu repertório pessoal para criar uma lista personalizada.';
+        listSongSelection.appendChild(empty);
+        return;
+      }
+      songs.forEach((song) => {
+        const row = document.createElement('label');
+        row.className = 'list-editor-song-item';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'list-editor-song-check';
+        checkbox.checked = state.selectedListSongIds.includes(song.id);
+        checkbox.addEventListener('change', () => {
+          const current = new Set(state.selectedListSongIds);
+          if (checkbox.checked) current.add(song.id); else current.delete(song.id);
+          state.selectedListSongIds = Array.from(current);
+          renderListSongSelection();
+        });
+        const content = document.createElement('div');
+        content.className = 'list-editor-song-text';
+        content.innerHTML = `<strong>${escapeHtml(song.title || 'Sem título')}</strong><span>${escapeHtml([song.artist, song.style].filter(Boolean).join(' • ') || 'Música do seu repertório')}</span>`;
+        row.appendChild(checkbox);
+        row.appendChild(content);
+        listSongSelection.appendChild(row);
+      });
+    }
+
+    function openListEditor(listId = null) {
+      state.listEditorId = listId || null;
+      const list = listId ? getListById(listId) : null;
+      listNameInput.value = list?.name || '';
+      state.selectedListSongIds = list ? (list.songIds || []).slice() : [];
+      if (listEditorTitle) listEditorTitle.textContent = list ? 'Editar lista' : 'Criar lista';
+      if (listEditorSubtitle) listEditorSubtitle.textContent = list ? 'Atualize o nome da lista e selecione as músicas que devem permanecer nela.' : 'Defina um nome e escolha músicas do seu repertório pessoal.';
+      renderListSongSelection();
+      if (listEditorPanel) listEditorPanel.classList.add('open');
+    }
+
+    function hideListEditor() {
+      if (listEditorPanel) listEditorPanel.classList.remove('open');
+      state.listEditorId = null;
+      state.selectedListSongIds = [];
+    }
+
+    async function saveSongListEditor() {
+      const name = (listNameInput?.value || '').trim();
+      if (!name) {
+        showToast('Informe o nome da lista', 1500);
+        return;
+      }
+      const payload = normalizeSongList({
+        id: state.listEditorId || createSongId(),
+        name,
+        songIds: state.selectedListSongIds.slice(),
+        updatedAt: new Date().toISOString()
+      });
+      const nextLists = (state.songLists || []).filter((list) => list.id !== payload.id);
+      nextLists.unshift(payload);
+      replaceSongListsState(nextLists);
+      state.activeListId = payload.id;
+      state.libraryViewMode = 'list_songs';
+      state.librarySortMode = 'lists';
+      persistSettings();
+      if (state.supabase && state.currentUser && navigator.onLine) {
+        try {
+          await upsertSongListInCloud(payload);
+          setSyncStatusFromState('Lista sincronizada com a conta.');
+        } catch (error) {
+          updateSyncStatus(`A lista foi salva no aparelho. ${error.message || 'Ela será sincronizada depois.'}`.trim());
+        }
+      }
+      hideListEditor();
+      openLibraryPanel();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      showToast(state.listEditorId ? 'Lista atualizada' : 'Lista criada', 1500);
+    }
+
+    async function removeSongFromActiveList(songId) {
+      const activeList = getListById(state.activeListId);
+      if (!activeList || !songId) return;
+      const nextList = { ...activeList, songIds: (activeList.songIds || []).filter((id) => id !== songId), updatedAt: new Date().toISOString() };
+      const nextLists = (state.songLists || []).map((list) => list.id === nextList.id ? nextList : list);
+      replaceSongListsState(nextLists);
+      if (state.supabase && state.currentUser && navigator.onLine) {
+        try {
+          await upsertSongListInCloud(nextList);
+          setSyncStatusFromState('Lista atualizada na conta.');
+        } catch (error) {
+          updateSyncStatus(`A lista foi atualizada no aparelho. ${error.message || 'Ela será sincronizada depois.'}`.trim());
+        }
+      }
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+      showToast('Música removida da lista', 1400);
+    }
+
     function bindEvents() { $('newSongBtn').addEventListener('click', prepareNewSong);
-      $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions);
-      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); } $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
+      if (createListBtn) createListBtn.addEventListener('click', () => openListEditor());
+      $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('cancelListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveSongListEditor);
+      $('showPasswordToggle').addEventListener('change', (e) => { authPasswordInput.type = e.target.checked ? 'text' : 'password'; }); $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { state.suggestionsLoadedAt = 0; await loadSuggestionSongs(true); showToast('Sugestões atualizadas', 1400); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; state.libraryViewMode = state.librarySortMode === 'lists' ? 'lists' : 'songs'; if (state.librarySortMode !== 'lists') state.activeListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) closeAllLibrarySwipes(); }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); } $('openLoginBtn').addEventListener('click', openAuthPanel); $('openRegisterBtn').addEventListener('click', openRegisterPanel); $('hideAuthPanelBtn').addEventListener('click', hideAuthPanel); $('hideRegisterPanelBtn').addEventListener('click', hideRegisterPanel); $('hideRecoverPanelBtn').addEventListener('click', hideRecoverPanel); $('signInBtn').addEventListener('click', signInWithSupabase); $('submitRegisterBtn').addEventListener('click', signUpWithSupabase); $('logOutBtn').addEventListener('click', signOutFromSupabase);
       $('recoverPasswordBtn').addEventListener('click', openRecoverPanel); $('sendRecoveryBtn').addEventListener('click', recoverPasswordWithSupabase); $('syncNowBtn').addEventListener('click', () => syncSongsToCloud({ manual: true })); repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint()); window.addEventListener('online', () => syncSongsToCloud()); }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
