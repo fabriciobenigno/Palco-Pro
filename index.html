@@ -1761,6 +1761,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       // será carregado de ./catalogo.json.
     ];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
+    const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
     function getSongsStorageKey() { return STORAGE_KEY; }
     function getListsStorageKey() { return LISTS_KEY; }
 
@@ -2369,15 +2370,23 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           .map(normalizeSuggestionRow)
           .filter((song) => song.id && (song.title || song.lyrics));
         state.suggestionsLoadedAt = Date.now();
+        try {
+          localStorage.setItem(SUGGESTIONS_CACHE_KEY, JSON.stringify(state.suggestionSongs));
+        } catch (_) {}
 
         updateSuggestionsStatus(state.suggestionSongs.length
           ? `Catálogo disponível: ${state.suggestionSongs.length} músicas.`
           : 'O catálogo de sugestões está vazio no momento.');
       } catch (error) {
-        state.suggestionSongs = SUGGESTED_SONGS.map(normalizeSuggestionRow);
+        let cached = [];
+        try {
+          const rawCache = JSON.parse(localStorage.getItem(SUGGESTIONS_CACHE_KEY) || '[]');
+          cached = Array.isArray(rawCache) ? rawCache.map(normalizeSuggestionRow).filter((song) => song.id && (song.title || song.lyrics)) : [];
+        } catch (_) {}
+        state.suggestionSongs = cached.length ? cached : SUGGESTED_SONGS.map(normalizeSuggestionRow);
         state.suggestionsLoadedAt = 0;
         updateSuggestionsStatus(state.suggestionSongs.length
-          ? 'Não foi possível atualizar o catálogo. Usando o catálogo disponível no app.'
+          ? 'Catálogo atualizado anteriormente disponível no aparelho.'
           : 'Não foi possível carregar o catálogo de sugestões agora.');
         if (showToastOnError) {
           showToast('Não foi possível atualizar o catálogo', 1700);
