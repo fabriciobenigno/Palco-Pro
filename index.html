@@ -1536,7 +1536,7 @@
 
         <div class="toggle-row">
           <span>Reconhecimento por fala</span>
-          <label class="switch"><input id="voiceToggle" type="checkbox" /><span class="slider"></span></label>
+          <label class="switch"><input id="voiceToggle" type="checkbox" disabled /><span class="slider"></span></label>
         </div>
 
         <div class="toggle-row">
@@ -1756,10 +1756,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const CURRENT_KEY = 'palco-pro-current-v1';
     const LISTS_KEY = 'palco-pro-lists-v1';
 
-    const SUGGESTED_SONGS = [
-      // Catálogo de segurança/fallback. O catálogo publicado para todos os usuários
-      // será carregado de ./catalogo.json.
-    ];
+    const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
     const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
     function getSongsStorageKey() { return STORAGE_KEY; }
@@ -2942,7 +2939,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function enableVoice(enabled) {
-      state.voiceEnabled = enabled;
+      state.voiceEnabled = enabled && !voiceToggle.disabled;
       state.voiceLastProcessed = '';
       state.voiceLastMatchAt = 0;
       if (!state.recognitionReady) return;
@@ -2987,7 +2984,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
     function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = !!saved.voiceEnabled; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = false;
+        voiceToggle.disabled = true; } catch (_) {} }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
@@ -3552,7 +3550,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); if (voiceToggle.checked) enableVoice(true); await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
