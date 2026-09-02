@@ -219,12 +219,12 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-      margin: 0; width: 100%; min-height: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text);
+      margin: 0; width: 100%; height: 100%; min-height: 100dvh; overflow: hidden; background: var(--app-bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     .app {
-      position: relative; width: 100vw; height: 100vh; min-height: 100dvh; overflow: hidden; background: #000;
+      position: relative; width: 100vw; height: var(--app-height); min-height: 100dvh; overflow: hidden;
       background: var(--app-bg);
     }
 
@@ -242,7 +242,7 @@
       position: absolute;
       left: 50%; top: calc(var(--safe-top) + 6px);
       transform: translateX(-50%);
-      width: 100%; height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - 114px);
+      width: 100%; height: calc(var(--app-height) - var(--safe-top));
       pointer-events: auto;
     }
 
@@ -1832,21 +1832,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     </div>
 
   </div>
-
-
-    @supports (height: 100svh) {
-      :root { --app-height: 100svh; }
-    }
-    @supports (height: 100lvh) {
-      :root { --app-height: 100lvh; }
-    }
     @media (max-width: 700px) {
       html, body, .app {
         width: 100%;
         min-width: 100%;
-        min-height: 100%;
+        min-height: 100dvh;
       }
-      .app { min-height: 100dvh; }
+      .app { height: 100dvh; }
     }
 
   <script>
@@ -2811,7 +2803,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.lines.forEach((line) => {
         const span = document.createElement('span');
         span.className = 'line';
-        span.textContent = line || ' ';
+        const displayLine = (line || ' ').replace(/([,;:!?])(?=\S)/g, '$1\u200B');
+        span.textContent = displayLine;
         scriptInner.appendChild(span);
       });
       applyScroll(true);
