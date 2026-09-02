@@ -219,13 +219,32 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-      margin: 0; width: 100%; height: 100%; min-height: 100%; overflow: hidden; background: var(--app-bg); color: var(--text);
+      margin: 0; width: 100%; height: 100%; min-height: 100%; overflow: hidden;
+      background: var(--app-bg) !important; background-color: #000; color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overscroll-behavior: none;
+    }
+
+    html {
+      min-height: 100dvh;
+      min-height: 100svh;
+    }
+
+    body {
+      min-height: 100dvh;
+      min-height: 100svh;
     }
 
     .app {
-      position: fixed; inset: 0; width: 100%; height: 100%; min-height: 100%;
-      overflow: hidden; background: var(--app-bg);
+      position: fixed;
+      left: 0; right: 0; top: 0; bottom: 0;
+      width: 100%;
+      height: var(--app-height, 100dvh);
+      min-height: 100svh;
+      max-height: none;
+      overflow: hidden;
+      background: var(--app-bg) !important;
+      isolation: isolate;
     }
 
     .stage-layer {
@@ -2815,23 +2834,23 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const contentRect = promptContent.getBoundingClientRect();
       const controlsBar = document.querySelector('.controls-bar');
       const controlsRect = controlsBar ? controlsBar.getBoundingClientRect() : null;
-
-      // A última linha nunca pode entrar na área ocupada pelos botões.
-      // Mantemos uma pequena margem visual entre a letra e os controles.
       const bottomLimit = controlsRect
-        ? controlsRect.top - 18
+        ? controlsRect.top - 20
         : contentRect.bottom - 28;
 
-      const lastLineRect = lastLine.getBoundingClientRect();
-      const lastLineBottomWithoutScroll = lastLineRect.bottom - state.scrollOffset;
-      const minimumOffset = bottomLimit - lastLineBottomWithoutScroll;
+      // Mede a última linha na posição de layout (sem depender do transform atual).
+      // Assim o limite continua correto durante animação, arraste e redimensionamento.
+      const scriptRect = scriptInner.getBoundingClientRect();
+      const layoutTop = scriptRect.top - state.scrollOffset;
+      const lastLineBottom = layoutTop + lastLine.offsetTop + lastLine.offsetHeight;
+      const minimumOffset = bottomLimit - lastLineBottom;
 
-      // Nunca permite rolar para cima além do início e nunca deixa a última linha
-      // ultrapassar o limite superior dos controles.
+      // O topo permanece limitado a 0 e a última linha nunca entra na área dos botões.
       state.scrollOffset = Math.min(0, Math.max(minimumOffset, state.scrollOffset));
     }
 
     function applyScroll(immediate = false) {
+      // O limite é aplicado antes de renderizar cada novo frame/arraste.
       clampScrollOffset();
       if (immediate) scriptInner.style.transition = 'none';
       scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`);
@@ -3700,7 +3719,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { updateViewportHeight(); refreshLayoutPreservingPoint(); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -3822,7 +3841,24 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    function updateViewportHeight() {
+      const viewportHeight = (window.visualViewport && Number.isFinite(window.visualViewport.height))
+        ? window.visualViewport.height
+        : window.innerHeight;
+      if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) return;
+      document.documentElement.style.setProperty('--app-height', `${Math.ceil(viewportHeight)}px`);
+    }
+
+    function bindViewportSizing() {
+      updateViewportHeight();
+      window.addEventListener('resize', updateViewportHeight, { passive: true });
+      window.addEventListener('orientationchange', () => setTimeout(updateViewportHeight, 60), { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateViewportHeight, { passive: true });
+      }
+    }
+
+    async function init() { bindViewportSizing(); registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
