@@ -273,6 +273,7 @@
       color: var(--script-text);
       font-weight: 500; letter-spacing: 0.02em;
       white-space: pre-wrap; text-wrap: pretty;
+      overflow-wrap: anywhere; word-break: break-word; hyphens: none;
       user-select: none; -webkit-user-select: none; will-change: transform;
       text-shadow: var(--script-shadow); transition: transform 0.1s linear;
     }
@@ -587,6 +588,82 @@
       transform: translateX(0) scale(1);
       pointer-events: auto;
     }
+    .library-search-field {
+      position: relative;
+      z-index: 8;
+    }
+
+    .library-search-suggestions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      max-height: min(42vh, 320px);
+      overflow: auto;
+      border-radius: 18px;
+      background: rgba(8, 12, 18, 0.96);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 42px rgba(0,0,0,0.34);
+      backdrop-filter: blur(18px);
+      padding: 4px;
+      z-index: 20;
+    }
+
+    .library-search-suggestions.hidden {
+      display: none !important;
+    }
+
+    .library-search-suggestion {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: #fff;
+      text-align: left;
+      padding: 10px 12px;
+      display: grid;
+      gap: 3px;
+      cursor: pointer;
+    }
+
+    .library-search-suggestion + .library-search-suggestion {
+      margin-top: 2px;
+    }
+
+    .library-search-suggestion:hover,
+    .library-search-suggestion:focus-visible {
+      background: rgba(255,255,255,0.08);
+      outline: none;
+    }
+
+    .library-search-suggestion-title {
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 750;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .library-search-suggestion-meta {
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--soft-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .library-search-suggestion-match {
+      font-size: 11px;
+      line-height: 1.35;
+      color: var(--note-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .library-sort-row {
       display: flex;
       gap: 8px;
@@ -1488,8 +1565,9 @@
             <button class="ghost-btn hidden" id="deleteSelectedSongsBtn">Excluir selecionadas</button>
             <button class="ghost-btn hidden" id="cancelLibrarySelectionBtn">Cancelar</button>
           </div>
-          <div class="field">
-            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" />
+          <div class="field library-search-field">
+            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" autocomplete="off" />
+            <div class="library-search-suggestions hidden" id="librarySearchSuggestions"></div>
           </div>
           <div class="library-sort-row" id="librarySortControls">
             <button class="library-sort-btn active" type="button" data-sort="alpha">Alfabética</button>
@@ -1789,6 +1867,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const styleInput = $('styleInput');
     const libraryPanel = $('libraryPanel');
     const librarySearchInput = $('librarySearchInput');
+    const librarySearchSuggestions = $('librarySearchSuggestions');
     const libraryList = $('libraryList');
     const librarySortControls = $('librarySortControls');
     const libraryFilterOptions = $('libraryFilterOptions');
@@ -2978,7 +3057,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistSettings();
     }
     function openLibraryPanel() { hidePanel(); hideSongEditor(); hideSuggestionsPanel(); hideListEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
-    function hideLibraryPanel() { libraryPanel.classList.remove('open'); hideSongActions(); }
+    function hideLibraryPanel() { libraryPanel.classList.remove('open'); if (librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
     function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
@@ -3027,8 +3106,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       showToast(existingIndex >= 0 ? 'Música atualizada' : 'Música salva no seu repertório', 1400);
     }
 
+    function normalizeSearchText(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    function getLibrarySongSearchText(song) {
+      return [song?.title, song?.artist, song?.style, song?.lyrics]
+        .filter(Boolean)
+        .join(' ');
+    }
+
     function getNormalizedLibrarySongs(term = '') {
-      const query = (term || '').toLowerCase().trim();
+      const query = normalizeSearchText(term);
       let songs = state.songs.slice();
 
       if (state.librarySortMode === 'alpha') {
@@ -3042,13 +3135,94 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }
 
       if (query) {
-        songs = songs.filter(song => {
-          const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-          return hay.includes(query);
-        });
+        songs = songs.filter(song => normalizeSearchText(getLibrarySongSearchText(song)).includes(query));
       }
 
       return songs;
+    }
+
+    function getLibrarySearchBaseSongs() {
+      if (state.librarySortMode === 'lists' && state.currentListId) {
+        return getSongsFromList(state.currentListId);
+      }
+      return getNormalizedLibrarySongs('');
+    }
+
+    function getLibrarySearchMatchType(song, query) {
+      const q = normalizeSearchText(query);
+      if (!q) return '';
+      if (normalizeSearchText(song?.title).includes(q)) return 'Título';
+      if (normalizeSearchText(song?.artist).includes(q)) return 'Cantor';
+      if (normalizeSearchText(song?.style).includes(q)) return 'Estilo';
+      if (normalizeSearchText(song?.lyrics).includes(q)) return 'Letra';
+      return '';
+    }
+
+    function renderLibrarySearchSuggestions(term = '') {
+      if (!librarySearchSuggestions) return;
+
+      const query = normalizeSearchText(term);
+      librarySearchSuggestions.innerHTML = '';
+
+      if (query.length < 2) {
+        librarySearchSuggestions.classList.add('hidden');
+        return;
+      }
+
+      const ranked = getLibrarySearchBaseSongs()
+        .filter(song => normalizeSearchText(getLibrarySongSearchText(song)).includes(query))
+        .map((song, index) => {
+          const normalizedTitle = normalizeSearchText(song.title);
+          const normalizedArtist = normalizeSearchText(song.artist);
+          const normalizedStyle = normalizeSearchText(song.style);
+          const normalizedLyrics = normalizeSearchText(song.lyrics);
+          let score = 0;
+          if (normalizedTitle === query) score += 1000;
+          else if (normalizedTitle.includes(query)) score += 600;
+          if (normalizedArtist.includes(query)) score += 300;
+          if (normalizedStyle.includes(query)) score += 200;
+          if (normalizedLyrics.includes(query)) score += 100;
+          return { song, score, index };
+        })
+        .sort((a, b) => b.score - a.score || (a.song.title || '').localeCompare((b.song.title || ''), 'pt-BR', { sensitivity: 'base' }) || a.index - b.index)
+        .slice(0, 6);
+
+      if (!ranked.length) {
+        librarySearchSuggestions.classList.add('hidden');
+        return;
+      }
+
+      ranked.forEach(({ song }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'library-search-suggestion';
+
+        const title = document.createElement('span');
+        title.className = 'library-search-suggestion-title';
+        title.textContent = song.title || 'Sem título';
+
+        const meta = document.createElement('span');
+        meta.className = 'library-search-suggestion-meta';
+        meta.textContent = [song.artist || 'Sem cantor', song.style || 'Sem estilo'].join(' • ');
+
+        const match = document.createElement('span');
+        match.className = 'library-search-suggestion-match';
+        match.textContent = `Correspondência: ${getLibrarySearchMatchType(song, query) || 'música'}`;
+
+        button.appendChild(title);
+        button.appendChild(meta);
+        button.appendChild(match);
+
+        button.addEventListener('click', () => {
+          librarySearchInput.value = song.title || '';
+          librarySearchSuggestions.classList.add('hidden');
+          renderLibraryList(librarySearchInput.value);
+        });
+
+        librarySearchSuggestions.appendChild(button);
+      });
+
+      librarySearchSuggestions.classList.remove('hidden');
     }
 
     function getLibraryFacetValues(mode) {
@@ -3279,8 +3453,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         normalized = getSongsFromList(state.currentListId);
         if (query) {
           normalized = normalized.filter((song) => {
-            const hay = [song.title, song.artist, song.style].filter(Boolean).join(' ').toLowerCase();
-            return hay.includes(query);
+            return normalizeSearchText(getLibrarySongSearchText(song)).includes(normalizeSearchText(query));
           });
         }
       } else {
@@ -3426,7 +3599,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(false));
       if (deleteSelectedSongsBtn) deleteSelectedSongsBtn.addEventListener('click', deleteSelectedLibrarySongs);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => renderLibraryList(librarySearchInput.value)); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
+      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
