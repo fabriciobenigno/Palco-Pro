@@ -219,12 +219,12 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-      margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text);
+      margin: 0; width: 100%; min-height: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     .app {
-      position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000;
+      position: relative; width: 100vw; height: 100vh; min-height: 100dvh; overflow: hidden; background: #000;
       background: var(--app-bg);
     }
 
@@ -242,7 +242,7 @@
       position: absolute;
       left: 50%; top: calc(var(--safe-top) + 6px);
       transform: translateX(-50%);
-      width: 100%; height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 114px);
+      width: 100%; height: calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - 114px);
       pointer-events: auto;
     }
 
@@ -1832,6 +1832,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     </div>
 
   </div>
+
+
+    @supports (height: 100svh) {
+      :root { --app-height: 100svh; }
+    }
+    @supports (height: 100lvh) {
+      :root { --app-height: 100lvh; }
+    }
+    @media (max-width: 700px) {
+      html, body, .app {
+        width: 100%;
+        min-width: 100%;
+        min-height: 100%;
+      }
+      .app { min-height: 100dvh; }
+    }
 
   <script>
     const $ = (id) => document.getElementById(id);
