@@ -273,7 +273,7 @@
       color: var(--script-text);
       font-weight: 500; letter-spacing: 0.02em;
       white-space: pre-wrap; text-wrap: pretty;
-      overflow-wrap: anywhere; word-break: break-word; hyphens: none;
+      overflow-wrap: normal; word-break: normal; hyphens: none;
       user-select: none; -webkit-user-select: none; will-change: transform;
       text-shadow: var(--script-shadow); transition: transform 0.1s linear;
     }
@@ -1234,6 +1234,13 @@
       opacity: 0.52;
       cursor: not-allowed;
     }
+
+    .danger-btn {
+      background: linear-gradient(180deg, rgba(255, 92, 92, 0.96), rgba(214, 48, 48, 0.94));
+      border-color: rgba(255, 150, 150, 0.28);
+      color: #fff;
+    }
+
     .password-visibility-row {
       display: flex; align-items: center; gap: 10px; color: var(--soft-text); font-size: 13px;
       margin-top: -2px;
@@ -1791,7 +1798,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
           <div class="suggestions-actions-row">
             <button class="ghost-btn" id="refreshSuggestionsBtn">Atualizar sugestões</button>
-            <button class="ghost-btn" id="addAllSuggestionsBtn">Adicionar todas ao repertório</button>
+            <button class="ghost-btn" id="selectAllSuggestionsBtn">Selecionar todas</button>
             <button class="ghost-btn" id="saveSelectedSuggestionsBtn" disabled>Salvar selecionadas</button>
           </div>
 
@@ -1911,7 +1918,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const suggestionsList = $('suggestionsList');
     const refreshSuggestionsBtn = $('refreshSuggestionsBtn');
     const saveSelectedSuggestionsBtn = $('saveSelectedSuggestionsBtn');
-    const addAllSuggestionsBtn = $('addAllSuggestionsBtn');
+    const selectAllSuggestionsBtn = $('selectAllSuggestionsBtn');
     const appToast = $('appToast');
     const songActionsPanel = $('songActionsPanel');
     const songActionsSubtitle = $('songActionsSubtitle');
@@ -2320,9 +2327,32 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       return normalizeSearchText(suggestionsSearchInput?.value || '');
     }
 
+    function getSuggestionSongKey(song) {
+      const title = normalizeSearchText(song?.title || '');
+      const artist = normalizeSearchText(song?.artist || '');
+      return `${title}\u0000${artist}`;
+    }
+
+    function isSongAlreadyInRepertoire(song) {
+      if (!song || !Array.isArray(state.songs)) return false;
+      const title = normalizeSearchText(song.title || '');
+      const artist = normalizeSearchText(song.artist || '');
+      if (!title) return false;
+
+      return state.songs.some((personalSong) => {
+        const personalTitle = normalizeSearchText(personalSong?.title || '');
+        const personalArtist = normalizeSearchText(personalSong?.artist || '');
+        if (personalTitle !== title) return false;
+        if (!artist || !personalArtist) return true;
+        return personalArtist === artist;
+      });
+    }
+
     function filterSuggestionSongs() {
       const query = getSuggestionSearchQuery();
-      let songs = state.suggestionSongs.slice().sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
+      let songs = state.suggestionSongs
+        .filter((song) => !isSongAlreadyInRepertoire(song))
+        .sort((a, b) => (a.title || '').localeCompare((b.title || ''), 'pt-BR', { sensitivity: 'base' }));
       if (!query) return songs;
       return songs.filter((song) => {
         const hay = normalizeSearchText([song.title, song.artist, song.style, song.lyrics].filter(Boolean).join(' '));
@@ -2394,15 +2424,18 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       showToast(count === 1 ? '1 música salva no repertório' : `${count} músicas salvas no repertório`, 1700);
     }
 
-    function addAllSuggestionsToRepertoire() {
+    function selectAllSuggestions() {
       const songs = filterSuggestionSongs();
       if (!songs.length) {
-        showToast('Nenhuma sugestão encontrada para adicionar', 1500);
+        showToast('Nenhuma sugestão encontrada para selecionar', 1500);
         return;
       }
-      const count = addSongsToRepertoire(songs);
+
+      const next = new Set(Array.isArray(state.selectedSuggestionIds) ? state.selectedSuggestionIds : []);
+      songs.forEach((song) => next.add(song.id));
+      state.selectedSuggestionIds = Array.from(next);
+      updateSuggestionSelectionUi();
       renderSuggestionList();
-      showToast(count === 1 ? '1 música adicionada ao repertório' : `${count} músicas adicionadas ao repertório`, 1800);
     }
 
     function renderSuggestionList() {
@@ -3367,7 +3400,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         deleteSelectedSongsBtn.disabled = selectedCount < 1;
         deleteSelectedSongsBtn.textContent = selectedCount > 0 ? `Excluir selecionadas (${selectedCount})` : 'Excluir selecionadas';
       }
-      if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.classList.toggle('hidden', !state.librarySelectionMode);
+      if (cancelLibrarySelectionBtn) {
+        cancelLibrarySelectionBtn.classList.toggle('hidden', !state.librarySelectionMode);
+        cancelLibrarySelectionBtn.classList.toggle('danger-btn', state.librarySelectionMode);
+      }
     }
 
     function setLibrarySelectionMode(enabled) {
@@ -3628,7 +3664,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(false));
       if (deleteSelectedSongsBtn) deleteSelectedSongsBtn.addEventListener('click', deleteSelectedLibrarySongs);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (addAllSuggestionsBtn) addAllSuggestionsBtn.addEventListener('click', addAllSuggestionsToRepertoire); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
       librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
     function registerServiceWorker() {
