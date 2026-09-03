@@ -3201,8 +3201,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const userName = getCatalogUserName();
       if (!song?.title || !userName) return Promise.resolve(false);
 
-      // Envia uma cópia completa do cadastro, sem alterar o registro local.
-      // O nome do usuário é metadado de cadastro e não faz parte da letra.
+      // Somente o cadastro manual chega aqui. Músicas escolhidas em
+      // catalogo.json são adicionadas ao repertório local por um fluxo separado
+      // e não chamam esta função.
       const cadastroCompleto = {
         id: song.id || '',
         title: song.title || '',
@@ -3212,9 +3213,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       };
 
       const payload = {
-        musica: song.title || '',
+        tipo: 'cadastro-manual',
+        musica: cadastroCompleto.title,
         nome: userName,
-        cadastroCompleto: cadastroCompleto
+        cadastroCompleto: cadastroCompleto,
+        cadastradoEm: new Date().toISOString()
       };
 
       return fetch(CATALOG_SUBMIT_URL, {
