@@ -742,6 +742,42 @@
     .switch input:checked + .slider { background: var(--switch-active-bg); }
     .switch input:checked + .slider::before { transform: translateX(19px); }
     .panel-note { font-size: 12px; line-height: 1.5; color: var(--note-text); }
+    .user-name-wrap {
+      display: grid;
+      gap: 8px;
+    }
+    .user-name-swipe {
+      --swipe-reveal-width: 82px;
+      position: relative;
+      overflow: hidden;
+      min-height: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: transparent;
+      border: 1px solid var(--card-border);
+      touch-action: pan-y;
+    }
+    .user-name-actions {
+      position: absolute; inset: 0 0 0 auto; width: var(--swipe-reveal-width);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 0; pointer-events: none;
+    }
+    .user-name-edit-btn {
+      min-width: 64px; height: 34px; padding: 0 12px; border: 0; border-radius: 999px;
+      background: linear-gradient(180deg, rgba(91,176,255,0.98), rgba(52,131,248,0.94));
+      color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+      opacity: 0; transform: translateX(18px); transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
+    .user-name-card {
+      position: relative; z-index: 1; width: 100%; height: 46px; padding: 0 12px;
+      border: 0; background: rgba(18,22,30,0.94); color: #fff; text-align: left;
+      transform: translateX(0); transition: transform .22s ease; cursor: pointer;
+      display: flex; align-items: center; overflow: hidden;
+    }
+    .user-name-line { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--text); }
+    .user-name-swipe.revealed .user-name-card { transform: translateX(calc(var(--swipe-reveal-width) * -1)); }
+    .user-name-swipe.revealed .user-name-edit-btn, .user-name-swipe.swiping .user-name-edit-btn { opacity: 1; transform: translateX(0); pointer-events: auto; }
     .hidden { display: none !important; }
 
     .more-options-wrap {
@@ -1618,6 +1654,20 @@
 
         <div class="sync-status-note" id="syncStatusNote">Repertório salvo neste dispositivo.</div>
 
+        <div class="user-name-wrap">
+          <div class="field">
+            <label>Identificação</label>
+            <div class="user-name-swipe" id="userNameSwipe">
+              <div class="user-name-actions">
+                <button class="user-name-edit-btn" id="editUserNameBtn" type="button">Editar</button>
+              </div>
+              <button class="user-name-card" id="userNameCard" type="button" aria-label="Definir seu nome">
+                <span class="user-name-line" id="userNameDisplay">Seu nome</span>
+              </button>
+            </div>
+            <div class="panel-note">Seu nome fica salvo somente neste dispositivo e acompanha o backup.</div>
+          </div>
+        </div>
 
         <div class="toggle-row">
           <span>Reconhecimento por fala</span>
@@ -1843,6 +1893,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
     const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
+
+    // === INTEGRAÇÃO COM GOOGLE APPS SCRIPT ===
+    // Cole aqui a URL da implantação do seu Web App.
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrAcZy_JBrC1KKJnHzwkUg7bBD26jQFzm5pG2MCNDSd_g0G8l1EXpR-WtpbGLBl-24/exec';
     function getSongsStorageKey() { return STORAGE_KEY; }
     function getListsStorageKey() { return LISTS_KEY; }
 
@@ -1930,6 +1984,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const backupFileInput = $('backupFileInput');
     const exportBackupBtn = $('exportBackupBtn');
     const importBackupBtn = $('importBackupBtn');
+    const userNameSwipe = $('userNameSwipe');
+    const editUserNameBtn = $('editUserNameBtn');
+    const userNameCard = $('userNameCard');
+    const userNameDisplay = $('userNameDisplay');
+
+    let userName = '';
 
     function createSongId() {
       if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -3121,10 +3181,62 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openLibraryPanel() { hidePanel(); hideSongEditor(); hideSuggestionsPanel(); hideListEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); if (librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName })); }
+    function renderUserName() {
+      if (!userNameDisplay) return;
+      userNameDisplay.textContent = userName || 'Seu nome';
+      if (userNameCard) userNameCard.setAttribute('aria-label', userName ? `Editar nome: ${userName}` : 'Definir seu nome');
+    }
+    function saveUserName(value) {
+      const next = String(value || '').trim();
+      if (!next) { showToast('Digite um nome válido', 1400); return false; }
+      userName = next.slice(0, 120);
+      persistSettings();
+      renderUserName();
+      closeUserNameSwipe();
+      showToast('Nome salvo', 1200);
+      return true;
+    }
+    function editUserName() {
+      const value = window.prompt('Digite seu nome:', userName || '');
+      if (value === null) return;
+      saveUserName(value);
+    }
+    function closeUserNameSwipe() {
+      if (userNameSwipe) userNameSwipe.classList.remove('revealed', 'swiping');
+    }
+    function bindUserNameSwipe() {
+      if (!userNameSwipe || !userNameCard) return;
+      let startX = 0, currentX = 0, dragging = false, moved = false;
+      userNameSwipe.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('#editUserNameBtn')) return;
+        startX = event.clientX; currentX = event.clientX; dragging = true; moved = false;
+        userNameSwipe.setPointerCapture?.(event.pointerId);
+      });
+      userNameSwipe.addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        currentX = event.clientX;
+        const dx = currentX - startX;
+        if (Math.abs(dx) > 8) moved = true;
+        if (dx < -8) userNameSwipe.classList.add('swiping');
+        else if (dx > 8 && !userNameSwipe.classList.contains('revealed')) userNameSwipe.classList.remove('swiping');
+      });
+      userNameSwipe.addEventListener('pointerup', () => {
+        if (!dragging) return;
+        dragging = false;
+        const dx = currentX - startX;
+        userNameSwipe.classList.remove('swiping');
+        if (dx < -35) userNameSwipe.classList.add('revealed');
+        else if (dx > 35) userNameSwipe.classList.remove('revealed');
+        else if (!moved) editUserName();
+      });
+      userNameSwipe.addEventListener('pointercancel', () => { dragging = false; userNameSwipe.classList.remove('swiping'); });
+      editUserNameBtn?.addEventListener('click', (event) => { event.stopPropagation(); editUserName(); });
+      document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
+    }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; voiceToggle.checked = false;
-        voiceToggle.disabled = true; } catch (_) {} }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
+        voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
@@ -3147,7 +3259,40 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       renderRepertoire();
     }
     function renderRepertoire() { repertoireSelect.innerHTML = ''; if (!state.songs.length) { const option = document.createElement('option'); option.value = ''; option.textContent = 'Nenhuma música salva'; repertoireSelect.appendChild(option); return; } state.songs.forEach(song => { const option = document.createElement('option'); option.value = song.id; option.textContent = song.title || 'Sem título'; repertoireSelect.appendChild(option); }); if (state.currentSongId) repertoireSelect.value = state.currentSongId; }
-    function saveCurrentSong() {
+    async function enviarCadastroManualParaAppsScript(song) {
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT') {
+        showToast('URL do Apps Script não configurada', 1800);
+        return false;
+      }
+
+      const payload = {
+        id: song.id,
+        musica: song.title || '',
+        artista: song.artist || '',
+        estilo: song.style || '',
+        usuario: userName || '',
+        letra: song.lyrics || '',
+        dataCadastro: new Date().toISOString()
+      };
+
+      try {
+        // text/plain + no-cors evita preflight CORS no Google Apps Script.
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+        return true;
+      } catch (error) {
+        console.error('Falha ao enviar cadastro para o Apps Script:', error);
+        showToast('Música salva no aparelho, mas não foi enviada ao servidor.', 2200);
+        return false;
+      }
+    }
+
+    async function saveCurrentSong() {
       const title = songTitleInput.value.trim() || 'Sem título';
       const lyrics = sanitizeLyrics(scriptInput.value);
       const artist = artistInput.value.trim();
@@ -3155,6 +3300,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.value = lyrics;
       if (!lyrics) return;
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
+      const isNewManualRegistration = existingIndex < 0;
+      if (isNewManualRegistration && !userName) {
+        showToast('Informe seu nome em Ajustes antes de cadastrar uma música.', 2200);
+        openPanel();
+        return;
+      }
       const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics };
       const nextSongs = state.songs.map(song => ({...song}));
       if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
@@ -3165,7 +3316,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       loadScript();
       hideSongEditor();
       openLibraryPanel();
-      showToast(existingIndex >= 0 ? 'Música atualizada' : 'Música salva no seu repertório', 1400);
+
+      if (isNewManualRegistration) {
+        const sent = await enviarCadastroManualParaAppsScript(payload);
+        showToast(sent ? 'Música salva e cadastro enviado' : 'Música salva no seu repertório', 1600);
+      } else {
+        showToast('Música atualizada', 1400);
+      }
     }
 
     function normalizeSearchText(value) {
@@ -3788,7 +3945,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
