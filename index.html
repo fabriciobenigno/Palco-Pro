@@ -242,7 +242,7 @@
       position: absolute;
       left: 50%; top: calc(var(--safe-top) + 6px);
       transform: translateX(-50%);
-      width: 100%; height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 114px);
+      width: 100%; height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 6px);
       pointer-events: auto;
     }
 
@@ -252,6 +252,16 @@
         radial-gradient(circle at 50% 50%, rgba(12,16,24,0.05), transparent 58%),
         linear-gradient(180deg, rgba(10,14,22,0.045), rgba(10,14,22,0.02));
       pointer-events: none;
+    }
+
+    .prompt-window::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 34vh;
+      background: linear-gradient(180deg, rgba(3,6,12,0), rgba(3,6,12,0.14) 34%, rgba(3,6,12,0.56) 72%, rgba(3,6,12,0.84) 100%);
+      pointer-events: none;
+      z-index: 8;
     }
 
     .prompt-content {
@@ -588,6 +598,36 @@
       transform: translateX(0) scale(1);
       pointer-events: auto;
     }
+    .pdf-viewer-screen {
+      position: fixed; inset: 0; z-index: 34; display: none;
+      background: var(--screen-bg);
+      overflow: hidden;
+      padding: var(--safe-top) 0 var(--safe-bottom);
+    }
+    .pdf-viewer-screen.open { display: flex; flex-direction: column; }
+    .pdf-viewer-toolbar {
+      flex: 0 0 auto; min-height: 42px; padding: 6px 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); background: var(--glass-bg-strong);
+      border-bottom: 1px solid var(--glass-border); backdrop-filter: blur(18px);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+      text-align: center;
+    }
+    .pdf-viewer-frame {
+      flex: 1 1 auto; width: 100%; height: 100%; min-height: 0; border: 0; display: block;
+      background: #fff;
+    }
+    .library-filter-active {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin: 0 0 8px; padding: 8px 10px; border-radius: 14px;
+      background: var(--soft-bg); border: 1px solid var(--soft-border);
+    }
+    .library-filter-active span {
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      color: var(--soft-text); font-size: 12px; font-weight: 700;
+    }
+    .library-filter-active .ghost-btn { min-height: 34px; padding: 7px 10px; flex: 0 0 auto; }
+
     .library-search-field {
       position: relative;
       z-index: 8;
@@ -966,6 +1006,28 @@
     .detail-panel.open { display: flex; }
 
     .detail-mode .detail-panel { display: flex; }
+
+    .first-access-name-gate {
+      position: fixed; inset: 0; z-index: 10050; display: none;
+      align-items: center; justify-content: center;
+      padding: calc(var(--safe-top) + 22px) 20px calc(var(--safe-bottom) + 22px);
+      background: var(--screen-bg);
+      backdrop-filter: blur(24px);
+    }
+    .first-access-name-gate.active { display: flex; }
+    .first-access-name-card {
+      width: min(100%, 430px);
+      display: grid; gap: 14px;
+      padding: 26px 22px; border-radius: 30px;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow); text-align: center;
+    }
+    .first-access-name-icon {
+      width: 58px; height: 58px; border-radius: 16px; margin: 0 auto 2px; object-fit: cover;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+    }
+    .first-access-name-card h2 { margin: 0; font-size: 24px; line-height: 1.2; color: #fff; }
+    .first-access-name-card p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--soft-text); }
 
     .browser-entry-gate {
       position: fixed; inset: 0; z-index: 9999; display: none;
@@ -1532,6 +1594,19 @@
 </head>
 <body>
   <div class="app" id="app">
+    <div class="first-access-name-gate" id="firstAccessNameGate" aria-hidden="true">
+      <div class="first-access-name-card">
+        <img src="palco-pro-icon.png" alt="Ícone do app Palco Pro" class="first-access-name-icon" />
+        <h2>Bem-vindo ao Palco Pro</h2>
+        <p>Antes de começar, informe seu nome de usuário.</p>
+        <div class="field">
+          <label for="firstAccessNameInput">Nome de usuário</label>
+          <input id="firstAccessNameInput" type="text" maxlength="120" autocomplete="name" placeholder="Digite seu nome" />
+        </div>
+        <button class="entry-nav-btn" type="button" id="saveFirstAccessNameBtn">Continuar</button>
+      </div>
+    </div>
+
     <div class="browser-entry-gate" id="browserEntryGate" aria-hidden="true">
       <div class="entry-shell">
         <div class="entry-main">
@@ -1586,6 +1661,10 @@
         <div class="prompt-bg"></div>
         <div class="prompt-content" id="promptContent">
           <div class="script-inner" id="scriptInner"></div>
+        </div>
+        <div class="pdf-viewer-screen" id="pdfViewerScreen" aria-hidden="true">
+          <div class="pdf-viewer-toolbar" id="pdfViewerToolbar">PDF</div>
+          <iframe class="pdf-viewer-frame" id="pdfViewerFrame" title="Leitura da música em PDF"></iframe>
         </div>
       </div>
     </div>
@@ -1771,17 +1850,17 @@
 
           <div class="field">
             <label for="songTitleInput">Título da música</label>
-            <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" />
+            <input id="songTitleInput" type="text" required placeholder="Ex.: Trem Bala" />
           </div>
 
           <div class="field">
             <label for="artistInput">Cantor / artista</label>
-            <input id="artistInput" type="text" placeholder="Ex.: Ana Vilela" />
+            <input id="artistInput" type="text" required placeholder="Ex.: Ana Vilela" />
           </div>
 
           <div class="field">
             <label for="styleInput">Estilo musical</label>
-            <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" />
+            <input id="styleInput" type="text" required placeholder="Ex.: MPB, Pop, Forró" />
           </div>
 
           <div class="field" style="flex:1; min-height: 0;">
@@ -1789,6 +1868,15 @@
             <textarea id="scriptInput" style="min-height: 220px;">Aperte no icone musical e faça seu repertório.
 
 O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
+          </div>
+
+          <div class="field" style="margin-top: 2px;">
+            <label for="songPdfInput">PDF da música (opcional)</label>
+            <input id="songPdfInput" type="file" accept="application/pdf,.pdf" />
+            <div class="small-row">
+              <button class="ghost-btn hidden" id="removeSongPdfBtn" type="button">Remover PDF</button>
+            </div>
+            <div class="panel-note" id="songPdfStatus">Sem PDF anexado. Se houver PDF, ele terá prioridade sobre a letra na leitura.</div>
           </div>
 
           <div class="field" style="margin-top: 2px;">
@@ -1913,6 +2001,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
+      editingPdfData: '',
       lists: [], currentListId: null, editingListId: null, revealedListId: null,
       librarySelectionMode: false, selectedLibrarySongIds: []
     };
@@ -1927,6 +2016,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const repertoireSelect = $('repertoireSelect');
     const artistInput = $('artistInput');
     const styleInput = $('styleInput');
+    const songPdfInput = $('songPdfInput');
+    const removeSongPdfBtn = $('removeSongPdfBtn');
+    const songPdfStatus = $('songPdfStatus');
+    const pdfViewerScreen = $('pdfViewerScreen');
+    const pdfViewerFrame = $('pdfViewerFrame');
+    const pdfViewerToolbar = $('pdfViewerToolbar');
     const libraryPanel = $('libraryPanel');
     const librarySearchInput = $('librarySearchInput');
     const librarySearchSuggestions = $('librarySearchSuggestions');
@@ -2008,7 +2103,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song?.title || 'Sem título',
         artist: song?.artist || '',
         style: song?.style || '',
-        lyrics: sanitizeLyrics(song?.lyrics || '')
+        lyrics: sanitizeLyrics(song?.lyrics || ''),
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
       };
     }
 
@@ -2018,7 +2114,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song?.title || 'Sem título',
         artist: song?.artist || '',
         style: song?.style || '',
-        lyrics: sanitizeLyrics(song?.lyrics || '')
+        lyrics: sanitizeLyrics(song?.lyrics || ''),
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
       };
     }
 
@@ -2330,10 +2427,31 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function renderLibraryContextBar() {
       if (!libraryContextBar) return;
       libraryContextBar.innerHTML = '';
+      if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && state.libraryFilterValue) {
+        const info = document.createElement('div');
+        info.className = 'library-filter-active';
+        const label = document.createElement('span');
+        label.textContent = `${state.librarySortMode === 'artist' ? 'Artista' : 'Estilo'}: ${state.libraryFilterValue}`;
+        const backBtn = document.createElement('button');
+        backBtn.className = 'ghost-btn';
+        backBtn.type = 'button';
+        backBtn.textContent = 'Trocar filtro';
+        backBtn.addEventListener('click', () => {
+          state.libraryFilterValue = '';
+          persistSettings();
+          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        });
+        info.appendChild(label);
+        info.appendChild(backBtn);
+        libraryContextBar.appendChild(info);
+        libraryContextBar.classList.remove('hidden');
+        return;
+      }
       if (state.librarySortMode !== 'lists' || !state.currentListId) {
         libraryContextBar.classList.add('hidden');
         return;
       }
+      if (librarySortControls) librarySortControls.classList.add('hidden');
       const currentList = getListById(state.currentListId);
       if (!currentList) {
         libraryContextBar.classList.add('hidden');
@@ -2605,6 +2723,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = personalCopy.artist || '';
       styleInput.value = personalCopy.style || '';
       scriptInput.value = personalCopy.lyrics || '';
+      setEditingSongPdf(personalCopy.pdfData || '');
       persistCurrentDraft();
       hideSuggestionsPanel();
       openSongEditor();
@@ -2621,6 +2740,51 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       }, duration);
     }
     function setSyncStatusFromState(extraMessage = '') { updateSyncStatus(extraMessage || 'Repertório salvo neste dispositivo.'); }
+
+    function updateSongPdfEditorUi() {
+      const hasPdf = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf');
+      if (removeSongPdfBtn) removeSongPdfBtn.classList.toggle('hidden', !hasPdf);
+      if (songPdfStatus) songPdfStatus.textContent = hasPdf
+        ? 'PDF anexado. Ele terá prioridade sobre a letra durante a leitura.'
+        : 'Sem PDF anexado. A letra cadastrada será usada na leitura.';
+      if (songPdfInput) songPdfInput.value = '';
+    }
+
+    function setEditingSongPdf(dataUrl = '') {
+      state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : '';
+      updateSongPdfEditorUi();
+    }
+
+    function clearEditingSongPdf() {
+      setEditingSongPdf('');
+      persistCurrentDraft();
+    }
+
+    function openPdfForSong(song) {
+      const pdfData = typeof song?.pdfData === 'string' && song.pdfData.startsWith('data:application/pdf') ? song.pdfData : '';
+      if (!pdfViewerScreen || !pdfViewerFrame) return false;
+      if (!pdfData) {
+        pdfViewerScreen.classList.remove('open');
+        pdfViewerScreen.setAttribute('aria-hidden', 'true');
+        pdfViewerFrame.removeAttribute('src');
+        return false;
+      }
+      if (pdfViewerToolbar) pdfViewerToolbar.textContent = `${song?.title || 'Música'} • PDF`;
+      pdfViewerFrame.src = pdfData;
+      pdfViewerScreen.classList.add('open');
+      pdfViewerScreen.setAttribute('aria-hidden', 'false');
+      promptContent.classList.add('hidden');
+      return true;
+    }
+
+    function closePdfViewer() {
+      if (pdfViewerScreen) {
+        pdfViewerScreen.classList.remove('open');
+        pdfViewerScreen.setAttribute('aria-hidden', 'true');
+      }
+      if (pdfViewerFrame) pdfViewerFrame.removeAttribute('src');
+      if (promptContent) promptContent.classList.remove('hidden');
+    }
 
     function openSongEditor() {
       hidePanel();
@@ -2685,7 +2849,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
-      loadScript();
+      setEditingSongPdf(song.pdfData || '');
+      loadSongMedia(song);
       repertoireSelect.value = song.id;
       resetSongToTopStart();
       persistCurrentDraft();
@@ -2787,6 +2952,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
+      setEditingSongPdf(song.pdfData || '');
       loadScript();
       repertoireSelect.value = song.id;
       persistCurrentDraft();
@@ -2801,6 +2967,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = '';
       styleInput.value = '';
       scriptInput.value = '';
+      setEditingSongPdf('');
       if (repertoireSelect) repertoireSelect.value = '';
       persistCurrentDraft();
       openSongEditor();
@@ -2861,6 +3028,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       applyScroll(true);
     }
     function markLines() {}
+    function loadSongMedia(song = null) {
+      const current = song || state.songs.find(item => item.id === state.currentSongId);
+      if (current && openPdfForSong(current)) return;
+      closePdfViewer();
+      loadScript();
+    }
+
     function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() {}
@@ -3194,6 +3368,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistSettings();
       renderUserName();
       closeUserNameSwipe();
+      if (typeof updateFirstAccessNameGate === 'function') updateFirstAccessNameGate();
       showToast('Nome salvo', 1200);
       return true;
     }
@@ -3234,10 +3409,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       editUserNameBtn?.addEventListener('click', (event) => { event.stopPropagation(); editUserName(); });
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
-    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value })); }
+    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
     function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
-    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; } catch (_) {} }
+    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; if (saved.pdfData) setEditingSongPdf(saved.pdfData); else setEditingSongPdf(''); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
       return [];
@@ -3293,12 +3468,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     async function saveCurrentSong() {
-      const title = songTitleInput.value.trim() || 'Sem título';
+      const title = songTitleInput.value.trim();
       const lyrics = sanitizeLyrics(scriptInput.value);
       const artist = artistInput.value.trim();
       const style = styleInput.value.trim();
+      const pdfData = typeof state.editingPdfData === 'string' ? state.editingPdfData : '';
+      if (!title) { showToast('Informe o nome da música', 1600); songTitleInput.focus(); return; }
+      if (!artist) { showToast('Informe o artista', 1600); artistInput.focus(); return; }
+      if (!style) { showToast('Informe o estilo musical', 1600); styleInput.focus(); return; }
       scriptInput.value = lyrics;
-      if (!lyrics) return;
+      if (!lyrics && !pdfData) {
+        showToast('Informe a letra ou anexe um PDF', 1700);
+        return;
+      }
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) {
@@ -3306,14 +3488,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         openPanel();
         return;
       }
-      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics };
+      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData };
       const nextSongs = state.songs.map(song => ({...song}));
       if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
       persistSongsState(nextSongs);
       state.currentSongId = payload.id;
       repertoireSelect.value = payload.id;
       persistCurrentDraft();
-      loadScript();
+      loadSongMedia(payload);
       hideSongEditor();
       openLibraryPanel();
 
@@ -3455,9 +3637,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function renderLibraryFilterOptions() {
       if (!libraryFilterOptions) return;
       const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
+      const hasSelectedFilter = needsFacet && !!state.libraryFilterValue;
+      const hasSelectedList = state.librarySortMode === 'lists' && !!state.currentListId;
       libraryFilterOptions.innerHTML = '';
 
-      if (!needsFacet) {
+      if (librarySortControls) {
+        librarySortControls.classList.toggle('hidden', hasSelectedFilter || hasSelectedList);
+      }
+
+      if (!needsFacet || hasSelectedFilter) {
         libraryFilterOptions.classList.add('hidden');
         return;
       }
@@ -3471,14 +3659,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       values.forEach((value) => {
         const btn = document.createElement('button');
         btn.className = 'library-filter-chip';
-        if (state.libraryFilterValue === value) btn.classList.add('active');
         btn.type = 'button';
         btn.textContent = value;
         btn.addEventListener('click', () => {
           state.libraryFilterValue = value;
           persistSettings();
-          renderLibraryFilterOptions();
           setLibrarySelectionMode(false);
+          renderLibraryFilterOptions();
+          renderLibraryContextBar();
+          renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
         });
         libraryFilterOptions.appendChild(btn);
       });
@@ -3538,7 +3727,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
-      loadScript();
+      loadSongMedia(song);
       resetSongToTopStart();
       persistCurrentDraft();
     }
@@ -3806,7 +3995,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.lists = lists.map(normalizeList); saveLists();
       if (data.settings && typeof data.settings === 'object') localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings));
       if (data.currentDraft && typeof data.currentDraft === 'object') localStorage.setItem(CURRENT_KEY, JSON.stringify(data.currentDraft));
-      loadSettings(); loadCurrentDraft(); renderRepertoire(); renderLibraryList(librarySearchInput?.value || ''); updateValueLabels(); applyStyles(); loadScript();
+      loadSettings(); loadCurrentDraft(); renderRepertoire(); renderLibraryList(librarySearchInput?.value || ''); updateValueLabels(); applyStyles(); loadSongMedia(state.songs.find(song => song.id === state.currentSongId));
       showToast('Backup restaurado', 1600);
     }
     function importBackupFile(file) {
@@ -3821,9 +4010,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(false));
       if (deleteSelectedSongsBtn) deleteSelectedSongsBtn.addEventListener('click', deleteSelectedLibrarySongs);
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      $('saveSongBtn').addEventListener('click', saveCurrentSong);
+      if (songPdfInput) songPdfInput.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')) {
+          event.target.value = '';
+          showToast('Selecione um arquivo PDF', 1600);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          setEditingSongPdf(String(reader.result || ''));
+          persistCurrentDraft();
+          showToast('PDF anexado à música', 1400);
+        };
+        reader.onerror = () => showToast('Não foi possível ler o PDF', 1700);
+        reader.readAsDataURL(file);
+      });
+      if (removeSongPdfBtn) removeSongPdfBtn.addEventListener('click', () => { clearEditingSongPdf(); showToast('PDF removido da música', 1300); });
+      $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibraryContextBar(); renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => refreshLayoutPreservingPoint());  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -3890,6 +4098,38 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.installPromptAvailable = false;
       updateInstallExperience();
     }
+    function shouldShowFirstAccessNameGate() {
+      return isMobilePhoneBrowser() && isStandaloneMode() && !String(userName || '').trim();
+    }
+    function updateFirstAccessNameGate() {
+      const gate = $('firstAccessNameGate');
+      if (!gate) return;
+      const visible = shouldShowFirstAccessNameGate();
+      gate.classList.toggle('active', visible);
+      gate.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (visible) {
+        const input = $('firstAccessNameInput');
+        if (input) {
+          input.value = '';
+          setTimeout(() => input.focus(), 60);
+        }
+      }
+    }
+    function bindFirstAccessNameGate() {
+      const btn = $('saveFirstAccessNameBtn');
+      const input = $('firstAccessNameInput');
+      if (!btn || !input) return;
+      const submit = () => {
+        const value = input.value.trim();
+        if (!value) { input.focus(); showToast('Digite seu nome para continuar', 1500); return; }
+        saveUserName(value);
+      };
+      btn.addEventListener('click', submit);
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); submit(); }
+      });
+    }
+
     function updateBrowserEntryGateVisibility() {
       const gate = $('browserEntryGate');
       if (!gate) return;
@@ -3945,7 +4185,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadSongMedia(state.songs.find(song => song.id === state.currentSongId)); setupVoice(); bindEvents(); bindUserNameSwipe(); bindFirstAccessNameGate(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
