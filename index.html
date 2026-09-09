@@ -1744,6 +1744,20 @@
           <label class="switch"><input id="mirrorToggle" type="checkbox" /><span class="slider"></span></label>
         </div>
 
+        <div class="toggle-row" id="readingPreferenceSetting">
+          <span>Preferência de leitura</span>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.78);">
+              <input id="preferPdfRadio" type="radio" name="readingPreference" value="pdf" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;" />
+              <span>Preferir PDF</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.78);">
+              <input id="preferLyricsRadio" type="radio" name="readingPreference" value="lyrics" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;" />
+              <span>Preferir letra</span>
+            </label>
+          </div>
+        </div>
+
         <div class="more-options-wrap" id="moreOptionsWrap">
           <button class="more-options-toggle" id="moreOptionsBtn" type="button">Mais opções</button>
 
@@ -1963,6 +1977,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
     const LISTS_KEY = 'palco-pro-lists-v1';
+    const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
 
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
@@ -2806,10 +2821,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
-      loadScript();
+      state.editingPdfData = song.pdfData || '';
       repertoireSelect.value = song.id;
-      resetSongToTopStart();
       persistCurrentDraft();
+      resetSongToTopStart();
+      if (shouldUsePdfForSong(song)) {
+        openPdfForSong(song);
+      } else {
+        closePdfViewer();
+        loadScript();
+      }
       hideLibraryPanel();
     }
 
@@ -2987,6 +3008,49 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       applyScroll(true);
     }
     function markLines() {}
+
+    function getReadingPreference() {
+      try {
+        const saved = localStorage.getItem(READING_PREFERENCE_KEY);
+        return saved === 'lyrics' ? 'lyrics' : 'pdf';
+      } catch (_) {
+        return 'pdf';
+      }
+    }
+
+    function setReadingPreference(value) {
+      const preference = value === 'lyrics' ? 'lyrics' : 'pdf';
+      try {
+        localStorage.setItem(READING_PREFERENCE_KEY, preference);
+      } catch (_) {}
+      const pdfRadio = $('preferPdfRadio');
+      const lyricsRadio = $('preferLyricsRadio');
+      if (pdfRadio) pdfRadio.checked = preference === 'pdf';
+      if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
+      return preference;
+    }
+
+    function syncReadingPreferenceControls() {
+      setReadingPreference(getReadingPreference());
+    }
+
+    function songHasPdf(song) {
+      return !!(
+        song &&
+        (
+          (typeof song.pdfData === 'string' && song.pdfData.startsWith('data:application/pdf')) ||
+          String(song.pdfUrl || '').trim()
+        )
+      );
+    }
+
+    function shouldUsePdfForSong(song) {
+      if (!songHasPdf(song)) return false;
+      const hasLyrics = !!String(song?.lyrics || '').trim();
+      if (!hasLyrics) return true;
+      return getReadingPreference() === 'pdf';
+    }
+
     function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() {}
@@ -3410,7 +3474,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         estilo: song.style || '',
         usuario: userName || '',
         letra: song.lyrics || '',
-        pdfData: song.pdfData || '',
         dataCadastro: new Date().toISOString()
       };
 
@@ -3568,10 +3631,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
       libraryFilterOptions.innerHTML = '';
 
-      // Depois que um artista/estilo foi selecionado, as opções de seleção
-      // devem desaparecer. O usuário vê somente as músicas filtradas e
-      // pode usar "Trocar filtro" para escolher outra opção.
-      if (!needsFacet || state.libraryFilterValue) {
+      if (!needsFacet) {
         libraryFilterOptions.classList.add('hidden');
         return;
       }
@@ -3585,13 +3645,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       values.forEach((value) => {
         const btn = document.createElement('button');
         btn.className = 'library-filter-chip';
+        if (state.libraryFilterValue === value) btn.classList.add('active');
         btn.type = 'button';
         btn.textContent = value;
         btn.addEventListener('click', () => {
           state.libraryFilterValue = value;
           persistSettings();
           renderLibraryFilterOptions();
-          renderLibraryContextBar();
           setLibrarySelectionMode(false);
         });
         libraryFilterOptions.appendChild(btn);
@@ -3653,9 +3713,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
-      loadScript();
       resetSongToTopStart();
-      if (song.pdfData) openPdfForSong(song); else closePdfViewer();
+      if (shouldUsePdfForSong(song)) {
+        openPdfForSong(song);
+      } else {
+        closePdfViewer();
+        loadScript();
+      }
       persistCurrentDraft();
     }
     async function previousSong() { if (state.pdfDoc && state.pdfSongId === state.currentSongId && state.pdfPage > 1) { state.pdfPage -= 1; await renderPdfPage(state.pdfPage); return; } const currentIndex=getCurrentSongIndex(); if(currentIndex<0) return; loadSongByIndex(currentIndex-1); }
@@ -4074,7 +4138,17 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    async function init() {
+      syncReadingPreferenceControls();
+      const preferPdfRadio = $('preferPdfRadio');
+      const preferLyricsRadio = $('preferLyricsRadio');
+      preferPdfRadio?.addEventListener('change', () => {
+        if (preferPdfRadio.checked) setReadingPreference('pdf');
+      });
+      preferLyricsRadio?.addEventListener('change', () => {
+        if (preferLyricsRadio.checked) setReadingPreference('lyrics');
+      });
+ registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
