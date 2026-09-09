@@ -1744,17 +1744,11 @@
           <label class="switch"><input id="mirrorToggle" type="checkbox" /><span class="slider"></span></label>
         </div>
 
-        <div class="toggle-row" id="readingPreferenceSetting">
+        <div class="toggle-row">
           <span>Preferência de leitura</span>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.78);">
-              <input id="preferPdfRadio" type="radio" name="readingPreference" value="pdf" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;" />
-              <span>Preferir PDF</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.78);">
-              <input id="preferLyricsRadio" type="radio" name="readingPreference" value="lyrics" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;" />
-              <span>Preferir letra</span>
-            </label>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.78);"><input id="preferPdfRadio" type="radio" name="readingPreference" value="pdf" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;"> PDF</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.78);"><input id="preferLyricsRadio" type="radio" name="readingPreference" value="lyrics" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;"> Letra</label>
           </div>
         </div>
 
@@ -1905,6 +1899,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
           <div class="sync-status-note">Selecione as músicas do seu repertório pessoal para compor esta lista.</div>
 
+          <div class="field" style="margin-top: 10px;">
+            <label for="listSongSearchInput">Buscar música</label>
+            <input id="listSongSearchInput" type="text" placeholder="Buscar por música ou trecho da letra" autocomplete="off" />
+          </div>
+
           <div class="editor-actions-row">
             <button class="ghost-btn" id="selectAllListSongsBtn">Selecionar todas</button>
             <button class="ghost-btn" id="clearSelectedListSongsBtn">Excluir selecionadas</button>
@@ -1975,9 +1974,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const $ = (id) => document.getElementById(id);
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
     const SETTINGS_KEY = 'palco-pro-settings-v1';
+    const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
     const LISTS_KEY = 'palco-pro-lists-v1';
-    const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
 
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
@@ -2003,7 +2002,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
       editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
-      lists: [], currentListId: null, editingListId: null, revealedListId: null,
+      lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '',
       librarySelectionMode: false, selectedLibrarySongIds: []
     };
 
@@ -2065,6 +2064,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const listEditorSubtitle = $('listEditorSubtitle');
     const listNameInput = $('listNameInput');
     const listSongsSelection = $('listSongsSelection');
+    const listSongSearchInput = $('listSongSearchInput');
     const selectAllListSongsBtn = $('selectAllListSongsBtn');
     const clearSelectedListSongsBtn = $('clearSelectedListSongsBtn');
     const suggestionsPanel = $('suggestionsPanel');
@@ -2228,6 +2228,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         ? 'Atualize o nome e selecione as músicas desta lista.'
         : 'Defina um nome e selecione as músicas do seu repertório.';
       if (listNameInput) listNameInput.value = currentList?.name || '';
+      state.listEditorSearch = '';
+      if (listSongSearchInput) listSongSearchInput.value = '';
       renderListSongsSelection(currentList?.songIds || []);
       listEditorPanel.classList.add('open');
     }
@@ -2259,12 +2261,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         const txt = document.createElement('span');
         txt.className = 'list-selector-text';
         txt.innerHTML = `<strong>${song.title || 'Sem título'}</strong><span>${song.artist || 'Sem cantor'} • ${song.style || 'Sem estilo'}</span>`;
+        row.dataset.listSongSearch = normalizeSearchText(getLibrarySongSearchText(song));
         row.appendChild(check);
         row.appendChild(txt);
         listSongsSelection.appendChild(row);
       });
+      filterListEditorSongs(state.listEditorSearch || '');
     }
 
+
+    function filterListEditorSongs(term = '') {
+      if (!listSongsSelection) return;
+      const query = normalizeSearchText(term);
+      listSongsSelection.querySelectorAll('.list-selector-item').forEach((row) => {
+        row.hidden = !!query && !(row.dataset.listSongSearch || '').includes(query);
+      });
+    }
 
     function setAllListEditorSelections(checked) {
       const items = listSongsSelection?.querySelectorAll('input[type="checkbox"]') || [];
@@ -2823,15 +2835,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       repertoireSelect.value = song.id;
-      persistCurrentDraft();
       resetSongToTopStart();
-      if (shouldUsePdfForSong(song)) {
+      persistCurrentDraft();
+      hideLibraryPanel();
+      if (getReadingPreference() === 'pdf' && state.editingPdfData) {
         openPdfForSong(song);
       } else {
         closePdfViewer();
         loadScript();
       }
-      hideLibraryPanel();
     }
 
     function attachLibrarySwipe(row, card, songId) {
@@ -3008,49 +3020,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       applyScroll(true);
     }
     function markLines() {}
-
-    function getReadingPreference() {
-      try {
-        const saved = localStorage.getItem(READING_PREFERENCE_KEY);
-        return saved === 'lyrics' ? 'lyrics' : 'pdf';
-      } catch (_) {
-        return 'pdf';
-      }
-    }
-
-    function setReadingPreference(value) {
-      const preference = value === 'lyrics' ? 'lyrics' : 'pdf';
-      try {
-        localStorage.setItem(READING_PREFERENCE_KEY, preference);
-      } catch (_) {}
-      const pdfRadio = $('preferPdfRadio');
-      const lyricsRadio = $('preferLyricsRadio');
-      if (pdfRadio) pdfRadio.checked = preference === 'pdf';
-      if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
-      return preference;
-    }
-
-    function syncReadingPreferenceControls() {
-      setReadingPreference(getReadingPreference());
-    }
-
-    function songHasPdf(song) {
-      return !!(
-        song &&
-        (
-          (typeof song.pdfData === 'string' && song.pdfData.startsWith('data:application/pdf')) ||
-          String(song.pdfUrl || '').trim()
-        )
-      );
-    }
-
-    function shouldUsePdfForSong(song) {
-      if (!songHasPdf(song)) return false;
-      const hasLyrics = !!String(song?.lyrics || '').trim();
-      if (!hasLyrics) return true;
-      return getReadingPreference() === 'pdf';
-    }
-
     function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() {}
@@ -3371,7 +3340,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function openLibraryPanel() { hidePanel(); hideSongEditor(); hideSuggestionsPanel(); hideListEditor(); libraryPanel.classList.add('open'); if (librarySortControls) { librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node.dataset.sort === state.librarySortMode)); } renderLibraryFilterOptions(); renderLibraryList(librarySearchInput.value || ''); }
     function hideLibraryPanel() { libraryPanel.classList.remove('open'); if (librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); hideSongActions(); }
     function togglePanel() { sidePanel.classList.contains('open') ? hidePanel() : openPanel(); }
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName })); }
+    function getReadingPreference() {
+      try { return localStorage.getItem(READING_PREFERENCE_KEY) === 'lyrics' ? 'lyrics' : 'pdf'; } catch (_) { return 'pdf'; }
+    }
+    function setReadingPreference(value) {
+      const preference = value === 'lyrics' ? 'lyrics' : 'pdf';
+      try { localStorage.setItem(READING_PREFERENCE_KEY, preference); } catch (_) {}
+      const pdfRadio = $('preferPdfRadio');
+      const lyricsRadio = $('preferLyricsRadio');
+      if (pdfRadio) pdfRadio.checked = preference === 'pdf';
+      if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
+    }
+
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName, readingPreference: getReadingPreference() })); }
     function renderUserName() {
       if (!userNameDisplay) return;
       userNameDisplay.textContent = userName || 'Seu nome';
@@ -3437,7 +3418,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
@@ -3631,7 +3612,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const needsFacet = state.librarySortMode === 'artist' || state.librarySortMode === 'style';
       libraryFilterOptions.innerHTML = '';
 
-      if (!needsFacet) {
+      // Depois que um artista/estilo foi selecionado, as opções de seleção
+      // devem desaparecer. O usuário vê somente as músicas filtradas e
+      // pode usar "Trocar filtro" para escolher outra opção.
+      if (!needsFacet || state.libraryFilterValue) {
         libraryFilterOptions.classList.add('hidden');
         return;
       }
@@ -3645,13 +3629,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       values.forEach((value) => {
         const btn = document.createElement('button');
         btn.className = 'library-filter-chip';
-        if (state.libraryFilterValue === value) btn.classList.add('active');
         btn.type = 'button';
         btn.textContent = value;
         btn.addEventListener('click', () => {
           state.libraryFilterValue = value;
           persistSettings();
           renderLibraryFilterOptions();
+          renderLibraryContextBar();
           setLibrarySelectionMode(false);
         });
         libraryFilterOptions.appendChild(btn);
@@ -3714,12 +3698,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       resetSongToTopStart();
-      if (shouldUsePdfForSong(song)) {
-        openPdfForSong(song);
-      } else {
-        closePdfViewer();
-        loadScript();
-      }
+      if (getReadingPreference() === 'pdf' && song.pdfData) openPdfForSong(song); else { closePdfViewer(); loadScript(); }
       persistCurrentDraft();
     }
     async function previousSong() { if (state.pdfDoc && state.pdfSongId === state.currentSongId && state.pdfPage > 1) { state.pdfPage -= 1; await renderPdfPage(state.pdfPage); return; } const currentIndex=getCurrentSongIndex(); if(currentIndex<0) return; loadSongByIndex(currentIndex-1); }
@@ -4014,9 +3993,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       saveFirstAccessNameBtn?.addEventListener('click', submitFirstAccessName);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, lineHeight, textWidth, overlayOpacity].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -4138,17 +4117,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() {
-      syncReadingPreferenceControls();
-      const preferPdfRadio = $('preferPdfRadio');
-      const preferLyricsRadio = $('preferLyricsRadio');
-      preferPdfRadio?.addEventListener('change', () => {
-        if (preferPdfRadio.checked) setReadingPreference('pdf');
-      });
-      preferLyricsRadio?.addEventListener('change', () => {
-        if (preferLyricsRadio.checked) setReadingPreference('lyrics');
-      });
- registerServiceWorker(); loadSettings();  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
