@@ -3410,7 +3410,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         estilo: song.style || '',
         usuario: userName || '',
         letra: song.lyrics || '',
-        pdfData: typeof song.pdfData === 'string' ? song.pdfData : '',
         dataCadastro: new Date().toISOString()
       };
 
@@ -3528,7 +3527,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           const meta=document.createElement('span'); meta.className='library-search-suggestion-meta'; meta.textContent=type==='artist'?'Artista':'Estilo';
           const match=document.createElement('span'); match.className='library-search-suggestion-match'; match.textContent='Selecionar filtro';
           button.append(title,meta,match);
-          button.addEventListener('click',()=>{ state.librarySortMode=type; state.libraryFilterValue=value; state.currentListId=null; librarySearchInput.value=''; librarySearchSuggestions.classList.add('hidden'); persistSettings(); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active', node.dataset.sort===type)); renderLibraryFilterOptions(); renderLibraryList(''); });
+          button.addEventListener('click',()=>{ state.librarySortMode=type; state.libraryFilterValue=value; state.currentListId=null; librarySearchInput.value=''; librarySearchSuggestions.classList.add('hidden'); persistSettings(); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active', node.dataset.sort===type)); setLibrarySelectionMode(false); renderLibraryFilterOptions(); renderLibraryContextBar(); renderLibraryList(''); });
           librarySearchSuggestions.appendChild(button);
         });
       } else {
@@ -3540,7 +3539,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
             const meta=document.createElement('span'); meta.className='library-search-suggestion-meta'; meta.textContent=type==='artist'?'Artista':'Estilo';
             const match=document.createElement('span'); match.className='library-search-suggestion-match'; match.textContent='Selecionar filtro';
             button.append(title,meta,match);
-            button.addEventListener('click',()=>{ state.librarySortMode=type; state.libraryFilterValue=value; state.currentListId=null; librarySearchInput.value=''; librarySearchSuggestions.classList.add('hidden'); persistSettings(); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active', node.dataset.sort===type)); renderLibraryFilterOptions(); renderLibraryList(''); });
+            button.addEventListener('click',()=>{ state.librarySortMode=type; state.libraryFilterValue=value; state.currentListId=null; librarySearchInput.value=''; librarySearchSuggestions.classList.add('hidden'); persistSettings(); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active', node.dataset.sort===type)); setLibrarySelectionMode(false); renderLibraryFilterOptions(); renderLibraryContextBar(); renderLibraryList(''); });
             librarySearchSuggestions.appendChild(button);
           });
         }
@@ -3587,9 +3586,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         btn.textContent = value;
         btn.addEventListener('click', () => {
           state.libraryFilterValue = value;
+          state.currentListId = null;
+          if (librarySearchInput) librarySearchInput.value = '';
+          librarySearchSuggestions?.classList.add('hidden');
           persistSettings();
-          renderLibraryFilterOptions();
           setLibrarySelectionMode(false);
+          renderLibraryFilterOptions();
+          renderLibraryContextBar();
+          renderLibraryList('');
         });
         libraryFilterOptions.appendChild(btn);
       });
