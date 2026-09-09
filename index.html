@@ -26,6 +26,7 @@
   <meta name="twitter:image" content="https://fabriciobenigno.github.io/Palco-Pro/palco-pro-share.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="palco-pro-icon.png" />
   <link rel="apple-touch-icon" href="palco-pro-icon.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root {
       --font-size: 30px;
@@ -613,9 +614,16 @@
       font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
       text-align: center;
     }
-    .pdf-viewer-frame {
-      flex: 1 1 auto; width: 100%; height: 100%; min-height: 0; border: 0; display: block;
-      background: #fff;
+    .pdf-viewer-page-wrap {
+      flex: 1 1 auto; min-height: 0; width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; padding: 8px 0;
+      background: rgba(0,0,0,0.18);
+    }
+    .pdf-viewer-canvas {
+      display: block; background: #fff;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+      max-width: 100%; max-height: 100%;
     }
     .library-filter-active {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -1665,7 +1673,9 @@
         </div>
         <div class="pdf-viewer-screen" id="pdfViewerScreen" aria-hidden="true">
           <div class="pdf-viewer-toolbar" id="pdfViewerToolbar">PDF</div>
-          <iframe class="pdf-viewer-frame" id="pdfViewerFrame" title="Leitura da música em PDF"></iframe>
+          <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
+            <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -2003,6 +2013,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
       editingPdfData: '',
+      pdfDoc: null,
+      pdfPage: 1,
+      pdfPageCount: 0,
+      pdfSongId: '',
       lists: [], currentListId: null, editingListId: null, revealedListId: null,
       librarySelectionMode: false, selectedLibrarySongIds: []
     };
@@ -2022,7 +2036,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const removeSongPdfBtn = $('removeSongPdfBtn');
     const songPdfStatus = $('songPdfStatus');
     const pdfViewerScreen = $('pdfViewerScreen');
-    const pdfViewerFrame = $('pdfViewerFrame');
+    const pdfViewerCanvas = $('pdfViewerCanvas');
+    const pdfViewerPageWrap = $('pdfViewerPageWrap');
     const pdfViewerToolbar = $('pdfViewerToolbar');
     const libraryPanel = $('libraryPanel');
     const librarySearchInput = $('librarySearchInput');
@@ -2762,21 +2777,59 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       persistCurrentDraft();
     }
 
-    function openPdfForSong(song) {
+    async function openPdfForSong(song, pageNumber = 1) {
       const pdfData = typeof song?.pdfData === 'string' && song.pdfData.startsWith('data:application/pdf') ? song.pdfData : '';
-      if (!pdfViewerScreen || !pdfViewerFrame) return false;
-      if (!pdfData) {
-        pdfViewerScreen.classList.remove('open');
-        pdfViewerScreen.setAttribute('aria-hidden', 'true');
-        pdfViewerFrame.removeAttribute('src');
+      if (!pdfViewerScreen || !pdfViewerCanvas) return false;
+      if (!pdfData || !window.pdfjsLib) {
+        closePdfViewer();
         return false;
       }
-      if (pdfViewerToolbar) pdfViewerToolbar.textContent = `${song?.title || 'Música'} • PDF`;
-      pdfViewerFrame.src = pdfData;
-      pdfViewerScreen.classList.add('open');
-      pdfViewerScreen.setAttribute('aria-hidden', 'false');
-      promptContent.classList.add('hidden');
-      return true;
+
+      try {
+        if (state.pdfSongId !== song.id || !state.pdfDoc) {
+          if (state.pdfDoc) { try { state.pdfDoc.destroy(); } catch (_) {} }
+          state.pdfDoc = await window.pdfjsLib.getDocument({ data: dataUrlToUint8Array(pdfData) }).promise;
+          state.pdfSongId = song.id;
+          state.pdfPageCount = state.pdfDoc.numPages || 1;
+        }
+
+        state.pdfPage = Math.max(1, Math.min(Number(pageNumber) || 1, state.pdfPageCount || 1));
+        const page = await state.pdfDoc.getPage(state.pdfPage);
+        const wrapWidth = Math.max(1, pdfViewerPageWrap?.clientWidth || window.innerWidth);
+        const wrapHeight = Math.max(1, pdfViewerPageWrap?.clientHeight || window.innerHeight);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const fitScale = Math.min((wrapWidth - 12) / baseViewport.width, (wrapHeight - 12) / baseViewport.height);
+        const viewport = page.getViewport({ scale: Math.max(0.1, fitScale) });
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        pdfViewerCanvas.width = Math.floor(viewport.width * dpr);
+        pdfViewerCanvas.height = Math.floor(viewport.height * dpr);
+        pdfViewerCanvas.style.width = `${viewport.width}px`;
+        pdfViewerCanvas.style.height = `${viewport.height}px`;
+        const ctx = pdfViewerCanvas.getContext('2d', { alpha: false });
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        if (pdfViewerToolbar) {
+          pdfViewerToolbar.textContent = `${song?.title || 'Música'} • PDF • ${state.pdfPage}/${state.pdfPageCount}`;
+        }
+        pdfViewerScreen.classList.add('open');
+        pdfViewerScreen.setAttribute('aria-hidden', 'false');
+        if (promptContent) promptContent.classList.add('hidden');
+        return true;
+      } catch (error) {
+        console.error('Falha ao abrir PDF:', error);
+        closePdfViewer();
+        showToast('Não foi possível abrir o PDF.', 1800);
+        return false;
+      }
+    }
+
+    function dataUrlToUint8Array(dataUrl) {
+      const base64 = String(dataUrl).split(',')[1] || '';
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
     }
 
     function closePdfViewer() {
@@ -2784,209 +2837,20 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         pdfViewerScreen.classList.remove('open');
         pdfViewerScreen.setAttribute('aria-hidden', 'true');
       }
-      if (pdfViewerFrame) pdfViewerFrame.removeAttribute('src');
+      if (state.pdfDoc) { try { state.pdfDoc.destroy(); } catch (_) {} }
+      state.pdfDoc = null;
+      state.pdfPage = 1;
+      state.pdfPageCount = 0;
+      state.pdfSongId = '';
+      if (pdfViewerCanvas) {
+        const ctx = pdfViewerCanvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, pdfViewerCanvas.width, pdfViewerCanvas.height);
+        pdfViewerCanvas.width = 0;
+        pdfViewerCanvas.height = 0;
+      }
       if (promptContent) promptContent.classList.remove('hidden');
     }
 
-    function openSongEditor() {
-      hidePanel();
-      
-      
-      
-      hideSuggestionsPanel();
-      songEditorPanel.classList.add('open');
-    }
-
-    function hideSongEditor() {
-      songEditorPanel.classList.remove('open');
-    }
-
-    function openSuggestionsPanel() {
-      hidePanel();
-      
-      
-      
-      hideSongEditor();
-      suggestionsPanel.classList.add('open');
-      state.selectedSuggestionIds = [];
-      updateSuggestionSelectionUi();
-      if (suggestionsSearchInput) suggestionsSearchInput.value = '';
-      loadSuggestionSongs(true);
-      renderSuggestionList();
-    }
-
-    function hideSuggestionsPanel() {
-      if (!suggestionsPanel) return;
-      state.selectedSuggestionIds = [];
-      updateSuggestionSelectionUi();
-      suggestionsPanel.classList.remove('open');
-    }
-
-    function openSongActions(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song || !songActionsPanel) return;
-      state.selectedSongActionId = song.id;
-      if (songActionsSubtitle) songActionsSubtitle.textContent = song.title || 'Sem título';
-      songActionsPanel.classList.add('open');
-    }
-
-    function hideSongActions() {
-      if (!songActionsPanel) return;
-      songActionsPanel.classList.remove('open');
-      state.selectedSongActionId = null;
-    }
-
-    function closeAllLibrarySwipes(exceptSongId = null) {
-      libraryList.querySelectorAll('.library-song-swipe.revealed').forEach((row) => {
-        if (exceptSongId && row.dataset.songId === exceptSongId) return;
-        row.classList.remove('revealed');
-      });
-      state.revealedSongId = exceptSongId || null;
-    }
-    function openSongById(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      setEditingSongPdf(song.pdfData || '');
-      loadSongMedia(song);
-      repertoireSelect.value = song.id;
-      resetSongToTopStart();
-      persistCurrentDraft();
-      hideLibraryPanel();
-    }
-
-    function attachLibrarySwipe(row, card, songId) {
-      let startX = 0;
-      let startY = 0;
-      let dragging = false;
-      let horizontalIntent = false;
-      let moved = false;
-      const revealWidth = 94;
-
-      const finishSwipe = (offset) => {
-        if (offset <= -(revealWidth * 0.45)) {
-          closeAllLibrarySwipes(songId);
-          row.classList.add('revealed');
-          state.revealedSongId = songId;
-        } else {
-          row.classList.remove('revealed');
-          if (state.revealedSongId === songId) state.revealedSongId = null;
-        }
-        row.classList.remove('swiping');
-      };
-
-      const resetDragState = () => {
-        card.style.transition = '';
-        card.style.transform = '';
-        dragging = false;
-        horizontalIntent = false;
-      };
-
-      const onPointerDown = (event) => {
-        if (event.target.closest('.library-song-action-btn')) return;
-        startX = event.clientX;
-        startY = event.clientY;
-        dragging = true;
-        horizontalIntent = false;
-        moved = false;
-        card.style.transition = 'none';
-      };
-
-      const onPointerMove = (event) => {
-        if (!dragging) return;
-        const deltaX = event.clientX - startX;
-        const deltaY = event.clientY - startY;
-        if (!horizontalIntent) {
-          if (Math.abs(deltaX) < 8) return;
-          horizontalIntent = Math.abs(deltaX) > Math.abs(deltaY);
-          if (!horizontalIntent) {
-            resetDragState();
-            return;
-          }
-        }
-        moved = true;
-        row.classList.add('swiping');
-        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
-        const nextOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
-        card.style.transform = `translateX(${nextOffset}px)`;
-      };
-
-      const onPointerUp = (event) => {
-        if (!dragging) return;
-        const deltaX = event.clientX - startX;
-        const baseOffset = row.classList.contains('revealed') ? -revealWidth : 0;
-        const finalOffset = Math.max(-revealWidth, Math.min(0, baseOffset + deltaX));
-        resetDragState();
-        finishSwipe(finalOffset);
-      };
-
-      card.addEventListener('pointerdown', onPointerDown);
-      card.addEventListener('pointermove', onPointerMove);
-      card.addEventListener('pointerup', onPointerUp);
-      card.addEventListener('pointercancel', () => {
-        row.classList.remove('swiping');
-        resetDragState();
-      });
-      card.addEventListener('click', (event) => {
-        if (event.target.closest('.library-song-action-btn')) return;
-        if (moved || horizontalIntent) {
-          moved = false;
-          horizontalIntent = false;
-          return;
-        }
-        if (row.classList.contains('revealed')) {
-          closeAllLibrarySwipes();
-          return;
-        }
-        openSongById(songId);
-      });
-    }
-
-    function editSongById(songId) {
-      const song = state.songs.find(item => item.id === songId);
-      if (!song) return;
-      state.currentSongId = song.id;
-      songTitleInput.value = song.title || '';
-      artistInput.value = song.artist || '';
-      styleInput.value = song.style || '';
-      scriptInput.value = song.lyrics || '';
-      setEditingSongPdf(song.pdfData || '');
-      loadScript();
-      repertoireSelect.value = song.id;
-      persistCurrentDraft();
-      hideSongActions();
-      hideLibraryPanel();
-      openSongEditor();
-    }
-
-    function prepareNewSong() {
-      state.currentSongId = null;
-      songTitleInput.value = '';
-      artistInput.value = '';
-      styleInput.value = '';
-      scriptInput.value = '';
-      setEditingSongPdf('');
-      if (repertoireSelect) repertoireSelect.value = '';
-      persistCurrentDraft();
-      openSongEditor();
-    }
-
-    function normalizeWord(word) {
-      return (word || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9à-ÿÀ-Ÿ]/g, '')
-        .toLowerCase()
-        .trim();
-    }
-
-    function splitWords(text) {
-      return (text || '').split(/\s+/).map(normalizeWord).filter(Boolean);
-    }
 
     function updateValueLabels() {
       fontSizeValue.textContent = `${fontSize.value} px`;
@@ -3030,9 +2894,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       applyScroll(true);
     }
     function markLines() {}
-    function loadSongMedia(song = null) {
+    async function loadSongMedia(song = null) {
       const current = song || state.songs.find(item => item.id === state.currentSongId);
-      if (current && openPdfForSong(current)) return;
+      if (current && current.pdfData) {
+        const opened = await openPdfForSong(current, 1);
+        if (opened) return;
+      }
       closePdfViewer();
       loadScript();
     }
@@ -3789,12 +3656,31 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
-      loadSongMedia(song);
       resetSongToTopStart();
+      loadSongMedia(song);
       persistCurrentDraft();
     }
-    function previousSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex - 1); }
-    function nextSong() { const currentIndex = getCurrentSongIndex(); if (currentIndex < 0) return; loadSongByIndex(currentIndex + 1); }
+    async function previousSong() {
+      const currentSong = state.songs.find(song => song.id === state.currentSongId);
+      if (currentSong?.pdfData && state.pdfDoc && state.pdfSongId === currentSong.id && state.pdfPage > 1) {
+        await openPdfForSong(currentSong, state.pdfPage - 1);
+        return;
+      }
+      const currentIndex = getCurrentSongIndex();
+      if (currentIndex < 0) return;
+      loadSongByIndex(currentIndex - 1);
+    }
+
+    async function nextSong() {
+      const currentSong = state.songs.find(song => song.id === state.currentSongId);
+      if (currentSong?.pdfData && state.pdfDoc && state.pdfSongId === currentSong.id && state.pdfPage < state.pdfPageCount) {
+        await openPdfForSong(currentSong, state.pdfPage + 1);
+        return;
+      }
+      const currentIndex = getCurrentSongIndex();
+      if (currentIndex < 0) return;
+      loadSongByIndex(currentIndex + 1);
+    }
 
     function clearLibrarySelection() {
       state.selectedLibrarySongIds = [];
