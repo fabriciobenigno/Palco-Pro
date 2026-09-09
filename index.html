@@ -2095,7 +2095,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         artist: song?.artist || '',
         style: song?.style || '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
-        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
+        pdfName: typeof song?.pdfName === 'string' ? song.pdfName : '',
+        pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : ''
       };
     }
 
@@ -2106,7 +2108,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         artist: song?.artist || '',
         style: song?.style || '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
-        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
+        pdfName: typeof song?.pdfName === 'string' ? song.pdfName : '',
+        pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : ''
       };
     }
 
@@ -2611,7 +2615,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song.song_title || song.title || 'Sem título',
         artist: song.artist || '',
         style: song.style || '',
-        lyrics: sanitizeLyrics(song.lyrics || '')
+        lyrics: sanitizeLyrics(song.lyrics || ''),
+        pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
+        pdfName: typeof song?.pdfName === 'string' ? song.pdfName : ''
       };
     }
 
@@ -2677,6 +2683,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = personalCopy.artist || '';
       styleInput.value = personalCopy.style || '';
       scriptInput.value = personalCopy.lyrics || '';
+      state.editingPdfData = personalCopy.pdfData || '';
+      state.editingPdfUrl = personalCopy.pdfUrl || '';
+      updateSongPdfEditorUi();
       persistCurrentDraft();
       hideSuggestionsPanel();
       openSongEditor();
@@ -2695,17 +2704,25 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function setSyncStatusFromState(extraMessage = '') { updateSyncStatus(extraMessage || 'Repertório salvo neste dispositivo.'); }
 
     function updateSongPdfEditorUi() {
-      const hasPdf = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf');
+      const hasPdfData = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf');
+      const hasPdfUrl = typeof state.editingPdfUrl === 'string' && /^https?:\/\//i.test(state.editingPdfUrl);
+      const hasPdf = hasPdfData || hasPdfUrl;
       removeSongPdfBtn?.classList.toggle('hidden', !hasPdf);
       if (songPdfStatus) songPdfStatus.textContent = hasPdf ? 'PDF anexado. Ele terá prioridade sobre a letra durante a leitura.' : 'Sem PDF anexado. A letra cadastrada será usada na leitura.';
       if (songPdfInput) songPdfInput.value = '';
     }
-    function setEditingSongPdf(dataUrl = '') { state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : ''; updateSongPdfEditorUi(); persistCurrentDraft(); }
+    function setEditingSongPdf(dataUrl = '') {
+      state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : '';
+      state.editingPdfUrl = state.editingPdfData ? '' : state.editingPdfUrl;
+      if (!state.editingPdfData && !state.editingPdfUrl) state.editingPdfName = '';
+      updateSongPdfEditorUi();
+      persistCurrentDraft();
+    }
     function handleSongPdfFile(file) {
       if (!file) return;
       if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')) { showToast('Selecione um arquivo PDF.', 1500); return; }
       const reader = new FileReader();
-      reader.onload = () => { setEditingSongPdf(String(reader.result || '')); showToast('PDF anexado', 1200); };
+      reader.onload = () => { state.editingPdfName = String(file.name || 'musica.pdf'); setEditingSongPdf(String(reader.result || '')); showToast('PDF anexado', 1200); };
       reader.onerror = () => showToast('Não foi possível ler o PDF.', 1600);
       reader.readAsDataURL(file);
     }
@@ -2731,11 +2748,20 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
     async function openPdfForSong(song) {
       closePdfViewer();
-      if (!song?.pdfData || !window.pdfjsLib) return;
+      if ((!song?.pdfData && !song?.pdfUrl) || !window.pdfjsLib) return;
       try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         state.pdfSongId = song.id; state.pdfPage = 1;
-        state.pdfDoc = await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise;
+        let source;
+        if (song.pdfData) {
+          const base64 = song.pdfData.split(',')[1] || '';
+          source = Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+        } else {
+          const response = await fetch(`${song.pdfUrl}${song.pdfUrl.includes('?') ? '&' : '?'}v=${Date.now()}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          source = new Uint8Array(await response.arrayBuffer());
+        }
+        state.pdfDoc = await pdfjsLib.getDocument({ data: source }).promise;
         state.pdfPageCount = state.pdfDoc.numPages || 1;
         if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
         pdfViewerScreen?.classList.add('open'); pdfViewerScreen?.setAttribute('aria-hidden','false');
@@ -2809,6 +2835,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       loadScript();
       repertoireSelect.value = song.id;
       resetSongToTopStart();
+      if (song.pdfData || song.pdfUrl) openPdfForSong(song); else closePdfViewer();
       persistCurrentDraft();
       hideLibraryPanel();
     }
@@ -2908,7 +2935,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
       scriptInput.value = song.lyrics || '';
-      state.editingPdfData = song.pdfData || '';
+      state.editingPdfData = song.pdfData || ''; state.editingPdfUrl = song.pdfUrl || ''; state.editingPdfName = song.pdfName || '';
       loadScript();
       closePdfViewer();
       repertoireSelect.value = song.id;
@@ -2924,7 +2951,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       artistInput.value = '';
       styleInput.value = '';
       scriptInput.value = '';
-      state.editingPdfData = '';
+      state.editingPdfData = ''; state.editingPdfUrl = ''; state.editingPdfName = '';
       if (repertoireSelect) repertoireSelect.value = '';
       updateSongPdfEditorUi();
       closePdfViewer();
@@ -3410,6 +3437,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         estilo: song.style || '',
         usuario: userName || '',
         letra: song.lyrics || '',
+        pdfData: typeof song.pdfData === 'string' ? song.pdfData : '',
+        pdfName: typeof song.pdfName === 'string' ? song.pdfName : 'musica.pdf',
+        pdfUrl: typeof song.pdfUrl === 'string' ? song.pdfUrl : '',
         dataCadastro: new Date().toISOString()
       };
 
@@ -3436,6 +3466,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const artist = artistInput.value.trim();
       const style = styleInput.value.trim();
       const pdfData = state.editingPdfData || '';
+      const pdfUrl = typeof state.editingPdfUrl === 'string' ? state.editingPdfUrl : '';
+      const pdfName = typeof state.editingPdfName === 'string' ? state.editingPdfName : 'musica.pdf';
       scriptInput.value = lyrics;
       if (!title) { showToast('Informe o nome da música.', 1500); songTitleInput.focus(); return; }
       if (!artist) { showToast('Informe o artista.', 1500); artistInput.focus(); return; }
@@ -3444,7 +3476,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
-      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData };
+      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData, pdfName, pdfUrl };
       const nextSongs = state.songs.map(song => ({...song}));
       if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
       persistSongsState(nextSongs);
@@ -3651,7 +3683,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.editingPdfData = song.pdfData || '';
       loadScript();
       resetSongToTopStart();
-      if (song.pdfData) openPdfForSong(song); else closePdfViewer();
+      if (song.pdfData || song.pdfUrl) openPdfForSong(song); else closePdfViewer();
       persistCurrentDraft();
     }
     async function previousSong() { if (state.pdfDoc && state.pdfSongId === state.currentSongId && state.pdfPage > 1) { state.pdfPage -= 1; await renderPdfPage(state.pdfPage); return; } const currentIndex=getCurrentSongIndex(); if(currentIndex<0) return; loadSongByIndex(currentIndex-1); }
@@ -3942,7 +3974,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (deleteSelectedSongsBtn) deleteSelectedSongsBtn.addEventListener('click', deleteSelectedLibrarySongs);
       attachSongPdfBtn?.addEventListener('click', () => songPdfInput?.click());
       songPdfInput?.addEventListener('change', (event) => handleSongPdfFile(event.target.files?.[0]));
-      removeSongPdfBtn?.addEventListener('click', () => { setEditingSongPdf(''); showToast('PDF removido', 1200); });
+      removeSongPdfBtn?.addEventListener('click', () => { state.editingPdfData = ''; state.editingPdfUrl = ''; state.editingPdfName = ''; updateSongPdfEditorUi(); persistCurrentDraft(); showToast('PDF removido', 1200); });
       saveFirstAccessNameBtn?.addEventListener('click', submitFirstAccessName);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
