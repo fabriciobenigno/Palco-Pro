@@ -3617,9 +3617,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         app.classList.remove('page-swipe-active');
         if (g.previewPromise) await g.previewPromise.catch(() => false);
         setX(travel); setPreviewX(0); if (g.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
-        await new Promise(resolve => setTimeout(resolve, 300)); clearVisual();
-        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') { state.pdfPage = g.target.page; await renderPdfPage(state.pdfPage); }
-        else if (direction === 'next') await nextSong(); else await previousSong();
+        await new Promise(resolve => setTimeout(resolve, 300));
+        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') {
+          // Página interna do mesmo PDF: mantém a animação e só depois normaliza a posição.
+          state.pdfPage = g.target.page;
+          await renderPdfPage(state.pdfPage);
+          clearVisual();
+        } else if (g.mode === 'pdf' && g.target?.type === 'song') {
+          // Limite do PDF: a prévia já é a primeira página da próxima/anterior música.
+          // Carregamos a música enquanto a prévia permanece cobrindo a tela, evitando
+          // qualquer segundo deslocamento perceptível ao trocar o conteúdo.
+          if (direction === 'next') await nextSong(); else await previousSong();
+          clearVisual();
+        } else {
+          clearVisual();
+          if (direction === 'next') await nextSong(); else await previousSong();
+        }
       };
 
       const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
