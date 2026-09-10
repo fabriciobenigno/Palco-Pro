@@ -1771,6 +1771,7 @@
     </div>
 
     <div class="pdf-viewer-screen" id="pdfViewerScreen" aria-hidden="true">
+      <div class="pdf-viewer-note hidden" id="pdfViewerNote" aria-hidden="true"></div>
       <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
         <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
       </div>
@@ -2153,6 +2154,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const pdfViewerCanvas = $('pdfViewerCanvas');
     const pdfViewerPageWrap = $('pdfViewerPageWrap');
     const pdfViewerPageIndicator = $('pdfViewerPageIndicator');
+    const pdfViewerNote = $('pdfViewerNote');
     const firstAccessNameGate = $('firstAccessNameGate');
     const firstAccessNameInput = $('firstAccessNameInput');
     const saveFirstAccessNameBtn = $('saveFirstAccessNameBtn');
@@ -2350,8 +2352,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function cloneSongForUser(song) {
+      const personalId = createSongId();
       return {
-        id: createSongId(),
+        id: personalId,
         title: song?.title || 'Sem título',
         artist: song?.artist || '',
         style: song?.style || '',
@@ -2361,6 +2364,25 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
         pdfFileName: typeof song?.pdfFileName === 'string' ? song.pdfFileName : ''
       };
+    }
+
+    function getSongById(songId) {
+      return state.songs.find(song => String(song?.id || '') === String(songId || '')) || null;
+    }
+
+    function getSongNote(songId) {
+      const song = getSongById(songId);
+      return typeof song?.note === 'string' ? song.note.trim() : '';
+    }
+
+    function setSongNote(songId, value) {
+      const id = String(songId || '');
+      if (!id) return;
+      const index = state.songs.findIndex(song => String(song?.id || '') === id);
+      if (index < 0) return;
+      const updated = { ...state.songs[index], note: String(value || '').trim() };
+      state.songs = state.songs.map((song, i) => i === index ? updated : song);
+      saveSongs();
     }
 
     function normalizeLocalSong(song) {
@@ -3004,6 +3026,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.pdfRenderToken += 1; state.pdfDoc = null; state.pdfPage = 1; state.pdfPageCount = 0; state.pdfSongId = '';
       pdfViewerScreen?.classList.remove('open'); pdfViewerScreen?.setAttribute('aria-hidden', 'true');
       pdfViewerPageIndicator?.classList.add('hidden');
+      pdfViewerNote?.classList.add('hidden');
+      if (pdfViewerNote) { pdfViewerNote.textContent = ''; pdfViewerNote.setAttribute('aria-hidden', 'true'); }
     }
     async function renderPdfPage(pageNumber = state.pdfPage) {
       if (!state.pdfDoc || !pdfViewerCanvas || !pdfViewerPageWrap) return;
@@ -3050,6 +3074,12 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
         state.pdfPageCount = state.pdfDoc.numPages || 1;
         if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
+        const songNote = getSongNote(song.id);
+        if (pdfViewerNote) {
+          pdfViewerNote.textContent = songNote ? `Nota: ${songNote}` : '';
+          pdfViewerNote.classList.toggle('hidden', !songNote);
+          pdfViewerNote.setAttribute('aria-hidden', songNote ? 'false' : 'true');
+        }
         pdfViewerScreen?.classList.add('open'); pdfViewerScreen?.setAttribute('aria-hidden','false');
         await renderPdfPage(1);
       } catch (error) { console.error('Falha ao abrir PDF:', error); closePdfViewer(); showToast('Não foi possível abrir o PDF.', 1800); }
@@ -3117,7 +3147,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
-      noteInput.value = song.note || '';
+      noteInput.value = getSongNote(song.id);
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       repertoireSelect.value = song.id;
@@ -3237,7 +3267,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
-      noteInput.value = song.note || '';
+      noteInput.value = getSongNote(song.id);
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       loadScript();
@@ -3327,7 +3357,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       heading.appendChild(title);
       heading.appendChild(artist);
 
-      const noteText = noteInput.value.trim();
+      const noteText = state.currentSongId ? getSongNote(state.currentSongId) : noteInput.value.trim();
       if (noteText) {
         const note = document.createElement('div');
         note.className = 'lyric-song-note';
@@ -3818,10 +3848,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
       const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
-      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
-      const nextSongs = state.songs.map(song => ({...song}));
-      if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
+      const payloadId = existingIndex >= 0 && state.currentSongId ? String(state.currentSongId) : createSongId();
+      const payload = { id: payloadId, title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
+      const nextSongs = state.songs.map(song => ({ ...song }));
+      const targetIndex = nextSongs.findIndex(song => String(song?.id || '') === payloadId);
+      if (targetIndex >= 0) nextSongs[targetIndex] = { ...nextSongs[targetIndex], ...payload, note: String(note || '').trim() };
+      else nextSongs.unshift(payload);
       persistSongsState(nextSongs);
+      setSongNote(payloadId, note);
       state.currentSongId = payload.id; state.editingPdfData = pdfData; repertoireSelect.value = payload.id; persistCurrentDraft(); loadScript();
       hideSongEditor(); openLibraryPanel();
       if (isNewManualRegistration) { const sent = await enviarCadastroManualParaAppsScript(payload); showToast(sent ? 'Música salva e cadastro enviado' : 'Música salva no seu repertório', 1600); }
