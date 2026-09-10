@@ -328,6 +328,24 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+    .lyric-song-note {
+      margin-top: 0.55em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1.85em;
+      padding: 0.18em 0.7em;
+      border: 1px solid currentColor;
+      border-color: color-mix(in srgb, currentColor 18%, transparent);
+      border-radius: 999px;
+      font-size: 0.46em;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      opacity: 0.62;
+      text-transform: none;
+      backdrop-filter: blur(8px);
+    }
     .line {
       display: block;
       opacity: 1;
@@ -1961,6 +1979,11 @@
             <input id="styleInput" type="text" placeholder="Ex.: MPB, Pop, Forró" required />
           </div>
 
+          <div class="field">
+            <label for="noteInput">Nota da música <span class="panel-note" style="font-size:11px;">(pessoal)</span></label>
+            <input id="noteInput" type="text" placeholder="Ex.: G, Am, C, D7" maxlength="20" autocomplete="off" />
+          </div>
+
           <div class="field" style="margin-top: 2px;">
             <button class="ghost-btn" id="attachSongPdfBtn" type="button">Anexar PDF</button>
             <input id="songPdfInput" class="hidden" type="file" accept="application/pdf,.pdf" />
@@ -2121,6 +2144,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const repertoireSelect = $('repertoireSelect');
     const artistInput = $('artistInput');
     const styleInput = $('styleInput');
+    const noteInput = $('noteInput');
     const attachSongPdfBtn = $('attachSongPdfBtn');
     const songPdfInput = $('songPdfInput');
     const removeSongPdfBtn = $('removeSongPdfBtn');
@@ -2331,6 +2355,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song?.title || 'Sem título',
         artist: song?.artist || '',
         style: song?.style || '',
+        note: '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
         pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
         pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
@@ -2344,6 +2369,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song?.title || 'Sem título',
         artist: song?.artist || '',
         style: song?.style || '',
+        note: typeof song?.note === 'string' ? song.note.trim() : '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
         pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
         pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
@@ -3091,6 +3117,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
+      noteInput.value = song.note || '';
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       repertoireSelect.value = song.id;
@@ -3210,6 +3237,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
       styleInput.value = song.style || '';
+      noteInput.value = song.note || '';
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       loadScript();
@@ -3226,6 +3254,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       songTitleInput.value = '';
       artistInput.value = '';
       styleInput.value = '';
+      noteInput.value = '';
       scriptInput.value = '';
       state.editingPdfData = '';
       if (repertoireSelect) repertoireSelect.value = '';
@@ -3297,6 +3326,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       heading.appendChild(title);
       heading.appendChild(artist);
+
+      const noteText = noteInput.value.trim();
+      if (noteText) {
+        const note = document.createElement('div');
+        note.className = 'lyric-song-note';
+        note.textContent = `Nota: ${noteText}`;
+        heading.appendChild(note);
+      }
+
       scriptInner.appendChild(heading);
 
       state.lines.forEach((line) => {
@@ -3706,10 +3744,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       editUserNameBtn?.addEventListener('click', (event) => { event.stopPropagation(); editUserName(); });
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
-    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
+    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), note: noteInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
     function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
-    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
+    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (noteInput) noteInput.value = typeof saved.note === 'string' ? saved.note : ''; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
       return [];
@@ -3769,6 +3807,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const lyrics = sanitizeLyrics(scriptInput.value);
       const artist = artistInput.value.trim();
       const style = styleInput.value.trim();
+      const note = noteInput.value.trim();
       const pdfData = state.editingPdfData || '';
       scriptInput.value = lyrics;
       if (!title) { showToast('Informe o nome da música.', 1500); songTitleInput.focus(); return; }
@@ -3779,7 +3818,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
       const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
-      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
+      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
       const nextSongs = state.songs.map(song => ({...song}));
       if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
       persistSongsState(nextSongs);
