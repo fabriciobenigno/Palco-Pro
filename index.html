@@ -2103,6 +2103,90 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       });
     }
 
+    const OFFLINE_PDF_DB_NAME = 'PalcoProOfflinePDFs';
+    const OFFLINE_PDF_STORE_NAME = 'pdfs';
+    const OFFLINE_PDF_DB_VERSION = 1;
+
+    function openOfflinePdfDb() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+          reject(new Error('IndexedDB não está disponível neste navegador.'));
+          return;
+        }
+        const request = indexedDB.open(OFFLINE_PDF_DB_NAME, OFFLINE_PDF_DB_VERSION);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(OFFLINE_PDF_STORE_NAME)) {
+            db.createObjectStore(OFFLINE_PDF_STORE_NAME, { keyPath: 'songId' });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Não foi possível abrir o armazenamento offline.'));
+      });
+    }
+
+    async function saveOfflinePdf(songId, blob, fileName = '') {
+      if (!songId || !blob) return false;
+      const db = await openOfflinePdfDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(OFFLINE_PDF_STORE_NAME, 'readwrite');
+        tx.objectStore(OFFLINE_PDF_STORE_NAME).put({ songId, blob, fileName: fileName || 'musica.pdf', savedAt: Date.now() });
+        tx.oncomplete = () => { db.close(); resolve(true); };
+        tx.onerror = () => { db.close(); reject(tx.error || new Error('Não foi possível salvar o PDF offline.')); };
+        tx.onabort = () => { db.close(); reject(tx.error || new Error('Não foi possível salvar o PDF offline.')); };
+      });
+    }
+
+    async function getOfflinePdf(songId) {
+      if (!songId) return null;
+      const db = await openOfflinePdfDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(OFFLINE_PDF_STORE_NAME, 'readonly');
+        const request = tx.objectStore(OFFLINE_PDF_STORE_NAME).get(songId);
+        request.onsuccess = () => { db.close(); resolve(request.result || null); };
+        request.onerror = () => { db.close(); reject(request.error || new Error('Não foi possível consultar o PDF offline.')); };
+      });
+    }
+
+    async function deleteOfflinePdf(songId) {
+      if (!songId) return;
+      try {
+        const db = await openOfflinePdfDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(OFFLINE_PDF_STORE_NAME, 'readwrite');
+          tx.objectStore(OFFLINE_PDF_STORE_NAME).delete(songId);
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error || new Error('Não foi possível remover o PDF offline.'));
+        });
+        db.close();
+      } catch (error) {
+        console.warn('Não foi possível remover o PDF offline:', error);
+      }
+    }
+
+    async function downloadPdfToOffline(song) {
+      if (!song?.id || !song?.pdfUrl) return false;
+      try {
+        const publicUrl = normalizePublicPdfUrl(song.pdfUrl);
+        const response = await fetch(publicUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const blob = await response.blob();
+        if (!blob || !blob.size) throw new Error('PDF vazio.');
+        await saveOfflinePdf(song.id, blob, song.pdfFileName || 'musica.pdf');
+        return true;
+      } catch (error) {
+        console.warn('Não foi possível salvar o PDF offline:', song?.title, error);
+        return false;
+      }
+    }
+
+    async function cacheSongsPdfsOffline(songs = []) {
+      const pdfSongs = (Array.isArray(songs) ? songs : []).filter(song => song?.pdfUrl && song?.id);
+      if (!pdfSongs.length) return { saved: 0, failed: 0 };
+      const results = await Promise.all(pdfSongs.map(downloadPdfToOffline));
+      return { saved: results.filter(Boolean).length, failed: results.filter(value => !value).length };
+    }
+
     function cloneSongForUser(song) {
       return {
         id: createSongId(),
@@ -2556,7 +2640,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       updateSuggestionSelectionUi();
       renderSuggestionList();
     }
-    function addSongsToRepertoire(songs = [], emptyMessage = 'Nenhuma música para adicionar') {
+    async function addSongsToRepertoire(songs = [], emptyMessage = 'Nenhuma música para adicionar') {
       const validSongs = Array.isArray(songs) ? songs.filter(Boolean) : [];
       if (!validSongs.length) {
         showToast(emptyMessage, 1400);
@@ -2569,10 +2653,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       renderRepertoire();
       renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
       renderListSongsSelection(getListById(state.editingListId)?.songIds || []);
+
+      const offlineResult = await cacheSongsPdfsOffline(personalCopies);
+      if (offlineResult.saved > 0 && offlineResult.failed === 0) {
+        showToast(offlineResult.saved === 1 ? 'PDF salvo para uso offline' : `${offlineResult.saved} PDFs salvos para uso offline`, 1800);
+      } else if (offlineResult.saved > 0 && offlineResult.failed > 0) {
+        showToast(`${offlineResult.saved} PDF(s) salvo(s) offline; ${offlineResult.failed} ficará(ão) disponível(is) online.`, 2200);
+      } else if (validSongs.some(song => song?.pdfUrl)) {
+        showToast('Músicas salvas. Os PDFs continuarão disponíveis online quando houver internet.', 2200);
+      }
       return personalCopies.length;
     }
 
-    function saveSelectedSuggestions() {
+    async function saveSelectedSuggestions() {
       const selectedIds = Array.isArray(state.selectedSuggestionIds) ? state.selectedSuggestionIds.slice() : [];
       if (!selectedIds.length) { showToast('Selecione ao menos uma música', 1400); return; }
       const selectedSongs = state.suggestionSongs.filter(song => selectedIds.includes(song.id));
@@ -2583,7 +2676,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         showToast('Nenhuma sugestão válida selecionada', 1500);
         return;
       }
-      const count = addSongsToRepertoire(selectedSongs);
+      const count = await addSongsToRepertoire(selectedSongs);
       showToast(count === 1 ? '1 música salva no repertório' : `${count} músicas salvas no repertório`, 1700);
     }
 
@@ -2774,14 +2867,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     async function openPdfForSong(song) {
       closePdfViewer();
-      if ((!song?.pdfData && !song?.pdfUrl) || !window.pdfjsLib) return;
+      if ((!song?.pdfData && !song?.pdfUrl && !song?.id) || !window.pdfjsLib) return;
       try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         state.pdfSongId = song.id; state.pdfPage = 1;
-        const publicUrl = normalizePublicPdfUrl(song.pdfUrl);
-        state.pdfDoc = song.pdfData
-          ? await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise
-          : await pdfjsLib.getDocument({ url: publicUrl }).promise;
+        const cached = !song.pdfData ? await getOfflinePdf(song.id).catch(() => null) : null;
+        if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
+        if (cached?.blob) {
+          state.pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await cached.blob.arrayBuffer()) }).promise;
+        } else if (song.pdfData) {
+          state.pdfDoc = await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise;
+        } else if (song.pdfUrl) {
+          const publicUrl = normalizePublicPdfUrl(song.pdfUrl);
+          state.pdfDoc = await pdfjsLib.getDocument({ url: publicUrl }).promise;
+        } else {
+          return;
+        }
         state.pdfPageCount = state.pdfDoc.numPages || 1;
         if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
         pdfViewerScreen?.classList.add('open'); pdfViewerScreen?.setAttribute('aria-hidden','false');
