@@ -292,7 +292,66 @@
       transform-origin: center center;
     }
 
-    .line { display: block; opacity: 1; margin: 0 0 0.18em; }
+    .lyric-song-heading {
+      display: block;
+      margin: 0 auto 7vh;
+      padding: 0.35em 0 1.1em;
+      text-align: center;
+      position: relative;
+      width: min(100%, 900px);
+      color: var(--script-text);
+      text-shadow: var(--script-shadow);
+    }
+    .lyric-song-heading::after {
+      content: "";
+      position: absolute;
+      left: 50%; bottom: 0;
+      width: min(42vw, 180px);
+      height: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, currentColor 25%, currentColor 75%, transparent);
+      opacity: 0.28;
+    }
+    .lyric-song-title {
+      margin: 0;
+      font-size: 1.16em;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: 0.015em;
+    }
+    .lyric-song-artist {
+      margin-top: 0.35em;
+      font-size: 0.56em;
+      line-height: 1.25;
+      font-weight: 500;
+      opacity: 0.66;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .line {
+      display: block;
+      opacity: 1;
+      margin: 0 0 2.1em;
+      padding: 0.06em 0.34em 0.9em;
+      position: relative;
+      border-bottom: 1px solid currentColor;
+      border-color: color-mix(in srgb, currentColor 13%, transparent);
+    }
+    .line:last-child { margin-bottom: 0; }
+    .line::before {
+      content: "•";
+      position: absolute;
+      left: 50%;
+      bottom: -0.92em;
+      transform: translateX(-50%);
+      padding: 0 0.55em;
+      background: var(--prompt-bg, transparent);
+      color: currentColor;
+      opacity: 0.28;
+      font-size: 0.46em;
+      line-height: 1;
+    }
+    .line:last-child::before { display: none; }
 
     .transcript-pill {
       display: none !important;
@@ -3222,12 +3281,31 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     function sanitizeLyrics(raw) { return (raw || '').replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').split('\n').map(v => v.replace(/[ \t]{2,}/g, ' ').trimEnd()).join('\n').trim(); }
     function renderScript() {
       scriptInner.innerHTML = '';
+
+      const heading = document.createElement('div');
+      heading.className = 'lyric-song-heading';
+
+      const title = document.createElement('div');
+      title.className = 'lyric-song-title';
+      title.textContent = songTitleInput.value.trim() || 'Música';
+
+      const artist = document.createElement('div');
+      artist.className = 'lyric-song-artist';
+      const artistText = artistInput.value.trim();
+      artist.textContent = artistText || '';
+      artist.hidden = !artistText;
+
+      heading.appendChild(title);
+      heading.appendChild(artist);
+      scriptInner.appendChild(heading);
+
       state.lines.forEach((line) => {
-        const span = document.createElement('span');
-        span.className = 'line';
-        span.textContent = line || ' ';
-        scriptInner.appendChild(span);
+        const stanza = document.createElement('div');
+        stanza.className = 'line';
+        stanza.textContent = line || ' ';
+        scriptInner.appendChild(stanza);
       });
+
       applyScroll(true);
     }
     function markLines() {}
