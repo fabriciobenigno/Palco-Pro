@@ -2110,7 +2110,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         artist: song?.artist || '',
         style: song?.style || '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
-        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
+        pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
+        pdfFileName: typeof song?.pdfFileName === 'string' ? song.pdfFileName : ''
       };
     }
 
@@ -2121,7 +2123,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         artist: song?.artist || '',
         style: song?.style || '',
         lyrics: sanitizeLyrics(song?.lyrics || ''),
-        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : ''
+        pdfData: typeof song?.pdfData === 'string' ? song.pdfData : '',
+        pdfUrl: typeof song?.pdfUrl === 'string' ? song.pdfUrl : '',
+        pdfFileName: typeof song?.pdfFileName === 'string' ? song.pdfFileName : ''
       };
     }
 
@@ -2638,7 +2642,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         title: song.song_title || song.title || 'Sem título',
         artist: song.artist || '',
         style: song.style || '',
-        lyrics: sanitizeLyrics(song.lyrics || '')
+        lyrics: sanitizeLyrics(song.lyrics || ''),
+        pdfUrl: normalizePublicPdfUrl(song.pdfUrl || ''),
+        pdfFileName: song.pdfFileName || ''
       };
     }
 
@@ -2756,13 +2762,26 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       await page.render({ canvasContext: ctx, viewport }).promise;
       if (pdfViewerPageIndicator) { pdfViewerPageIndicator.textContent = `Folha ${state.pdfPage} de ${state.pdfPageCount}`; pdfViewerPageIndicator.classList.remove('hidden'); }
     }
+    function normalizePublicPdfUrl(url) {
+      const value = String(url || '').trim();
+      const rawPrefix = 'https://raw.githubusercontent.com/fabriciobenigno/Palco-Pro/main/';
+      if (value.startsWith(rawPrefix)) {
+        const path = value.slice(rawPrefix.length).split('/').map(part => encodeURIComponent(decodeURIComponent(part))).join('/');
+        return 'https://fabriciobenigno.github.io/Palco-Pro/' + path;
+      }
+      return value;
+    }
+
     async function openPdfForSong(song) {
       closePdfViewer();
-      if (!song?.pdfData || !window.pdfjsLib) return;
+      if ((!song?.pdfData && !song?.pdfUrl) || !window.pdfjsLib) return;
       try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         state.pdfSongId = song.id; state.pdfPage = 1;
-        state.pdfDoc = await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise;
+        const publicUrl = normalizePublicPdfUrl(song.pdfUrl);
+        state.pdfDoc = song.pdfData
+          ? await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise
+          : await pdfjsLib.getDocument({ url: publicUrl }).promise;
         state.pdfPageCount = state.pdfDoc.numPages || 1;
         if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
         pdfViewerScreen?.classList.add('open'); pdfViewerScreen?.setAttribute('aria-hidden','false');
@@ -3489,7 +3508,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
-      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData };
+      const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
+      const payload = { id: existingIndex >= 0 && state.currentSongId ? state.currentSongId : createSongId(), title, artist, style, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
       const nextSongs = state.songs.map(song => ({...song}));
       if (existingIndex >= 0) nextSongs[existingIndex] = payload; else nextSongs.unshift(payload);
       persistSongsState(nextSongs);
@@ -3698,7 +3718,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       scriptInput.value = song.lyrics || '';
       state.editingPdfData = song.pdfData || '';
       resetSongToTopStart();
-      if (getReadingPreference() === 'pdf' && song.pdfData) openPdfForSong(song); else { closePdfViewer(); loadScript(); }
+      if (getReadingPreference() === 'pdf' && (song.pdfData || song.pdfUrl)) openPdfForSong(song); else { closePdfViewer(); loadScript(); }
       persistCurrentDraft();
     }
     async function previousSong() { if (state.pdfDoc && state.pdfSongId === state.currentSongId && state.pdfPage > 1) { state.pdfPage -= 1; await renderPdfPage(state.pdfPage); return; } const currentIndex=getCurrentSongIndex(); if(currentIndex<0) return; loadSongByIndex(currentIndex-1); }
