@@ -733,6 +733,12 @@
       z-index: 3;
       display: flex; align-items: center; justify-content: center;
       background: var(--screen-bg);
+      transform: translate3d(var(--page-preview-x, 100vw), 0, 0);
+      transition: transform 0.28s cubic-bezier(.22,.8,.26,1);
+      will-change: transform;
+    }
+    .page-swipe-active .page-swipe-preview.pdf {
+      transition: none !important;
     }
     .page-swipe-preview.pdf canvas {
       display: block; background: #fff; max-width: 100%; max-height: 100%;
@@ -3597,6 +3603,57 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       function gPreviewReady(g) { return !!g.previewReady; }
 
+      const loadPdfSongForGesture = async (song) => {
+        if (!song || !window.pdfjsLib) return false;
+        try {
+          state.pdfRenderToken += 1;
+          state.pdfDoc = null;
+          state.pdfSongId = song.id;
+          state.pdfPage = 1;
+          let doc = null;
+          const cached = !song.pdfData ? await getOfflinePdf(song.id).catch(() => null) : null;
+          if (cached?.blob) {
+            doc = await pdfjsLib.getDocument({ data: new Uint8Array(await cached.blob.arrayBuffer()) }).promise;
+          } else if (song.pdfData) {
+            doc = await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise;
+          } else if (song.pdfUrl) {
+            doc = await pdfjsLib.getDocument({ url: normalizePublicPdfUrl(song.pdfUrl) }).promise;
+          }
+          if (!doc) return false;
+          state.pdfDoc = doc;
+          state.pdfPageCount = doc.numPages || 1;
+          return true;
+        } catch (_) {
+          state.pdfDoc = null;
+          return false;
+        }
+      };
+
+      const commitPdfSongForGesture = async (song) => {
+        if (!song) return false;
+        const loaded = await loadPdfSongForGesture(song);
+        if (!loaded) return false;
+        state.currentSongId = song.id;
+        if (repertoireSelect) repertoireSelect.value = song.id;
+        songTitleInput.value = song.title || '';
+        artistInput.value = song.artist || '';
+        styleInput.value = song.style || '';
+        noteInput.value = getSongNote(song.id);
+        scriptInput.value = song.lyrics || '';
+        state.editingPdfData = song.pdfData || '';
+        const songNote = getSongNote(song.id);
+        if (pdfViewerNote) {
+          pdfViewerNote.textContent = songNote ? `Tom: ${songNote}` : '';
+          pdfViewerNote.classList.toggle('hidden', !songNote);
+          pdfViewerNote.setAttribute('aria-hidden', songNote ? 'false' : 'true');
+        }
+        pdfViewerScreen?.classList.add('open');
+        pdfViewerScreen?.setAttribute('aria-hidden', 'false');
+        await renderPdfPage(1);
+        persistCurrentDraft();
+        return true;
+      };
+
       const settle = async (target, e, cancelled = false) => {
         if (!gesture || e?.pointerId !== gesture.id) return;
         const g = gesture; gesture = null;
@@ -3606,71 +3663,58 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         const passed = !cancelled && Math.abs(dx) >= Math.max(SWIPE_MIN, width * SWIPE_RATIO);
         const direction = dx < 0 ? 'next' : 'previous';
         const travel = direction === 'next' ? -width : width;
-        if (!passed) { app.classList.remove('page-swipe-active'); setX(0); setPreviewX(direction === 'next' ? width : -width); await new Promise(resolve => setTimeout(resolve, 285)); clearVisual(); if (g.wasPlaying) startScroll(); return; }
+
+        // Aprovado: a navegação da LETRA permanece exatamente com o efeito atual.
+        if (g.mode === 'lyrics') {
+          if (!passed) { app.classList.remove('page-swipe-active'); setX(0); setPreviewX(direction === 'next' ? width : -width); await new Promise(resolve => setTimeout(resolve, 285)); clearVisual(); if (g.wasPlaying) startScroll(); return; }
+          app.classList.remove('page-swipe-active');
+          if (g.previewPromise) await g.previewPromise.catch(() => false);
+          setX(travel); setPreviewX(0); lyricsPagePreview?.classList.add('active');
+          await new Promise(resolve => setTimeout(resolve, 300)); clearVisual();
+          if (direction === 'next') await nextSong(); else await previousSong();
+          return;
+        }
+
+        // PDF: a página vizinha entra desde o primeiro movimento e acompanha o dedo.
+        if (!passed) {
+          app.classList.remove('page-swipe-active');
+          setX(0);
+          setPreviewX(direction === 'next' ? width : -width);
+          await new Promise(resolve => setTimeout(resolve, 285));
+          clearVisual();
+          if (g.wasPlaying) startScroll();
+          return;
+        }
+
         app.classList.remove('page-swipe-active');
         if (g.previewPromise) await g.previewPromise.catch(() => false);
-        setX(travel); setPreviewX(0); if (g.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
+        setX(travel);
+        setPreviewX(0);
+        pdfPagePreview?.classList.add('active');
         await new Promise(resolve => setTimeout(resolve, 300));
-        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') {
+
+        if (g.target?.type === 'pdf-page' && state.pdfDoc) {
+          // O canvas principal está fora da tela; trocamos o conteúdo nele
+          // enquanto a folha de prévia ainda cobre toda a tela.
           state.pdfPage = g.target.page;
           await renderPdfPage(state.pdfPage);
           clearVisual();
-        } else if (g.mode === 'pdf' && g.target?.type === 'song' && g.target?.song) {
-          // A prévia já ocupa toda a tela. Carregamos a nova música por baixo dela,
-          // sem fechar o visualizador e sem iniciar uma segunda animação.
-          const song = g.target.song;
-          state.currentSongId = song.id;
-          if (repertoireSelect) repertoireSelect.value = song.id;
-          songTitleInput.value = song.title || '';
-          artistInput.value = song.artist || '';
-          styleInput.value = song.style || '';
-          noteInput.value = getSongNote(song.id);
-          scriptInput.value = song.lyrics || '';
-          state.editingPdfData = song.pdfData || '';
-          resetSongToTopStart();
-          persistCurrentDraft();
-
-          let nextPdfDoc = null;
-          try {
-            if (song.pdfData) {
-              nextPdfDoc = await pdfjsLib.getDocument({ data: atob(song.pdfData.split(',')[1] || '') }).promise;
-            } else if (song.pdfUrl) {
-              nextPdfDoc = await pdfjsLib.getDocument({ url: normalizePublicPdfUrl(song.pdfUrl) }).promise;
-            } else {
-              const cached = await getOfflinePdf(song.id).catch(() => null);
-              if (cached?.blob) {
-                nextPdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await cached.blob.arrayBuffer()) }).promise;
-              }
-            }
-          } catch (_) {}
-
-          if (nextPdfDoc) {
-            state.pdfDoc = nextPdfDoc;
-            state.pdfSongId = song.id;
-            state.pdfPage = 1;
-            state.pdfPageCount = nextPdfDoc.numPages || 1;
-            const songNote = getSongNote(song.id);
-            if (pdfViewerNote) {
-              pdfViewerNote.textContent = songNote ? `Tom: ${songNote}` : '';
-              pdfViewerNote.classList.toggle('hidden', !songNote);
-              pdfViewerNote.setAttribute('aria-hidden', songNote ? 'false' : 'true');
-            }
-            pdfViewerScreen?.classList.add('open');
-            pdfViewerScreen?.setAttribute('aria-hidden', 'false');
-            await renderPdfPage(1);
-          }
-
-          // A nova página já está pronta por baixo da folha que terminou de entrar.
-          // Zeramos o deslocamento com a transição explicitamente desligada para
-          // impedir o segundo "puxão" percebido no final da troca de música.
-          if (pdfViewerCanvas) pdfViewerCanvas.style.transition = 'none';
-          setX(0);
-          void pdfViewerCanvas?.offsetWidth;
-          clearVisual();
-        } else {
-          clearVisual();
-          if (direction === 'next') await nextSong(); else await previousSong();
+          return;
         }
+
+        if (g.target?.type === 'song' && g.target.song) {
+          // Na troca de música, carregamos o novo PDF ainda sob a folha que
+          // terminou a animação. Assim a nova música assume a tela sem um
+          // segundo deslocamento ou "puxão".
+          const committed = await commitPdfSongForGesture(g.target.song);
+          if (committed) {
+            clearVisual();
+            return;
+          }
+        }
+
+        clearVisual();
+        if (direction === 'next') await nextSong(); else await previousSong();
       };
 
       const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
