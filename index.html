@@ -31,7 +31,7 @@
     :root {
       --font-size: 30px;
       --line-height: 1.6;
-      --stanza-gap: 2.1em;
+      --stanza-spacing: 2.1em;
       --text-width: 84vw;
       --overlay-opacity: 0.16;
       --safe-top: env(safe-area-inset-top, 0px);
@@ -350,7 +350,7 @@
     .line {
       display: block;
       opacity: 1;
-      margin: 0 0 var(--stanza-gap);
+      margin: 0 0 var(--stanza-spacing);
       padding: 0.06em 0.34em 0.9em;
       position: relative;
       border-bottom: 1px solid currentColor;
@@ -371,6 +371,16 @@
       line-height: 1;
     }
     .line:last-child::before { display: none; }
+
+    .transcript-pill {
+      display: none !important;
+      position: absolute; left: 50%; top: calc(var(--safe-top) + 18px); transform: translateX(-50%);
+      z-index: 22; max-width: min(88vw, 720px);
+      padding: 12px 14px; border-radius: 18px;
+      background: rgba(10,14,20,0.42); border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px); font-size: 13px; line-height: 1.45;
+      color: rgba(255,255,255,0.84); text-align: center; pointer-events: none;
+    }
 
     .controls-bar {
       position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + 22px); transform: translateX(-50%);
@@ -1760,6 +1770,7 @@
     <div class="stage-layer"></div>
 
     <div class="teleprompter-overlay">
+      <div class="transcript-pill hidden" id="transcriptPill" aria-hidden="true">A transcrição aparecerá aqui quando a fala estiver ligada.</div>
       <div class="prompt-window" id="promptWindow">
         <div class="prompt-bg"></div>
         <div class="prompt-content" id="promptContent">
@@ -1855,7 +1866,6 @@
           </div>
         </div>
 
-
         <div class="toggle-row">
           <span>Preferência de leitura</span>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
@@ -1875,16 +1885,28 @@
             </div>
 
             <div class="field">
-              <label for="stanzaGap">Espaço entre estrofes</label>
-              <input id="stanzaGap" type="range" min="0.8" max="4.0" step="0.1" value="2.1" />
-              <div class="value-row"><span>Menor</span><strong id="stanzaGapValue">2.1 em</strong><span>Maior</span></div>
+              <label for="stanzaSpacing">Espaço entre estrofes</label>
+              <input id="stanzaSpacing" type="range" min="0.8" max="4.5" step="0.1" value="2.1" />
+              <div class="value-row"><span>Menor</span><strong id="stanzaSpacingValue">2.1 em</strong><span>Maior</span></div>
             </div>
 
-            <div class="field" style="margin-top: 2px;">
-              <button class="ghost-btn" id="resetAdjustmentsBtn" type="button">Voltar ajustes ao padrão</button>
-              <div class="panel-note">Restaura o tamanho da letra e o espaço entre estrofes para os valores originais do Palco Pro.</div>
-            </div>
+            <button class="ghost-btn" id="resetSettingsBtn" type="button">Voltar ajustes ao padrão</button>
           </div>
+        </div>
+
+        <div class="hidden" aria-hidden="true">
+          <input id="lineHeight" type="range" min="1.2" max="2.2" step="0.05" value="1.6" />
+          <input id="textWidth" type="range" min="55" max="96" value="84" />
+          <input id="overlayOpacity" type="range" min="0" max="70" value="16" />
+          <input id="baseSpeed" type="range" min="4" max="80" value="20" />
+          <input id="voiceFollowSpeed" type="range" min="20" max="100" value="62" />
+          <input id="voiceToggle" type="checkbox" disabled />
+          <input id="mirrorToggle" type="checkbox" />
+          <span id="lineHeightValue">1.60</span>
+          <span id="textWidthValue">84 vw</span>
+          <span id="overlayOpacityValue">16%</span>
+          <span id="baseSpeedValue">20 px/s</span>
+          <span id="voiceFollowSpeedValue">62%</span>
         </div>
 
         <div class="themes-wrap" id="themesWrap">
@@ -1906,6 +1928,7 @@
           <label>Bluetooth</label>
           <div class="panel-note">Os controles de teclado e botões Bluetooth continuam aceitando setas, espaço e Enter para ajudar no uso ao vivo.</div>
         </div>
+
       </div>
     </div>
 
@@ -2134,23 +2157,22 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const deleteSelectedSongsBtn = $('deleteSelectedSongsBtn');
     const cancelLibrarySelectionBtn = $('cancelLibrarySelectionBtn');
     const fontSize = $('fontSize');
+    const stanzaSpacing = $('stanzaSpacing');
     const lineHeight = $('lineHeight');
-    const stanzaGap = $('stanzaGap');
     const textWidth = $('textWidth');
     const overlayOpacity = $('overlayOpacity');
     const baseSpeed = $('baseSpeed');
     const detailSpeedSlider = $('detailSpeedSlider');
-    const voiceFollowSpeed = null;
-    const mirrorToggle = null;
-    const voiceToggle = { disabled: true, checked: false, addEventListener() {} };
+    const voiceFollowSpeed = $('voiceFollowSpeed');
+    const mirrorToggle = $('mirrorToggle');
+    const voiceToggle = $('voiceToggle');
     const fontSizeValue = $('fontSizeValue');
+    const stanzaSpacingValue = $('stanzaSpacingValue');
     const lineHeightValue = $('lineHeightValue');
-    const stanzaGapValue = $('stanzaGapValue');
     const textWidthValue = $('textWidthValue');
     const overlayOpacityValue = $('overlayOpacityValue');
     const baseSpeedValue = $('baseSpeedValue');
     const voiceFollowSpeedValue = $('voiceFollowSpeedValue');
-    const resetAdjustmentsBtn = $('resetAdjustmentsBtn');
     const moreOptionsWrap = $('moreOptionsWrap');
     const moreOptionsBtn = $('moreOptionsBtn');
     const themesWrap = $('themesWrap');
@@ -3276,13 +3298,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     }
 
     function updateValueLabels() {
-      if (fontSizeValue) fontSizeValue.textContent = `${fontSize.value} px`;
-      if (lineHeightValue) lineHeightValue.textContent = Number(lineHeight.value).toFixed(2);
-      if (stanzaGapValue) stanzaGapValue.textContent = `${Number(stanzaGap.value).toFixed(1)} em`;
-      if (textWidthValue) textWidthValue.textContent = `${textWidth.value} vw`;
-      if (overlayOpacityValue) overlayOpacityValue.textContent = `${overlayOpacity.value}%`;
-      if (baseSpeedValue) baseSpeedValue.textContent = `${baseSpeed.value} px/s`;
-      if (voiceFollowSpeedValue) voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
+      if (fontSizeValue && fontSize) fontSizeValue.textContent = `${fontSize.value} px`;
+      if (stanzaSpacingValue && stanzaSpacing) stanzaSpacingValue.textContent = `${Number(stanzaSpacing.value).toFixed(1)} em`;
+      if (lineHeightValue && lineHeight) lineHeightValue.textContent = Number(lineHeight.value).toFixed(2);
+      if (textWidthValue && textWidth) textWidthValue.textContent = `${textWidth.value} vw`;
+      if (overlayOpacityValue && overlayOpacity) overlayOpacityValue.textContent = `${overlayOpacity.value}%`;
+      if (baseSpeedValue && baseSpeed) baseSpeedValue.textContent = `${baseSpeed.value} px/s`;
+      if (voiceFollowSpeedValue && voiceFollowSpeed) voiceFollowSpeedValue.textContent = `${voiceFollowSpeed.value}%`;
     }
 
     function applyTheme() {
@@ -3296,11 +3318,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     function applyStyles() {
       document.documentElement.style.setProperty('--font-size', `${fontSize.value}px`);
+      document.documentElement.style.setProperty('--stanza-spacing', `${Number(stanzaSpacing?.value || 2.1)}em`);
       document.documentElement.style.setProperty('--line-height', lineHeight.value);
-      document.documentElement.style.setProperty('--stanza-gap', `${stanzaGap.value}em`);
       document.documentElement.style.setProperty('--text-width', `${textWidth.value}vw`);
       document.documentElement.style.setProperty('--overlay-opacity', Number(overlayOpacity.value) / 100);
-      scriptInner.classList.remove('mirror');
+      scriptInner.classList.toggle('mirror', state.mirror);
       applyTheme();
     }
 
@@ -3656,6 +3678,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('detailPanel').classList.remove('open');
     }
     function openPanel() { libraryPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
+    function resetUserAdjustments() {
+      const wasOpen = moreOptionsWrap?.classList.contains('open');
+      if (fontSize) fontSize.value = '30';
+      if (stanzaSpacing) stanzaSpacing.value = '2.1';
+      if (lineHeight) lineHeight.value = '1.6';
+      if (textWidth) textWidth.value = '84';
+      if (overlayOpacity) overlayOpacity.value = '16';
+      if (baseSpeed) baseSpeed.value = '20';
+      if (voiceFollowSpeed) voiceFollowSpeed.value = '62';
+      state.mirror = false;
+      if (mirrorToggle) mirrorToggle.checked = false;
+      if (voiceToggle) voiceToggle.checked = false;
+      state.baseSpeed = Number(baseSpeed?.value || 20);
+      state.voiceFollowSpeed = Number(voiceFollowSpeed?.value || 62) / 100;
+      state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34);
+      state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140);
+      updateValueLabels();
+      applyStyles();
+      persistSettings();
+      showToast('Ajustes voltaram ao padrão', 1500);
+      if (wasOpen) moreOptionsWrap?.classList.add('open');
+    }
     function hidePanel() { sidePanel.classList.remove('open'); }
     function toggleMoreOptions() { if (moreOptionsWrap) moreOptionsWrap.classList.toggle('open'); }
     function toggleThemes() { if (themesWrap) themesWrap.classList.toggle('open'); }
@@ -3679,17 +3723,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
     }
 
-    function resetAdjustmentsToDefault() {
-      fontSize.value = '30';
-      stanzaGap.value = '2.1';
-      updateValueLabels();
-      applyStyles();
-      refreshLayoutPreservingPoint();
-      persistSettings();
-      showToast('Ajustes voltaram ao padrão.', 1800);
-    }
-
-    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, stanzaGap: stanzaGap.value, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName, readingPreference: getReadingPreference() })); }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, stanzaSpacing: stanzaSpacing?.value || 2.1, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName, readingPreference: getReadingPreference() })); }
     function renderUserName() {
       if (!userNameDisplay) return;
       userNameDisplay.textContent = userName || 'Seu nome';
@@ -3755,7 +3789,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), note: noteInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaGap) stanzaGap.value = saved.stanzaGap; lineHeight.value = '1.6'; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = false; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); } catch (_) { renderUserName(); } }
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
+        voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (noteInput) noteInput.value = typeof saved.note === 'string' ? saved.note : ''; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
@@ -4337,7 +4372,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if (resetAdjustmentsBtn) resetAdjustmentsBtn.addEventListener('click', resetAdjustmentsToDefault); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaGap].forEach(input => { input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); }  if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -4459,7 +4494,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value);  applyStyles(); loadScript(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon();  await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
