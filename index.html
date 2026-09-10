@@ -699,13 +699,15 @@
     }
     .pdf-viewer-screen.open { display: flex; align-items: center; justify-content: center; }
     .pdf-viewer-page-wrap {
+      position: relative;
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       overflow: hidden; background: rgba(0,0,0,0.12);
     }
     .pdf-viewer-canvas {
+      position: relative; z-index: 2;
       display: block; background: #fff; max-width: 100%; max-height: 100%;
       box-shadow: 0 14px 40px rgba(0,0,0,0.30);
-      transform: translateX(var(--page-swipe-x, 0px));
+      transform: translate3d(var(--page-swipe-x, 0px), 0, 0);
       transition: transform 0.28s cubic-bezier(.22,.8,.26,1);
       will-change: transform;
     }
@@ -714,8 +716,9 @@
       transition: none !important;
     }
     .page-swipe-preview {
-      position: absolute; inset: 0; z-index: 9; overflow: hidden; pointer-events: none;
-      opacity: 0; transition: opacity 0.08s linear;
+      position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none;
+      opacity: 0; transition: opacity 0.05s linear;
+      will-change: transform, opacity;
     }
     .page-swipe-preview.active { opacity: 1; }
     .page-swipe-preview-inner {
@@ -724,15 +727,17 @@
       color: var(--script-text); font-weight: 500; letter-spacing: 0.02em;
       white-space: pre-wrap; text-wrap: pretty; overflow-wrap: normal; word-break: normal; hyphens: none;
       text-shadow: var(--script-shadow);
-      transform: translateX(calc(-50% + var(--page-preview-x, 100vw)));
+      transform: translate3d(calc(-50% + var(--page-preview-x, 100vw)), 0, 0);
     }
     .page-swipe-preview.pdf {
+      z-index: 3;
       display: flex; align-items: center; justify-content: center;
       background: var(--screen-bg);
     }
     .page-swipe-preview.pdf canvas {
       display: block; background: #fff; max-width: 100%; max-height: 100%;
       box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+      will-change: transform;
     }
     .page-swipe-edge {
       position: absolute; top: 0; bottom: 0; width: 18px; z-index: 32;
@@ -3535,9 +3540,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
       const start = (target, e) => {
         if (isBlocked() || !target) return;
-        gesture = { id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, axis: null, moved: false, mode: getMode(), wasPlaying: state.playing, previewReady: false };
+        gesture = { id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, axis: null, moved: false, mode: getMode(), wasPlaying: state.playing, previewReady: false, direction: null, previewPromise: null };
         target.setPointerCapture?.(e.pointerId);
         if (gesture.wasPlaying) pauseScroll();
+      };
+
+      const requestPreview = (direction) => {
+        if (!gesture || gesture.direction === direction && gesture.previewPromise) return;
+        gesture.direction = direction;
+        gesture.previewReady = false;
+        const currentGesture = gesture;
+        currentGesture.previewPromise = preparePreview(currentGesture, direction).then((ok) => {
+          if (gesture !== currentGesture) return ok;
+          gesture.previewReady = !!ok;
+          if (ok) {
+            const width = Math.max(280, window.innerWidth || 390);
+            const dxNow = currentGesture.x - currentGesture.startX;
+            setPreviewX(direction === 'next' ? width + dxNow : -width + dxNow);
+            if (currentGesture.mode === 'lyrics') lyricsPagePreview?.classList.add('active');
+            else pdfPagePreview?.classList.add('active');
+          }
+          return ok;
+        }).catch(() => false);
       };
 
       const move = async (target, e) => {
@@ -3551,23 +3575,23 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           else return;
           if (gesture.axis === 'vertical') { gesture.verticalFallback = true; beginTextDrag(gesture.id, gesture.startY); moveTextDrag(gesture.y); return; }
           gesture.moved = true; app.classList.add('page-swipe-active');
-          const direction = dx < 0 ? 'next' : 'previous';
-          gesture.previewPromise = preparePreview(gesture, direction).then((ok) => {
-            if (gesture) gesture.previewReady = !!ok;
-            return ok;
-          });
+          requestPreview(dx < 0 ? 'next' : 'previous');
         }
         if (gesture.axis === 'vertical') { moveTextDrag(gesture.y); return; }
         gesture.moved = true;
         const width = Math.max(280, window.innerWidth || 390); const clamped = Math.max(-width, Math.min(width, dx));
         setX(clamped);
         const direction = dx < 0 ? 'next' : 'previous';
-        const shouldReveal = Math.abs(dx) >= width * 0.5;
-        if (gPreviewReady(gesture) && shouldReveal) {
+        if (gesture.direction !== direction) requestPreview(direction);
+
+        // A true page-turn starts immediately: the incoming page is already
+        // positioned just outside the edge and tracks the finger continuously.
+        if (gesture.previewReady) {
           setPreviewX(direction === 'next' ? width + dx : -width + dx);
-          if (gesture.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
+          if (gesture.mode === 'lyrics') lyricsPagePreview?.classList.add('active');
+          else pdfPagePreview?.classList.add('active');
         } else {
-          setPreviewX(direction === 'next' ? width : -width);
+          setPreviewX(direction === 'next' ? width + dx : -width + dx);
         }
       };
 
