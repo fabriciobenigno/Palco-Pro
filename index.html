@@ -734,8 +734,12 @@
       display: flex; align-items: center; justify-content: center;
       background: var(--screen-bg);
       transform: translate3d(var(--page-preview-x, 100vw), 0, 0);
-      transition: none;
-      will-change: transform, opacity;
+      transition: transform 0.28s cubic-bezier(.22,.8,.26,1);
+      will-change: transform;
+    }
+
+    .page-swipe-active .page-swipe-preview.pdf {
+      transition: none !important;
     }
     .page-swipe-preview.pdf canvas {
       display: block; background: #fff; max-width: 100%; max-height: 100%;
@@ -3612,26 +3616,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         if (!passed) { app.classList.remove('page-swipe-active'); setX(0); setPreviewX(direction === 'next' ? width : -width); await new Promise(resolve => setTimeout(resolve, 285)); clearVisual(); if (g.wasPlaying) startScroll(); return; }
         app.classList.remove('page-swipe-active');
         if (g.previewPromise) await g.previewPromise.catch(() => false);
-
-        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') {
-          // Finaliza a virada mantendo a página antiga fora da tela durante toda a troca.
-          // Só depois de renderizar a nova página no mesmo canvas ele volta para 0px,
-          // evitando o segundo "puxão" visual ao soltar o dedo.
-          setX(travel);
-          setPreviewX(0);
-          pdfPagePreview?.classList.add('active');
-          await new Promise(resolve => setTimeout(resolve, 300));
-          state.pdfPage = g.target.page;
-          await renderPdfPage(state.pdfPage);
-          clearVisual();
-        } else {
-          setX(travel);
-          setPreviewX(0);
-          lyricsPagePreview?.classList.add('active');
-          await new Promise(resolve => setTimeout(resolve, 300));
-          clearVisual();
-          if (direction === 'next') await nextSong(); else await previousSong();
-        }
+        setX(travel); setPreviewX(0); if (g.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
+        await new Promise(resolve => setTimeout(resolve, 300)); clearVisual();
+        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') { state.pdfPage = g.target.page; await renderPdfPage(state.pdfPage); }
+        else if (direction === 'next') await nextSong(); else await previousSong();
       };
 
       const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
