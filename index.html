@@ -1354,6 +1354,51 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    .pdf-offline-status {
+      position: absolute;
+      left: 50%;
+      top: calc(var(--safe-top) + 18px);
+      transform: translateX(-50%);
+      z-index: 81;
+      width: min(calc(100% - 28px), 420px);
+      display: grid;
+      gap: 7px;
+      pointer-events: none;
+    }
+    .pdf-offline-status.hidden { display: none; }
+    .pdf-offline-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 13px;
+      border-radius: 15px;
+      background: rgba(8,12,18,0.94);
+      border: 1px solid rgba(55, 211, 119, 0.38);
+      box-shadow: 0 16px 34px rgba(0,0,0,0.28);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .pdf-offline-check {
+      flex: 0 0 auto;
+      width: 23px;
+      height: 23px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #2ecc71;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 0 0 3px rgba(46,204,113,0.12);
+    }
+    .pdf-offline-item span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .song-actions-panel {
       position: absolute;
       left: 50%;
@@ -1955,6 +2000,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     </div>
 
     <div class="app-toast" id="appToast" aria-live="polite"></div>
+    <div class="pdf-offline-status hidden" id="pdfOfflineStatus" aria-live="polite" aria-atomic="false"></div>
 
     <div class="song-actions-panel" id="songActionsPanel">
       <div class="panel-title">
@@ -1998,7 +2044,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       textDragging: false, textDragPointerId: null, textDragStartY: 0, textDragLastY: 0, textDragMoved: false,
       bluetoothBound: false, voiceLastProcessed: '', voiceLastMatchAt: 0,
       songs: [], currentSongId: null,
-      toastTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
+      toastTimer: null, pdfOfflineFeedbackTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
       editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
@@ -2075,6 +2121,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const saveSelectedSuggestionsBtn = $('saveSelectedSuggestionsBtn');
     const selectAllSuggestionsBtn = $('selectAllSuggestionsBtn');
     const appToast = $('appToast');
+    const pdfOfflineStatus = $('pdfOfflineStatus');
     const songActionsPanel = $('songActionsPanel');
     const songActionsSubtitle = $('songActionsSubtitle');
     const entryInstallCtaBtn = $('entryInstallCtaBtn');
@@ -2182,9 +2229,41 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     async function cacheSongsPdfsOffline(songs = []) {
       const pdfSongs = (Array.isArray(songs) ? songs : []).filter(song => song?.pdfUrl && song?.id);
-      if (!pdfSongs.length) return { saved: 0, failed: 0 };
-      const results = await Promise.all(pdfSongs.map(downloadPdfToOffline));
-      return { saved: results.filter(Boolean).length, failed: results.filter(value => !value).length };
+      if (!pdfSongs.length) return { saved: 0, failed: 0, savedSongs: [], failedSongs: [] };
+      const results = await Promise.all(pdfSongs.map(async (song) => ({
+        song,
+        ok: await downloadPdfToOffline(song)
+      })));
+      const savedSongs = results.filter(item => item.ok).map(item => item.song);
+      const failedSongs = results.filter(item => !item.ok).map(item => item.song);
+      return { saved: savedSongs.length, failed: failedSongs.length, savedSongs, failedSongs };
+    }
+
+    function showOfflinePdfSavedFeedback(savedSongs = [], failedSongs = []) {
+      if (!pdfOfflineStatus) return;
+      const saved = Array.isArray(savedSongs) ? savedSongs.filter(Boolean) : [];
+      const failed = Array.isArray(failedSongs) ? failedSongs.filter(Boolean) : [];
+      if (!saved.length && !failed.length) return;
+      pdfOfflineStatus.innerHTML = '';
+      saved.forEach((song) => {
+        const item = document.createElement('div');
+        item.className = 'pdf-offline-item';
+        item.innerHTML = `<span class="pdf-offline-check" aria-hidden="true">✓</span><span>PDF salvo offline: ${escapeHtml(song.title || 'Sem título')}</span>`;
+        pdfOfflineStatus.appendChild(item);
+      });
+      failed.forEach((song) => {
+        const item = document.createElement('div');
+        item.className = 'pdf-offline-item';
+        item.style.borderColor = 'rgba(255,180,80,0.34)';
+        item.innerHTML = `<span class="pdf-offline-check" aria-hidden="true" style="background:#d99020;box-shadow:0 0 0 3px rgba(217,144,32,0.12)">!</span><span>PDF não salvo offline: ${escapeHtml(song.title || 'Sem título')}</span>`;
+        pdfOfflineStatus.appendChild(item);
+      });
+      pdfOfflineStatus.classList.remove('hidden');
+      if (state.pdfOfflineFeedbackTimer) clearTimeout(state.pdfOfflineFeedbackTimer);
+      state.pdfOfflineFeedbackTimer = setTimeout(() => {
+        pdfOfflineStatus.classList.add('hidden');
+        pdfOfflineStatus.innerHTML = '';
+      }, Math.max(4200, (saved.length + failed.length) * 1200));
     }
 
     function cloneSongForUser(song) {
@@ -2655,10 +2734,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       renderListSongsSelection(getListById(state.editingListId)?.songIds || []);
 
       const offlineResult = await cacheSongsPdfsOffline(personalCopies);
-      if (offlineResult.saved > 0 && offlineResult.failed === 0) {
-        showToast(offlineResult.saved === 1 ? 'PDF salvo para uso offline' : `${offlineResult.saved} PDFs salvos para uso offline`, 1800);
-      } else if (offlineResult.saved > 0 && offlineResult.failed > 0) {
-        showToast(`${offlineResult.saved} PDF(s) salvo(s) offline; ${offlineResult.failed} ficará(ão) disponível(is) online.`, 2200);
+      if (offlineResult.saved || offlineResult.failed) {
+        showOfflinePdfSavedFeedback(offlineResult.savedSongs, offlineResult.failedSongs);
+        if (offlineResult.failed > 0) {
+          showToast(`${offlineResult.failed} PDF(s) também ficarão disponíveis online.`, 2200);
+        }
       } else if (validSongs.some(song => song?.pdfUrl)) {
         showToast('Músicas salvas. Os PDFs continuarão disponíveis online quando houver internet.', 2200);
       }
@@ -2945,7 +3025,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       });
       state.revealedSongId = exceptSongId || null;
     }
-    function openSongById(songId) {
+    async function openSongById(songId) {
       const song = state.songs.find(item => item.id === songId);
       if (!song) return;
       state.currentSongId = song.id;
@@ -2958,8 +3038,19 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       resetSongToTopStart();
       persistCurrentDraft();
       hideLibraryPanel();
-      if (getReadingPreference() === 'pdf' && state.editingPdfData) {
-        openPdfForSong(song);
+
+      const preference = getReadingPreference();
+      if (preference === 'lyrics') {
+        closePdfViewer();
+        loadScript();
+        return;
+      }
+
+      const offlinePdf = await getOfflinePdf(song.id).catch(() => null);
+      if (state.currentSongId !== song.id) return;
+      const hasPdf = !!(state.editingPdfData || song.pdfUrl || offlinePdf?.blob);
+      if (hasPdf) {
+        await openPdfForSong(song);
       } else {
         closePdfViewer();
         loadScript();
