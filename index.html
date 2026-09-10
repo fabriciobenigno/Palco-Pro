@@ -3619,15 +3619,16 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         setX(travel); setPreviewX(0); if (g.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
         await new Promise(resolve => setTimeout(resolve, 300));
         if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') {
-          // Página interna do mesmo PDF: mantém a animação e só depois normaliza a posição.
           state.pdfPage = g.target.page;
           await renderPdfPage(state.pdfPage);
           clearVisual();
         } else if (g.mode === 'pdf' && g.target?.type === 'song') {
-          // Limite do PDF: a prévia já é a primeira página da próxima/anterior música.
-          // Carregamos a música enquanto a prévia permanece cobrindo a tela, evitando
-          // qualquer segundo deslocamento perceptível ao trocar o conteúdo.
+          // No limite do PDF, a prévia já ocupa a tela. A música seguinte/anterior
+          // é carregada por baixo e a página real é normalizada sem animação,
+          // evitando qualquer segundo deslocamento perceptível.
           if (direction === 'next') await nextSong(); else await previousSong();
+          if (pdfViewerCanvas) pdfViewerCanvas.style.transition = 'none';
+          setX(0);
           clearVisual();
         } else {
           clearVisual();
