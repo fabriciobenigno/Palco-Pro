@@ -3400,7 +3400,112 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (state.wasPlayingBeforeDrag) startScroll();
       state.wasPlayingBeforeDrag = false;
     }
-    function bindTextDrag() { promptContent.addEventListener('pointerdown', (e) => { if (sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open')) return; promptContent.setPointerCapture(e.pointerId); beginTextDrag(e.pointerId, e.clientY); }); promptContent.addEventListener('pointermove', (e) => { if (e.pointerId !== state.textDragPointerId) return; moveTextDrag(e.clientY); }); promptContent.addEventListener('pointerup', endTextDrag); promptContent.addEventListener('pointercancel', endTextDrag); }
+    function bindTextDrag() {
+      let gestureStartX = 0;
+      let gestureStartY = 0;
+      let gestureTracking = false;
+      let gestureHorizontal = false;
+      let gestureHandled = false;
+      const gestureThreshold = 54;
+      const gestureIntentThreshold = 12;
+      const gestureVerticalLock = 1.18;
+
+      const canHandleSideGesture = () => !sidePanel.classList.contains('open') && !libraryPanel.classList.contains('open') && !songEditorPanel.classList.contains('open') && !suggestionsPanel.classList.contains('open') && !state.textDragging;
+
+      const handleHorizontalGesture = async (deltaX) => {
+        if (Math.abs(deltaX) < gestureThreshold || !gestureHorizontal || gestureHandled) return;
+        gestureHandled = true;
+        if (deltaX < 0) await goToNextContentByGesture();
+        else await goToPreviousContentByGesture();
+      };
+
+      promptContent.addEventListener('pointerdown', (e) => {
+        if (!canHandleSideGesture()) return;
+        gestureStartX = e.clientX;
+        gestureStartY = e.clientY;
+        gestureTracking = true;
+        gestureHorizontal = false;
+        gestureHandled = false;
+        promptContent.setPointerCapture?.(e.pointerId);
+
+        if (!state.playing) {
+          beginTextDrag(e.pointerId, e.clientY);
+        }
+      });
+
+      promptContent.addEventListener('pointermove', async (e) => {
+        if (!gestureTracking) return;
+        const deltaX = e.clientX - gestureStartX;
+        const deltaY = e.clientY - gestureStartY;
+
+        if (!gestureHorizontal && (Math.abs(deltaX) > gestureIntentThreshold || Math.abs(deltaY) > gestureIntentThreshold)) {
+          gestureHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * gestureVerticalLock;
+          if (gestureHorizontal) {
+            if (state.textDragging) endTextDrag();
+            e.preventDefault();
+          }
+        }
+
+        if (gestureHorizontal) {
+          await handleHorizontalGesture(deltaX);
+          return;
+        }
+
+        if (state.textDragging && e.pointerId === state.textDragPointerId) {
+          moveTextDrag(e.clientY);
+        }
+      }, { passive: false });
+
+      const finishGesture = () => {
+        gestureTracking = false;
+        gestureHorizontal = false;
+        gestureHandled = false;
+        endTextDrag();
+      };
+
+      promptContent.addEventListener('pointerup', finishGesture);
+      promptContent.addEventListener('pointercancel', finishGesture);
+    }
+
+    async function goToNextContentByGesture() {
+      if (state.pdfDoc && state.pdfSongId === state.currentSongId) {
+        if (state.pdfPage < state.pdfPageCount) {
+          state.pdfPage += 1;
+          await renderPdfPage(state.pdfPage);
+        } else {
+          await nextSong();
+        }
+        return;
+      }
+
+      const lines = getLineElements();
+      if (lines.length && state.currentLine < lines.length - 1) {
+        setActiveLine(state.currentLine + 1);
+        placeActiveLineAtStart();
+        return;
+      }
+      await nextSong();
+    }
+
+    async function goToPreviousContentByGesture() {
+      if (state.pdfDoc && state.pdfSongId === state.currentSongId) {
+        if (state.pdfPage > 1) {
+          state.pdfPage -= 1;
+          await renderPdfPage(state.pdfPage);
+        } else {
+          await previousSong();
+        }
+        return;
+      }
+
+      const lines = getLineElements();
+      if (lines.length && state.currentLine > 0) {
+        setActiveLine(state.currentLine - 1);
+        placeActiveLineAtTop();
+        return;
+      }
+      await previousSong();
+    }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
     function countOrderedMatches(heardWords, targetWords) { let cursor = 0, matched = 0; for (const word of heardWords) { for (let i = cursor; i < targetWords.length; i++) { if (targetWords[i] === word) { matched++; cursor = i + 1; break; } } } return matched; }
