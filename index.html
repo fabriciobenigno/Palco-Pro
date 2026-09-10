@@ -713,6 +713,27 @@
     .page-swipe-active .pdf-viewer-canvas {
       transition: none !important;
     }
+    .page-swipe-preview {
+      position: absolute; inset: 0; z-index: 9; overflow: hidden; pointer-events: none;
+      opacity: 0; transition: opacity 0.08s linear;
+    }
+    .page-swipe-preview.active { opacity: 1; }
+    .page-swipe-preview-inner {
+      position: absolute; left: 50%; top: 0; width: min(var(--text-width), 1200px);
+      padding: 8vh 18px 26vh; font-size: var(--font-size); line-height: var(--line-height);
+      color: var(--script-text); font-weight: 500; letter-spacing: 0.02em;
+      white-space: pre-wrap; text-wrap: pretty; overflow-wrap: normal; word-break: normal; hyphens: none;
+      text-shadow: var(--script-shadow);
+      transform: translateX(calc(-50% + var(--page-preview-x, 100vw)));
+    }
+    .page-swipe-preview.pdf {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--screen-bg);
+    }
+    .page-swipe-preview.pdf canvas {
+      display: block; background: #fff; max-width: 100%; max-height: 100%;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+    }
     .page-swipe-edge {
       position: absolute; top: 0; bottom: 0; width: 18px; z-index: 32;
       opacity: 0; pointer-events: none;
@@ -1761,6 +1782,7 @@
       <div class="prompt-window" id="promptWindow">
         <div class="prompt-bg"></div>
         <div class="prompt-content" id="promptContent">
+          <div class="page-swipe-preview" id="lyricsPagePreview"><div class="page-swipe-preview-inner" id="lyricsPagePreviewInner"></div></div>
           <div class="script-inner" id="scriptInner"></div>
         </div>
       </div>
@@ -1771,6 +1793,7 @@
       <div class="page-swipe-edge right"></div>
       <div class="pdf-viewer-note hidden" id="pdfViewerNote" aria-hidden="true"></div>
       <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
+        <div class="page-swipe-preview pdf" id="pdfPagePreview"><canvas id="pdfPagePreviewCanvas" aria-label="Prévia da próxima página"></canvas></div>
         <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
       </div>
       <div class="pdf-viewer-page-indicator hidden" id="pdfViewerPageIndicator"></div>
@@ -3426,95 +3449,150 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const AXIS_SLOP = 1.15;
       let gesture = null;
 
-      const isBlocked = () => sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open') || suggestionsPanel?.classList.contains('open');
-
+      const isBlocked = () => sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open');
       const getMode = () => (pdfViewerScreen?.classList.contains('open') && state.pdfDoc && state.pdfSongId === state.currentSongId) ? 'pdf' : 'lyrics';
       const setX = (x) => document.documentElement.style.setProperty('--page-swipe-x', `${x}px`);
-      const clearX = () => {
+      const setPreviewX = (x) => document.documentElement.style.setProperty('--page-preview-x', `${x}px`);
+      const clearVisual = () => {
         document.documentElement.style.setProperty('--page-swipe-x', '0px');
+        document.documentElement.style.setProperty('--page-preview-x', '100vw');
         app.classList.remove('page-swipe-active');
+        lyricsPagePreview?.classList.remove('active');
+        pdfPagePreview?.classList.remove('active');
         if (pdfViewerCanvas) pdfViewerCanvas.style.transition = '';
         scriptInner.style.transition = '';
       };
 
+      const getAdjacentSong = (direction) => {
+        const list = getPlaybackSongList();
+        const idx = getCurrentSongIndex();
+        if (!list.length || idx < 0) return null;
+        const nextIndex = direction === 'next' ? ((idx + 1) % list.length) : ((idx - 1 + list.length) % list.length);
+        return list[nextIndex] || null;
+      };
+
+      const getTarget = (mode, direction) => {
+        if (mode === 'pdf' && state.pdfDoc) {
+          if (direction === 'next' && state.pdfPage < state.pdfPageCount) return { type: 'pdf-page', page: state.pdfPage + 1, song: state.songs.find(s => s.id === state.currentSongId) };
+          if (direction === 'previous' && state.pdfPage > 1) return { type: 'pdf-page', page: state.pdfPage - 1, song: state.songs.find(s => s.id === state.currentSongId) };
+        }
+        return { type: 'song', song: getAdjacentSong(direction) };
+      };
+
+      const renderLyricsPreview = (song) => {
+        if (!lyricsPagePreviewInner || !song) return false;
+        lyricsPagePreviewInner.innerHTML = '';
+        const heading = document.createElement('div'); heading.className = 'lyric-song-heading';
+        const title = document.createElement('div'); title.className = 'lyric-song-title'; title.textContent = song.title || 'Música'; heading.appendChild(title);
+        const artist = document.createElement('div'); artist.className = 'lyric-song-artist'; const artistText = song.artist || ''; artist.textContent = artistText; artist.hidden = !artistText; heading.appendChild(artist);
+        const noteText = getSongNote(song.id);
+        if (noteText) { const note = document.createElement('div'); note.className = 'lyric-song-note'; note.textContent = `Tom: ${noteText}`; heading.appendChild(note); }
+        lyricsPagePreviewInner.appendChild(heading);
+        const parts = (sanitizeLyrics(song.lyrics || '') || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean);
+        (parts.length ? parts : ['Cole a letra da música no painel.']).forEach((line) => { const stanza = document.createElement('div'); stanza.className = 'line'; stanza.textContent = line || ' '; lyricsPagePreviewInner.appendChild(stanza); });
+        return true;
+      };
+
+      const renderPdfPreview = async (target) => {
+        if (!target?.song || !pdfPagePreviewCanvas) return false;
+        let doc = state.pdfDoc;
+        try {
+          if (target.type === 'pdf-page') {
+            pdfPagePreview.classList.add('active');
+            const page = await doc.getPage(target.page);
+            const base = page.getViewport({ scale: 1 });
+            const maxW = Math.max(1, pdfViewerPageWrap.clientWidth - 8); const maxH = Math.max(1, pdfViewerPageWrap.clientHeight - 8);
+            const scale = Math.min(maxW / base.width, maxH / base.height); const viewport = page.getViewport({ scale: Math.max(0.1, scale) });
+            const dpr = Math.max(1, window.devicePixelRatio || 1);
+            pdfPagePreviewCanvas.width = Math.ceil(viewport.width * dpr); pdfPagePreviewCanvas.height = Math.ceil(viewport.height * dpr);
+            pdfPagePreviewCanvas.style.width = `${Math.ceil(viewport.width)}px`; pdfPagePreviewCanvas.style.height = `${Math.ceil(viewport.height)}px`;
+            const ctx = pdfPagePreviewCanvas.getContext('2d', { alpha: false }); if (!ctx) return false;
+            ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            return true;
+          }
+          let dataDoc = null;
+          if (target.song.pdfData) dataDoc = await pdfjsLib.getDocument({ data: atob(target.song.pdfData.split(',')[1] || '') }).promise;
+          else if (target.song.pdfUrl) dataDoc = await pdfjsLib.getDocument({ url: normalizePublicPdfUrl(target.song.pdfUrl) }).promise;
+          else { const cached = await getOfflinePdf(target.song.id).catch(() => null); if (cached?.blob) dataDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await cached.blob.arrayBuffer()) }).promise; }
+          if (!dataDoc) return false;
+          pdfPagePreview.classList.add('active');
+          const page = await dataDoc.getPage(1);
+          const base = page.getViewport({ scale: 1 }); const maxW = Math.max(1, pdfViewerPageWrap.clientWidth - 8); const maxH = Math.max(1, pdfViewerPageWrap.clientHeight - 8);
+          const scale = Math.min(maxW / base.width, maxH / base.height); const viewport = page.getViewport({ scale: Math.max(0.1, scale) }); const dpr = Math.max(1, window.devicePixelRatio || 1);
+          pdfPagePreviewCanvas.width = Math.ceil(viewport.width * dpr); pdfPagePreviewCanvas.height = Math.ceil(viewport.height * dpr); pdfPagePreviewCanvas.style.width = `${Math.ceil(viewport.width)}px`; pdfPagePreviewCanvas.style.height = `${Math.ceil(viewport.height)}px`;
+          const ctx = pdfPagePreviewCanvas.getContext('2d', { alpha: false }); if (!ctx) return false; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height); await page.render({ canvasContext: ctx, viewport }).promise;
+          return true;
+        } catch (_) { return false; }
+      };
+
+      const preparePreview = async (g, direction) => {
+        const target = getTarget(g.mode, direction); g.target = target;
+        if (!target?.song) return false;
+        if (g.mode === 'lyrics') { const ok = renderLyricsPreview(target.song); if (ok) lyricsPagePreview?.classList.add('active'); return ok; }
+        return await renderPdfPreview(target);
+      };
+
       const start = (target, e) => {
-        if (isBlocked() || !target || target === sidePanel) return;
-        gesture = { id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, axis: null, moved: false, mode: getMode(), wasPlaying: state.playing };
+        if (isBlocked() || !target) return;
+        gesture = { id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, axis: null, moved: false, mode: getMode(), wasPlaying: state.playing, previewReady: false };
         target.setPointerCapture?.(e.pointerId);
         if (gesture.wasPlaying) pauseScroll();
       };
 
-      const move = (target, e) => {
+      const move = async (target, e) => {
         if (!gesture || e.pointerId !== gesture.id) return;
         gesture.x = e.clientX; gesture.y = e.clientY;
-        const dx = gesture.x - gesture.startX;
-        const dy = gesture.y - gesture.startY;
+        const dx = gesture.x - gesture.startX; const dy = gesture.y - gesture.startY;
         if (!gesture.axis) {
           if (Math.hypot(dx, dy) < 10) return;
           if (Math.abs(dx) > Math.abs(dy) * AXIS_SLOP) gesture.axis = 'horizontal';
           else if (Math.abs(dy) > Math.abs(dx) * AXIS_SLOP) gesture.axis = 'vertical';
           else return;
-          if (gesture.axis === 'vertical') {
-            gesture.verticalFallback = true;
-            beginTextDrag(gesture.id, gesture.startY);
-            moveTextDrag(gesture.y);
-            return;
-          }
-          gesture.moved = true;
-          app.classList.add('page-swipe-active');
+          if (gesture.axis === 'vertical') { gesture.verticalFallback = true; beginTextDrag(gesture.id, gesture.startY); moveTextDrag(gesture.y); return; }
+          gesture.moved = true; app.classList.add('page-swipe-active');
+          const direction = dx < 0 ? 'next' : 'previous';
+          gesture.previewPromise = preparePreview(gesture, direction).then((ok) => {
+            if (gesture) gesture.previewReady = !!ok;
+            return ok;
+          });
         }
-        if (gesture.axis === 'vertical') {
-          moveTextDrag(gesture.y);
-          return;
-        }
+        if (gesture.axis === 'vertical') { moveTextDrag(gesture.y); return; }
         gesture.moved = true;
-        const clamped = Math.max(-window.innerWidth, Math.min(window.innerWidth, dx));
+        const width = Math.max(280, window.innerWidth || 390); const clamped = Math.max(-width, Math.min(width, dx));
         setX(clamped);
+        const direction = dx < 0 ? 'next' : 'previous';
+        const shouldReveal = Math.abs(dx) >= width * 0.5;
+        if (gPreviewReady(gesture) && shouldReveal) {
+          setPreviewX(direction === 'next' ? width + dx : -width + dx);
+          if (gesture.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
+        } else {
+          setPreviewX(direction === 'next' ? width : -width);
+        }
       };
+
+      function gPreviewReady(g) { return !!g.previewReady; }
 
       const settle = async (target, e, cancelled = false) => {
         if (!gesture || e?.pointerId !== gesture.id) return;
-        const g = gesture;
-        gesture = null;
-        if (g.axis === 'vertical') {
-          endTextDrag();
-          return;
-        }
-        if (g.axis !== 'horizontal') {
-          if (g.wasPlaying) startScroll();
-          clearX();
-          return;
-        }
-        const dx = g.x - g.startX;
-        const width = Math.max(280, window.innerWidth || 390);
+        const g = gesture; gesture = null;
+        if (g.axis === 'vertical') { endTextDrag(); return; }
+        if (g.axis !== 'horizontal') { if (g.wasPlaying) startScroll(); clearVisual(); return; }
+        const dx = g.x - g.startX; const width = Math.max(280, window.innerWidth || 390);
         const passed = !cancelled && Math.abs(dx) >= Math.max(SWIPE_MIN, width * SWIPE_RATIO);
         const direction = dx < 0 ? 'next' : 'previous';
         const travel = direction === 'next' ? -width : width;
-        if (!passed) {
-          app.classList.remove('page-swipe-active');
-          setX(0);
-          await new Promise(resolve => setTimeout(resolve, 285));
-          clearX();
-          if (g.wasPlaying) startScroll();
-          return;
-        }
+        if (!passed) { app.classList.remove('page-swipe-active'); setX(0); setPreviewX(direction === 'next' ? width : -width); await new Promise(resolve => setTimeout(resolve, 285)); clearVisual(); if (g.wasPlaying) startScroll(); return; }
         app.classList.remove('page-swipe-active');
-        setX(travel);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        clearX();
-        if (direction === 'next') await nextSong(); else await previousSong();
+        if (g.previewPromise) await g.previewPromise.catch(() => false);
+        setX(travel); setPreviewX(0); if (g.mode === 'lyrics') lyricsPagePreview?.classList.add('active'); else pdfPagePreview?.classList.add('active');
+        await new Promise(resolve => setTimeout(resolve, 300)); clearVisual();
+        if (g.mode === 'pdf' && state.pdfDoc && g.target?.type === 'pdf-page') { state.pdfPage = g.target.page; await renderPdfPage(state.pdfPage); }
+        else if (direction === 'next') await nextSong(); else await previousSong();
       };
 
-      const bind = (target) => {
-        if (!target) return;
-        target.addEventListener('pointerdown', (e) => start(target, e));
-        target.addEventListener('pointermove', (e) => move(target, e));
-        target.addEventListener('pointerup', (e) => settle(target, e));
-        target.addEventListener('pointercancel', (e) => settle(target, e, true));
-      };
-
-      bind(promptContent);
-      bind(pdfViewerScreen);
+      const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
+      bind(promptContent); bind(pdfViewerScreen);
     }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
