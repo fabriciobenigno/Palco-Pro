@@ -688,6 +688,14 @@
       display: block; background: #fff; max-width: 100%; max-height: 100%;
       box-shadow: 0 14px 40px rgba(0,0,0,0.30);
     }
+    .pdf-viewer-note {
+      position: absolute; top: calc(var(--safe-top) + 10px); left: 50%; transform: translateX(-50%); z-index: 31;
+      padding: 7px 13px; border-radius: 999px; background: var(--glass-bg-strong);
+      border: 1px solid var(--glass-border); color: var(--text); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.05em; backdrop-filter: blur(14px); pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
     .pdf-viewer-page-indicator {
       position: absolute; top: calc(var(--safe-top) + 10px); left: 50%; transform: translateX(-50%); z-index: 31;
       padding: 7px 11px; border-radius: 999px; background: var(--glass-bg-strong);
@@ -1981,7 +1989,7 @@
           </div>
 
           <div class="field">
-            <label for="noteInput">Nota da música <span class="panel-note" style="font-size:11px;">(pessoal)</span></label>
+            <label for="noteInput">Tom da música <span class="panel-note" style="font-size:11px;">(pessoal)</span></label>
             <input id="noteInput" type="text" placeholder="Ex.: G, Am, C, D7" maxlength="20" autocomplete="off" />
           </div>
 
@@ -3076,7 +3084,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         if (state.currentSongId !== song.id || state.pdfSongId !== song.id) return;
         const songNote = getSongNote(song.id);
         if (pdfViewerNote) {
-          pdfViewerNote.textContent = songNote ? `Nota: ${songNote}` : '';
+          pdfViewerNote.textContent = songNote ? `Tom: ${songNote}` : '';
           pdfViewerNote.classList.toggle('hidden', !songNote);
           pdfViewerNote.setAttribute('aria-hidden', songNote ? 'false' : 'true');
         }
@@ -3361,7 +3369,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (noteText) {
         const note = document.createElement('div');
         note.className = 'lyric-song-note';
-        note.textContent = `Nota: ${noteText}`;
+        note.textContent = `Tom: ${noteText}`;
         heading.appendChild(note);
       }
 
