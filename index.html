@@ -733,6 +733,9 @@
       z-index: 3;
       display: flex; align-items: center; justify-content: center;
       background: var(--screen-bg);
+      transform: translate3d(var(--page-preview-x, 100vw), 0, 0);
+      transition: none;
+      will-change: transform, opacity;
     }
     .page-swipe-preview.pdf canvas {
       display: block; background: #fff; max-width: 100%; max-height: 100%;
