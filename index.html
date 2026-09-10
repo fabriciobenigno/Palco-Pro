@@ -37,6 +37,7 @@
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --app-height: 100dvh;
+      --page-swipe-x: 0px;
       --text: #f7f9ff;
       --script-text: rgba(255,255,255,0.98);
       --script-shadow: 0 3px 18px rgba(0,0,0,0.62);
@@ -275,7 +276,7 @@
     .prompt-content.dragging-text { cursor: grabbing; }
 
     .script-inner {
-      position: absolute; left: 50%; top: 0; transform: translateX(-50%) translateY(var(--scroll-offset, 0px));
+      position: absolute; left: 50%; top: 0; transform: translateX(calc(-50% + var(--page-swipe-x, 0px))) translateY(var(--scroll-offset, 0px));
       width: min(var(--text-width), 1200px);
       padding: 8vh 18px 26vh;
       font-size: var(--font-size);
@@ -289,7 +290,7 @@
     }
 
     .script-inner.mirror {
-      transform: translateX(-50%) scaleX(-1) translateY(var(--scroll-offset, 0px));
+      transform: translateX(calc(-50% + var(--page-swipe-x, 0px))) scaleX(-1) translateY(var(--scroll-offset, 0px));
       transform-origin: center center;
     }
 
@@ -704,7 +705,22 @@
     .pdf-viewer-canvas {
       display: block; background: #fff; max-width: 100%; max-height: 100%;
       box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+      transform: translateX(var(--page-swipe-x, 0px));
+      transition: transform 0.28s cubic-bezier(.22,.8,.26,1);
+      will-change: transform;
     }
+    .page-swipe-active .script-inner,
+    .page-swipe-active .pdf-viewer-canvas {
+      transition: none !important;
+    }
+    .page-swipe-edge {
+      position: absolute; top: 0; bottom: 0; width: 18px; z-index: 32;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .page-swipe-edge.left { left: 0; box-shadow: inset 14px 0 22px rgba(0,0,0,0.20); }
+    .page-swipe-edge.right { right: 0; box-shadow: inset -14px 0 22px rgba(0,0,0,0.20); }
+    .page-swipe-active .page-swipe-edge { opacity: 1; }
     .pdf-viewer-note {
       position: absolute; top: calc(var(--safe-top) + 44px); left: 50%; transform: translateX(-50%); z-index: 31;
       padding: 5px 11px; border-radius: 999px; background: rgba(14,16,24,0.68);
@@ -1751,6 +1767,8 @@
     </div>
 
     <div class="pdf-viewer-screen" id="pdfViewerScreen" aria-hidden="true">
+      <div class="page-swipe-edge left"></div>
+      <div class="page-swipe-edge right"></div>
       <div class="pdf-viewer-note hidden" id="pdfViewerNote" aria-hidden="true"></div>
       <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
         <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
@@ -2992,6 +3010,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       reader.readAsDataURL(file);
     }
     function closePdfViewer() {
+      document.documentElement.style.setProperty('--page-swipe-x', '0px');
+      app?.classList.remove('page-swipe-active');
       state.pdfRenderToken += 1; state.pdfDoc = null; state.pdfPage = 1; state.pdfPageCount = 0; state.pdfSongId = '';
       pdfViewerScreen?.classList.remove('open'); pdfViewerScreen?.setAttribute('aria-hidden', 'true');
       pdfViewerPageIndicator?.classList.add('hidden');
@@ -3401,110 +3421,100 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       state.wasPlayingBeforeDrag = false;
     }
     function bindTextDrag() {
-      let gestureStartX = 0;
-      let gestureStartY = 0;
-      let gestureTracking = false;
-      let gestureHorizontal = false;
-      let gestureHandled = false;
-      const gestureThreshold = 54;
-      const gestureIntentThreshold = 12;
-      const gestureVerticalLock = 1.18;
+      const SWIPE_MIN = 76;
+      const SWIPE_RATIO = 0.24;
+      const AXIS_SLOP = 1.15;
+      let gesture = null;
 
-      const canHandleSideGesture = () => !sidePanel.classList.contains('open') && !libraryPanel.classList.contains('open') && !songEditorPanel.classList.contains('open') && !suggestionsPanel.classList.contains('open') && !state.textDragging;
+      const isBlocked = () => sidePanel.classList.contains('open') || libraryPanel.classList.contains('open') || songEditorPanel.classList.contains('open') || suggestionsPanel.classList.contains('open') || suggestionsPanel?.classList.contains('open');
 
-      const handleHorizontalGesture = async (deltaX) => {
-        if (Math.abs(deltaX) < gestureThreshold || !gestureHorizontal || gestureHandled) return;
-        gestureHandled = true;
-        if (deltaX < 0) await goToNextContentByGesture();
-        else await goToPreviousContentByGesture();
+      const getMode = () => (pdfViewerScreen?.classList.contains('open') && state.pdfDoc && state.pdfSongId === state.currentSongId) ? 'pdf' : 'lyrics';
+      const setX = (x) => document.documentElement.style.setProperty('--page-swipe-x', `${x}px`);
+      const clearX = () => {
+        document.documentElement.style.setProperty('--page-swipe-x', '0px');
+        app.classList.remove('page-swipe-active');
+        if (pdfViewerCanvas) pdfViewerCanvas.style.transition = '';
+        scriptInner.style.transition = '';
       };
 
-      promptContent.addEventListener('pointerdown', (e) => {
-        if (!canHandleSideGesture()) return;
-        gestureStartX = e.clientX;
-        gestureStartY = e.clientY;
-        gestureTracking = true;
-        gestureHorizontal = false;
-        gestureHandled = false;
-        promptContent.setPointerCapture?.(e.pointerId);
+      const start = (target, e) => {
+        if (isBlocked() || !target || target === sidePanel) return;
+        gesture = { id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, axis: null, moved: false, mode: getMode(), wasPlaying: state.playing };
+        target.setPointerCapture?.(e.pointerId);
+        if (gesture.wasPlaying) pauseScroll();
+      };
 
-        if (!state.playing) {
-          beginTextDrag(e.pointerId, e.clientY);
-        }
-      });
-
-      promptContent.addEventListener('pointermove', async (e) => {
-        if (!gestureTracking) return;
-        const deltaX = e.clientX - gestureStartX;
-        const deltaY = e.clientY - gestureStartY;
-
-        if (!gestureHorizontal && (Math.abs(deltaX) > gestureIntentThreshold || Math.abs(deltaY) > gestureIntentThreshold)) {
-          gestureHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * gestureVerticalLock;
-          if (gestureHorizontal) {
-            if (state.textDragging) endTextDrag();
-            e.preventDefault();
+      const move = (target, e) => {
+        if (!gesture || e.pointerId !== gesture.id) return;
+        gesture.x = e.clientX; gesture.y = e.clientY;
+        const dx = gesture.x - gesture.startX;
+        const dy = gesture.y - gesture.startY;
+        if (!gesture.axis) {
+          if (Math.hypot(dx, dy) < 10) return;
+          if (Math.abs(dx) > Math.abs(dy) * AXIS_SLOP) gesture.axis = 'horizontal';
+          else if (Math.abs(dy) > Math.abs(dx) * AXIS_SLOP) gesture.axis = 'vertical';
+          else return;
+          if (gesture.axis === 'vertical') {
+            gesture.verticalFallback = true;
+            beginTextDrag(gesture.id, gesture.startY);
+            moveTextDrag(gesture.y);
+            return;
           }
+          gesture.moved = true;
+          app.classList.add('page-swipe-active');
         }
-
-        if (gestureHorizontal) {
-          await handleHorizontalGesture(deltaX);
+        if (gesture.axis === 'vertical') {
+          moveTextDrag(gesture.y);
           return;
         }
-
-        if (state.textDragging && e.pointerId === state.textDragPointerId) {
-          moveTextDrag(e.clientY);
-        }
-      }, { passive: false });
-
-      const finishGesture = () => {
-        gestureTracking = false;
-        gestureHorizontal = false;
-        gestureHandled = false;
-        endTextDrag();
+        gesture.moved = true;
+        const clamped = Math.max(-window.innerWidth, Math.min(window.innerWidth, dx));
+        setX(clamped);
       };
 
-      promptContent.addEventListener('pointerup', finishGesture);
-      promptContent.addEventListener('pointercancel', finishGesture);
-    }
-
-    async function goToNextContentByGesture() {
-      if (state.pdfDoc && state.pdfSongId === state.currentSongId) {
-        if (state.pdfPage < state.pdfPageCount) {
-          state.pdfPage += 1;
-          await renderPdfPage(state.pdfPage);
-        } else {
-          await nextSong();
+      const settle = async (target, e, cancelled = false) => {
+        if (!gesture || e?.pointerId !== gesture.id) return;
+        const g = gesture;
+        gesture = null;
+        if (g.axis === 'vertical') {
+          endTextDrag();
+          return;
         }
-        return;
-      }
-
-      const lines = getLineElements();
-      if (lines.length && state.currentLine < lines.length - 1) {
-        setActiveLine(state.currentLine + 1);
-        placeActiveLineAtStart();
-        return;
-      }
-      await nextSong();
-    }
-
-    async function goToPreviousContentByGesture() {
-      if (state.pdfDoc && state.pdfSongId === state.currentSongId) {
-        if (state.pdfPage > 1) {
-          state.pdfPage -= 1;
-          await renderPdfPage(state.pdfPage);
-        } else {
-          await previousSong();
+        if (g.axis !== 'horizontal') {
+          if (g.wasPlaying) startScroll();
+          clearX();
+          return;
         }
-        return;
-      }
+        const dx = g.x - g.startX;
+        const width = Math.max(280, window.innerWidth || 390);
+        const passed = !cancelled && Math.abs(dx) >= Math.max(SWIPE_MIN, width * SWIPE_RATIO);
+        const direction = dx < 0 ? 'next' : 'previous';
+        const travel = direction === 'next' ? -width : width;
+        if (!passed) {
+          app.classList.remove('page-swipe-active');
+          setX(0);
+          await new Promise(resolve => setTimeout(resolve, 285));
+          clearX();
+          if (g.wasPlaying) startScroll();
+          return;
+        }
+        app.classList.remove('page-swipe-active');
+        setX(travel);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        clearX();
+        if (direction === 'next') await nextSong(); else await previousSong();
+      };
 
-      const lines = getLineElements();
-      if (lines.length && state.currentLine > 0) {
-        setActiveLine(state.currentLine - 1);
-        placeActiveLineAtTop();
-        return;
-      }
-      await previousSong();
+      const bind = (target) => {
+        if (!target) return;
+        target.addEventListener('pointerdown', (e) => start(target, e));
+        target.addEventListener('pointermove', (e) => move(target, e));
+        target.addEventListener('pointerup', (e) => settle(target, e));
+        target.addEventListener('pointercancel', (e) => settle(target, e, true));
+      };
+
+      bind(promptContent);
+      bind(pdfViewerScreen);
     }
     function updateTranscript(text) { transcriptPill.textContent = text; }
     function makeNgrams(words, minSize = 2, maxSize = 5) { const grams = []; const cappedMax = Math.max(minSize, Math.min(maxSize, words.length)); for (let size = minSize; size <= cappedMax; size++) { for (let i = 0; i <= words.length - size; i++) grams.push(words.slice(i, i + size)); } return grams; }
