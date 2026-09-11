@@ -3701,53 +3701,28 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           return;
         }
 
-        // PDF: dissolução suave entre a página atual e a de destino.
+        // PDF: gesto simples, sem efeito visual adicional.
+        // Ao ultrapassar o limite do gesto, apenas troca para a página ou música de destino.
         if (!passed) {
           clearVisual();
           if (g.wasPlaying) startScroll();
           return;
         }
 
-        if (g.previewPromise) await g.previewPromise.catch(() => false);
-        if (!g.previewReady) {
-          clearVisual();
-          if (g.wasPlaying) startScroll();
+        clearVisual();
+
+        if (g.target?.type === 'pdf-page' && state.pdfDoc) {
+          state.pdfPage = g.target.page;
+          await renderPdfPage(state.pdfPage);
           return;
         }
 
-        pdfFadeBusy = true;
-        try {
-          app.classList.remove('page-swipe-active');
-          setX(0);
-          setPreviewX(0);
-          pdfPagePreview?.classList.add('active');
-          app.classList.add('pdf-fade-transition');
-          await new Promise(resolve => setTimeout(resolve, 210));
-
-          if (g.target?.type === 'pdf-page' && state.pdfDoc) {
-            state.pdfPage = g.target.page;
-            await renderPdfPage(state.pdfPage);
-            clearVisual();
-            app.classList.remove('pdf-fade-transition');
-            return;
-          }
-
-          if (g.target?.type === 'song' && g.target.song) {
-            const committed = await commitPdfSongForGesture(g.target.song);
-            if (committed) {
-              clearVisual();
-              app.classList.remove('pdf-fade-transition');
-              return;
-            }
-          }
-
-          clearVisual();
-          app.classList.remove('pdf-fade-transition');
-          if (direction === 'next') await nextSong(); else await previousSong();
-        } finally {
-          app.classList.remove('pdf-fade-transition');
-          pdfFadeBusy = false;
+        if (g.target?.type === 'song' && g.target.song) {
+          const committed = await commitPdfSongForGesture(g.target.song);
+          if (committed) return;
         }
+
+        if (direction === 'next') await nextSong(); else await previousSong();
       };
 
       const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
