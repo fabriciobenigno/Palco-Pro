@@ -784,83 +784,6 @@
       border: 1px solid var(--glass-border); color: var(--soft-text); font-size: 11px; font-weight: 700;
       backdrop-filter: blur(14px); pointer-events: none;
     }
-    .pdf-watermark-layer {
-      position: absolute;
-      z-index: 6;
-      pointer-events: none;
-      overflow: visible;
-      display: block;
-    }
-    .pdf-watermark-cover {
-      position: absolute;
-      left: calc(var(--wm-x) - var(--wm-cover-pad-x));
-      top: calc(var(--wm-y) - var(--wm-cover-pad-y));
-      width: calc(var(--wm-w) + (var(--wm-cover-pad-x) * 2));
-      height: calc(var(--wm-h) + (var(--wm-cover-pad-y) * 2));
-      border-radius: 2px;
-      background: var(--wm-cover-color, #fff);
-    }
-    .pdf-watermark-logo {
-      position: absolute;
-      left: var(--wm-x);
-      top: var(--wm-logo-y, var(--wm-y));
-      width: var(--wm-w);
-      height: auto;
-      display: block;
-      transform: var(--wm-logo-transform, none);
-      transform-origin: center center;
-      opacity: var(--wm-opacity, 0.96);
-      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.10));
-      user-select: none;
-      -webkit-user-select: none;
-      max-width: none;
-      max-height: none;
-    }
-    .pdf-watermark-editor {
-      position: fixed;
-      inset: 0;
-      z-index: 10040;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 18px);
-      background: rgba(2,6,12,0.70);
-      backdrop-filter: blur(16px);
-    }
-    .pdf-watermark-editor.open { display: flex; }
-    .pdf-watermark-editor-card {
-      width: min(100%, 430px);
-      max-height: min(90vh, 760px);
-      overflow: auto;
-      display: grid;
-      gap: 14px;
-      padding: 20px;
-      border-radius: 26px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      box-shadow: 0 28px 80px rgba(0,0,0,0.44);
-    }
-    .pdf-watermark-editor-title { margin: 0; font-size: 18px; font-weight: 800; color: #fff; }
-    .pdf-watermark-editor-note { margin: 0; font-size: 12px; line-height: 1.55; color: var(--soft-text); }
-    .pdf-watermark-live-preview {
-      position: relative;
-      width: 100%;
-      max-height: 250px;
-      min-height: 160px;
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid var(--card-border);
-      background: #111;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .pdf-watermark-live-preview-canvas { display:block; width:100%; height:auto; max-height:250px; object-fit:contain; }
-    .pdf-watermark-live-preview-logo { position:absolute; display:block; pointer-events:none; transform:var(--wm-preview-logo-transform, none); transform-origin:center center; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
-    .pdf-watermark-live-preview-cover { position:absolute; background:#fff; pointer-events:none; }
-    .pdf-watermark-range-row { display:grid; gap:7px; }
-    .pdf-watermark-editor-actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .pdf-watermark-editor-actions .ghost-btn { flex:1; min-width:120px; }
     .first-access-name-gate {
       position: fixed; inset: 0; z-index: 10050; display: none; align-items: center; justify-content: center;
       padding: calc(var(--safe-top) + 22px) 20px calc(var(--safe-bottom) + 22px);
@@ -1900,55 +1823,11 @@
       <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
         <div class="page-swipe-preview pdf" id="pdfPagePreview"><canvas id="pdfPagePreviewCanvas" aria-label="Prévia da próxima página"></canvas></div>
         <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
-      <div class="pdf-watermark-layer hidden" id="pdfWatermarkLayer" aria-hidden="true">
-        <div class="pdf-watermark-cover" id="pdfWatermarkCover"></div>
-        <img class="pdf-watermark-logo" id="pdfWatermarkLogo" alt="Palco Pro" />
-      </div>
       </div>
       <div class="pdf-viewer-page-indicator hidden" id="pdfViewerPageIndicator"></div>
     </div>
 
-        <div class="pdf-watermark-editor" id="pdfWatermarkEditor" aria-hidden="true">
-      <div class="pdf-watermark-editor-card">
-        <h3 class="pdf-watermark-editor-title">Marca d’água do PDF</h3>
-        <p class="pdf-watermark-editor-note" id="pdfWatermarkEditorNote">O modo automático procura a marca “letras★” na página e ajusta sua logo proporcionalmente.</p>
-        <div class="pdf-watermark-live-preview" id="pdfWatermarkLivePreview">
-          <canvas class="pdf-watermark-live-preview-canvas" id="pdfWatermarkPreviewCanvas" aria-label="Prévia do PDF com a marca do Palco Pro"></canvas>
-          <div class="pdf-watermark-live-preview-cover" id="pdfWatermarkPreviewCover"></div>
-          <img class="pdf-watermark-live-preview-logo" id="pdfWatermarkPreviewLogo" alt="Palco Pro" />
-        </div>
-        <div class="pdf-watermark-range-row field">
-          <label for="pdfWatermarkX">Posição horizontal</label>
-          <input id="pdfWatermarkX" type="range" min="0" max="100" step="0.1" value="79" />
-          <div class="value-row"><span>Esquerda</span><strong id="pdfWatermarkXValue">79.0%</strong><span>Direita</span></div>
-        </div>
-        <div class="pdf-watermark-range-row field">
-          <label for="pdfWatermarkY">Posição vertical</label>
-          <input id="pdfWatermarkY" type="range" min="0" max="100" step="0.1" value="3.8" />
-          <div class="value-row"><span>Topo</span><strong id="pdfWatermarkYValue">3.8%</strong><span>Baixo</span></div>
-        </div>
-        <div class="pdf-watermark-range-row field">
-          <label for="pdfWatermarkSize">Tamanho da logo</label>
-          <input id="pdfWatermarkSize" type="range" min="5" max="30" step="0.1" value="13.5" />
-          <div class="value-row"><span>Menor</span><strong id="pdfWatermarkSizeValue">13.5%</strong><span>Maior</span></div>
-        </div>
-        <div class="field">
-          <label for="pdfWatermarkPages">Aplicação manual</label>
-          <select id="pdfWatermarkPages">
-            <option value="auto">Automático — detectar em cada página</option>
-            <option value="first">Somente a primeira página</option>
-            <option value="all">Todas as páginas</option>
-          </select>
-        </div>
-        <div class="pdf-watermark-editor-actions">
-          <button class="ghost-btn" id="pdfWatermarkDefaultBtn" type="button">Voltar ao automático</button>
-          <button class="ghost-btn" id="pdfWatermarkCancelBtn" type="button">Cancelar</button>
-          <button class="ghost-btn" id="pdfWatermarkSaveBtn" type="button">Salvar nesta música</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="library-screen" id="libraryPanel">
+        <div class="library-screen" id="libraryPanel">
       <div class="library-shell">
         <div class="library-header">
           <div class="library-title-wrap">
@@ -2082,15 +1961,6 @@
               <button class="theme-btn" type="button" data-theme="ambar-suave">Âmbar suave</button>
             </div>
             <div class="panel-note">Os temas mudam as cores do app, mas mantêm contraste e leitura confortáveis no palco.</div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Marca d’água do PDF</label>
-          <div class="panel-note">O Palco Pro tenta localizar automaticamente a marca “letras★”. Ajustes manuais ficam salvos somente para a música atual.</div>
-          <div class="small-row">
-            <button class="ghost-btn" id="pdfWatermarkAdjustBtn" type="button">Ajustar neste PDF</button>
-            <button class="ghost-btn" id="pdfWatermarkResetSongBtn" type="button">Usar automático nesta música</button>
           </div>
         </div>
 
@@ -2266,10 +2136,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
-    const PALCO_PRO_WATERMARK_URL = './marca-dagua-palco-pro.png';
-    const PALCO_PRO_WATERMARK_FALLBACK = 'data:image/png;base64,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';
-    const PDF_WATERMARK_DEFAULT = Object.freeze({ enabled: true, mode: 'auto', x: 79.0, y: 3.8, width: 13.5, opacity: 0.96, pages: 'auto' });
-    const PDF_WATERMARK_DETECT_CACHE_LIMIT = 80;
     const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
 
     // === INTEGRAÇÃO COM GOOGLE APPS SCRIPT ===
@@ -2291,9 +2157,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       toastTimer: null, pdfOfflineFeedbackTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
-      editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
+      editingPdfData: '', pdfProcessing: false, editingPdfFileName: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
       lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '',
-      librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(), pdfWatermarkDetectionCache: new Map(), pdfWatermarkEditing: null
+      librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set()
     };
 
     const app = $('app');
@@ -2307,6 +2173,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const artistInput = $('artistInput');
     const styleInput = $('styleInput');
     const noteInput = $('noteInput');
+    const WATERMARK_LOGO_URL = './marca-dagua-palco-pro.png';
+    const PDF_LIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
     const attachSongPdfBtn = $('attachSongPdfBtn');
     const songPdfInput = $('songPdfInput');
     const removeSongPdfBtn = $('removeSongPdfBtn');
@@ -2316,27 +2184,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const pdfViewerPageWrap = $('pdfViewerPageWrap');
     const pdfViewerPageIndicator = $('pdfViewerPageIndicator');
     const pdfViewerNote = $('pdfViewerNote');
-    const pdfWatermarkLayer = $('pdfWatermarkLayer');
-    const pdfWatermarkCover = $('pdfWatermarkCover');
-    const pdfWatermarkLogo = $('pdfWatermarkLogo');
-    const pdfWatermarkEditor = $('pdfWatermarkEditor');
-    const pdfWatermarkEditorNote = $('pdfWatermarkEditorNote');
-    const pdfWatermarkLivePreview = $('pdfWatermarkLivePreview');
-    const pdfWatermarkPreviewCanvas = $('pdfWatermarkPreviewCanvas');
-    const pdfWatermarkPreviewCover = $('pdfWatermarkPreviewCover');
-    const pdfWatermarkPreviewLogo = $('pdfWatermarkPreviewLogo');
-    const pdfWatermarkX = $('pdfWatermarkX');
-    const pdfWatermarkY = $('pdfWatermarkY');
-    const pdfWatermarkSize = $('pdfWatermarkSize');
-    const pdfWatermarkPages = $('pdfWatermarkPages');
-    const pdfWatermarkXValue = $('pdfWatermarkXValue');
-    const pdfWatermarkYValue = $('pdfWatermarkYValue');
-    const pdfWatermarkSizeValue = $('pdfWatermarkSizeValue');
-    const pdfWatermarkAdjustBtn = $('pdfWatermarkAdjustBtn');
-    const pdfWatermarkResetSongBtn = $('pdfWatermarkResetSongBtn');
-    const pdfWatermarkDefaultBtn = $('pdfWatermarkDefaultBtn');
-    const pdfWatermarkCancelBtn = $('pdfWatermarkCancelBtn');
-    const pdfWatermarkSaveBtn = $('pdfWatermarkSaveBtn');
     const firstAccessNameGate = $('firstAccessNameGate');
     const firstAccessNameInput = $('firstAccessNameInput');
     const saveFirstAccessNameBtn = $('saveFirstAccessNameBtn');
@@ -3206,428 +3053,133 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (songPdfStatus) songPdfStatus.textContent = hasPdf ? 'PDF anexado. Ele terá prioridade sobre a letra durante a leitura.' : 'Sem PDF anexado. A letra cadastrada será usada na leitura.';
       if (songPdfInput) songPdfInput.value = '';
     }
-    function setEditingSongPdf(dataUrl = '') { state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : ''; updateSongPdfEditorUi(); persistCurrentDraft(); }
-    function handleSongPdfFile(file) {
-      if (!file) return;
-      if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')) { showToast('Selecione um arquivo PDF.', 1500); return; }
-      const reader = new FileReader();
-      reader.onload = () => { setEditingSongPdf(String(reader.result || '')); showToast('PDF anexado', 1200); };
-      reader.onerror = () => showToast('Não foi possível ler o PDF.', 1600);
-      reader.readAsDataURL(file);
+    function setEditingSongPdf(dataUrl = '') {
+      state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : '';
+      updateSongPdfEditorUi();
+      persistCurrentDraft();
     }
-    function getPdfWatermarkStore() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-        return saved && saved.pdfWatermarkBySong && typeof saved.pdfWatermarkBySong === 'object' ? saved.pdfWatermarkBySong : {};
-      } catch (_) { return {}; }
+
+    function loadExternalScriptOnce(src, globalName) {
+      return new Promise((resolve, reject) => {
+        if (globalName && window[globalName]) { resolve(window[globalName]); return; }
+        const selector = `script[data-palco-external="${src}"]`;
+        const existing = document.querySelector(selector);
+        if (existing) {
+          existing.addEventListener('load', () => resolve(globalName ? window[globalName] : true), { once: true });
+          existing.addEventListener('error', () => reject(new Error('Não foi possível carregar a biblioteca necessária.')), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src; script.async = true; script.dataset.palcoExternal = src;
+        script.onload = () => globalName && !window[globalName] ? reject(new Error('Biblioteca não ficou disponível.')) : resolve(globalName ? window[globalName] : true);
+        script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca necessária.'));
+        document.head.appendChild(script);
+      });
     }
-    function getPdfWatermarkConfig(songId) {
-      const id = String(songId || '');
-      if (!id) return { ...PDF_WATERMARK_DEFAULT };
-      const store = getPdfWatermarkStore();
-      return { ...PDF_WATERMARK_DEFAULT, ...(store[id] && typeof store[id] === 'object' ? store[id] : {}) };
+
+    function uint8ArrayToPdfDataUrl(bytes) {
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunkSize, bytes.length)));
+      return `data:application/pdf;base64,${btoa(binary)}`;
     }
-    function savePdfWatermarkConfig(songId, config) {
-      const id = String(songId || ''); if (!id) return;
-      let settings = {};
-      try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
-      settings.pdfWatermarkBySong = settings.pdfWatermarkBySong && typeof settings.pdfWatermarkBySong === 'object' ? settings.pdfWatermarkBySong : {};
-      settings.pdfWatermarkBySong[id] = { ...PDF_WATERMARK_DEFAULT, ...config };
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
+    async function loadWatermarkLogoBytes() {
+      const response = await fetch(WATERMARK_LOGO_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error('A logo do Palco Pro não pôde ser carregada.');
+      return new Uint8Array(await response.arrayBuffer());
     }
-    function resetPdfWatermarkConfig(songId) {
-      const id = String(songId || ''); if (!id) return;
-      let settings = {};
-      try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
-      if (settings.pdfWatermarkBySong && typeof settings.pdfWatermarkBySong === 'object') delete settings.pdfWatermarkBySong[id];
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-      if (id) state.pdfWatermarkDetectionCache.forEach((_, key) => { if (String(key).startsWith(`${id}:`)) state.pdfWatermarkDetectionCache.delete(key); });
-      applyPdfWatermark();
+
+    function isWatermarkYellowPixel(r, g, b) {
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const saturation = max ? (max - min) / max : 0;
+      return r > 120 && g > 120 && b < 165 && saturation > 0.24 && g > b * 1.28;
     }
-    function getPdfWatermarkDetectionCacheKey(songId, pageNumber) {
-      return `${String(songId || '')}:${Number(pageNumber) || 1}`;
-    }
-    function getPdfImagePixelBounds(data, width, height, matcher) {
-      let minX = width, minY = height, maxX = -1, maxY = -1, count = 0;
-      for (let y = 0; y < height; y++) {
-        const row = y * width * 4;
-        for (let x = 0; x < width; x++) {
-          const i = row + x * 4;
-          if (!matcher(data[i], data[i + 1], data[i + 2], data[i + 3])) continue;
-          if (x < minX) minX = x;
-          if (y < minY) minY = y;
-          if (x > maxX) maxX = x;
-          if (y > maxY) maxY = y;
+
+    function detectWatermarkBoxFromCanvas(canvas) {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return null;
+      const w = canvas.width, h = canvas.height;
+      const xStart = Math.floor(w * 0.68), yEnd = Math.floor(h * 0.25), rw = w - xStart;
+      const data = ctx.getImageData(xStart, 0, rw, yEnd).data;
+      const step = w > 1400 ? 2 : 1;
+      let minX = w, maxX = -1, minY = h, maxY = -1, count = 0;
+      for (let y = 4; y < yEnd; y += step) {
+        for (let x = xStart; x < w; x += step) {
+          const i = ((y * rw) + (x - xStart)) * 4;
+          if (!isWatermarkYellowPixel(data[i], data[i+1], data[i+2])) continue;
           count++;
+          if (x < minX) minX=x; if (x > maxX) maxX=x; if (y < minY) minY=y; if (y > maxY) maxY=y;
         }
       }
-      return count ? { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1, count } : null;
+      if (count < 15 || maxX < minX) return null;
+      const yellowW=maxX-minX+1, yellowH=maxY-minY+1;
+      if (yellowW < w*0.035 || yellowW > w*0.35 || yellowH < 4 || yellowH > h*0.10) return null;
+      const topPad=Math.max(10,yellowH*0.72), sidePad=Math.max(2,yellowW*0.015), bottomPad=Math.max(2,yellowH*0.06);
+      const x=Math.max(0,Math.floor(minX-sidePad)), y=Math.max(0,Math.floor(minY-topPad));
+      const right=Math.min(w,Math.ceil(maxX+sidePad+1)), bottom=Math.min(h,Math.ceil(maxY+bottomPad+1));
+      return {x,y,width:Math.max(1,right-x),height:Math.max(1,bottom-y)};
     }
-    function detectPdfWatermarkBounds(canvas) {
-      if (!canvas || !canvas.width || !canvas.height) return null;
-      let imageData;
+
+    function sampleBackgroundColor(canvas, box) {
+      const ctx=canvas.getContext('2d',{willReadFrequently:true}); if(!ctx) return {r:1,g:1,b:1};
+      const pts=[[box.x-5,box.y+box.height*.25],[box.x+box.width+5,box.y+box.height*.25],[box.x-5,box.y+box.height*.75],[box.x+box.width+5,box.y+box.height*.75],[box.x+box.width*.5,box.y-5],[box.x+box.width*.5,box.y+box.height+5]];
+      let R=0,G=0,B=0;
+      pts.forEach(([xx,yy])=>{const x=Math.max(0,Math.min(canvas.width-1,Math.round(xx))), y=Math.max(0,Math.min(canvas.height-1,Math.round(yy))); const p=ctx.getImageData(x,y,1,1).data; R+=p[0];G+=p[1];B+=p[2];});
+      return {r:R/pts.length/255,g:G/pts.length/255,b:B/pts.length/255};
+    }
+
+    async function processAttachedPdfWithWatermark(file) {
+      if (!window.pdfjsLib) throw new Error('O leitor de PDF ainda não está disponível.');
+      const pdfLib = await loadExternalScriptOnce(PDF_LIB_URL, 'PDFLib');
+      const originalBytes = new Uint8Array(await file.arrayBuffer());
+      const detectDoc = await pdfjsLib.getDocument({ data: originalBytes.slice() }).promise;
+      const outDoc = await pdfLib.PDFDocument.load(originalBytes);
+      const logo = await outDoc.embedPng(await loadWatermarkLogoBytes());
+      let detectedCount = 0;
+      for (let idx=0; idx<detectDoc.numPages; idx++) {
+        const pdfJsPage=await detectDoc.getPage(idx+1), base=pdfJsPage.getViewport({scale:1});
+        const scale=Math.max(.8,Math.min(1.5,1200/Math.max(1,base.width))), viewport=pdfJsPage.getViewport({scale});
+        const canvas=document.createElement('canvas'); canvas.width=Math.ceil(viewport.width); canvas.height=Math.ceil(viewport.height);
+        const ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:true}); if(!ctx) continue;
+        ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        await pdfJsPage.render({canvasContext:ctx,viewport}).promise;
+        const box=detectWatermarkBoxFromCanvas(canvas); if(!box) continue;
+        const page=outDoc.getPage(idx), pw=page.getWidth(), ph=page.getHeight();
+        const x=box.x/scale, y=ph-(box.y+box.height)/scale, w=box.width/scale, h=box.height/scale, bg=sampleBackgroundColor(canvas,box);
+        page.drawRectangle({x,y,width:w,height:h,color:pdfLib.rgb(bg.r,bg.g,bg.b)});
+        const aspect=logo.width/logo.height, maxW=w*.96, maxH=h*.8;
+        let dw=maxW, dh=dw/aspect; if(dh>maxH){dh=maxH;dw=dh*aspect;}
+        page.drawImage(logo,{x:x+(w-dw)/2,y:y+(h-dh)/2,width:dw,height:dh}); detectedCount++;
+      }
+      try{detectDoc.destroy();}catch(_){ }
+      const output=await outDoc.save({useObjectStreams:true});
+      return {dataUrl:uint8ArrayToPdfDataUrl(output),detectedCount,pageCount:outDoc.getPageCount()};
+    }
+
+    async function handleSongPdfFile(file) {
+      if (!file) return;
+      if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || '')) { showToast('Selecione um arquivo PDF.',1500); return; }
+      if (state.pdfProcessing) return;
+      state.pdfProcessing=true; state.editingPdfFileName=file.name || 'palco-pro.pdf';
+      if (songPdfStatus) songPdfStatus.textContent='Preparando o PDF com a marca Palco Pro…';
+      if (attachSongPdfBtn) attachSongPdfBtn.disabled=true;
       try {
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return null;
-        // A marca conhecida fica no cabeçalho direito. Trabalhamos em uma área
-        // proporcional para que o resultado continue correto em qualquer PDF.
-        const searchX = Math.max(0, Math.floor(canvas.width * 0.55));
-        const searchY = 0;
-        const searchW = Math.max(1, canvas.width - searchX);
-        const searchH = Math.max(1, Math.floor(canvas.height * 0.18));
-        imageData = ctx.getImageData(searchX, searchY, searchW, searchH);
-      } catch (_) { return null; }
-
-      // 1) Marcador cromático principal: o amarelo da marca "letras★".
-      const yellow = getPdfImagePixelBounds(imageData.data, imageData.width, imageData.height, (r,g,b,a) => {
-        if (a < 150) return false;
-        const max = Math.max(r,g,b), min = Math.min(r,g,b);
-        const sat = max ? (max - min) / max : 0;
-        const yellowish = r > 105 && g > 135 && b < 180 && (g - b) > 28 && (r - b) > 10 && sat > 0.22;
-        return yellowish;
-      });
-
-      if (yellow && yellow.count >= 18 && yellow.width >= 12 && yellow.height >= 4) {
-        const aspect = yellow.width / Math.max(1, yellow.height);
-        if (aspect >= 1.55 && aspect <= 10.5) {
-          // A imagem original contém apenas o "letras★" nessa área. A caixa
-          // da substituição recebe margem acima/ao redor para cobrir a marca inteira.
-          const expandTop = Math.max(10, Math.round(yellow.height * 1.35));
-          const expandX = Math.max(6, Math.round(yellow.width * 0.06));
-          const x = Math.max(0, searchX + yellow.x - expandX);
-          const y = Math.max(0, yellow.y - expandTop);
-          const right = Math.min(canvas.width, searchX + yellow.x + yellow.width + expandX);
-          const bottom = Math.min(canvas.height, yellow.y + yellow.height + Math.max(6, Math.round(yellow.height * 0.20)));
-          const bounds = { x, y, width: Math.max(1, right - x), height: Math.max(1, bottom - y) };
-          return {
-            x: (bounds.x / canvas.width) * 100,
-            y: (bounds.y / canvas.height) * 100,
-            width: (bounds.width / canvas.width) * 100,
-            height: (bounds.height / canvas.height) * 100,
-            confidence: Math.min(1, yellow.count / 600)
-          };
-        }
-      }
-
-      // 2) Fallback visual: procura uma mancha compacta de tinta/cor na mesma
-      // região. Isso evita depender de uma única tonalidade específica.
-      const ink = getPdfImagePixelBounds(imageData.data, imageData.width, imageData.height, (r,g,b,a) => {
-        if (a < 150) return false;
-        const luminance = 0.2126*r + 0.7152*g + 0.0722*b;
-        const chroma = Math.max(r,g,b) - Math.min(r,g,b);
-        return (chroma > 22 && luminance < 235) || luminance < 165;
-      });
-      if (!ink || ink.count < 35 || ink.width < 18 || ink.height < 5) return null;
-      const aspect = ink.width / Math.max(1, ink.height);
-      if (aspect < 1.5 || aspect > 12) return null;
-      const inkArea = ink.width * ink.height;
-      const canvasArea = imageData.width * imageData.height;
-      if (inkArea / Math.max(1, canvasArea) > 0.25) return null;
-      const expandTop = Math.max(8, Math.round(ink.height * 0.85));
-      const expandX = Math.max(6, Math.round(ink.width * 0.04));
-      const x = Math.max(0, searchX + ink.x - expandX);
-      const y = Math.max(0, ink.y - expandTop);
-      const right = Math.min(canvas.width, searchX + ink.x + ink.width + expandX);
-      const bottom = Math.min(canvas.height, ink.y + ink.height + Math.max(4, Math.round(ink.height * 0.12)));
-      const bounds = { x, y, width: Math.max(1, right - x), height: Math.max(1, bottom - y) };
-      return {
-        x: (bounds.x / canvas.width) * 100,
-        y: (bounds.y / canvas.height) * 100,
-        width: (bounds.width / canvas.width) * 100,
-        height: (bounds.height / canvas.height) * 100,
-        confidence: 0.42
-      };
+        const result=await processAttachedPdfWithWatermark(file);
+        setEditingSongPdf(result.dataUrl); state.editingPdfFileName=file.name || 'palco-pro.pdf';
+        if(songPdfStatus) songPdfStatus.textContent=result.detectedCount?`PDF pronto. Marca Palco Pro aplicada em ${result.detectedCount} página(s).`:'PDF pronto. Nenhuma marca original foi identificada nas páginas.';
+        showToast(result.detectedCount?'PDF preparado com a marca Palco Pro':'PDF preparado',1600);
+      } catch(error) {
+        console.error('Falha ao preparar o PDF:',error); state.editingPdfFileName='';
+        if(songPdfStatus) songPdfStatus.textContent='Não foi possível preparar o PDF. Nenhum arquivo foi substituído.';
+        showToast(error?.message || 'Não foi possível preparar o PDF.',2200);
+      } finally { state.pdfProcessing=false; if(attachSongPdfBtn) attachSongPdfBtn.disabled=false; if(songPdfInput) songPdfInput.value=''; }
     }
-    function samplePdfBackgroundColor(canvas, bounds) {
-      if (!canvas || !bounds) return '#fff';
-      try {
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) return '#fff';
-        const x = Math.max(0, Math.round(bounds.x));
-        const y = Math.max(0, Math.round(bounds.y));
-        const w = Math.max(1, Math.min(canvas.width - x, Math.round(bounds.width)));
-        const h = Math.max(1, Math.min(canvas.height - y, Math.round(bounds.height)));
-        const samples = [];
-        const probes = [
-          [x - 3, y + Math.floor(h * 0.2)], [x + w + 3, y + Math.floor(h * 0.2)],
-          [x + Math.floor(w * 0.25), y - 3], [x + Math.floor(w * 0.75), y - 3],
-          [x + Math.floor(w * 0.25), y + h + 3], [x + Math.floor(w * 0.75), y + h + 3]
-        ];
-        probes.forEach(([px,py]) => {
-          if (px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) return;
-          const d = ctx.getImageData(px, py, 1, 1).data;
-          samples.push([d[0], d[1], d[2]]);
-        });
-        if (!samples.length) return '#fff';
-        const avg = samples.reduce((acc,c) => [acc[0]+c[0], acc[1]+c[1], acc[2]+c[2]], [0,0,0]).map(v => Math.round(v / samples.length));
-        return `rgb(${avg[0]}, ${avg[1]}, ${avg[2]})`;
-      } catch (_) { return '#fff'; }
-    }
-    function updatePdfWatermarkLayerBounds() {
-      if (!pdfWatermarkLayer || !pdfViewerCanvas || !pdfViewerPageWrap) return;
-      const canvasRect = pdfViewerCanvas.getBoundingClientRect();
-      const wrapRect = pdfViewerPageWrap.getBoundingClientRect();
-      if (!canvasRect.width || !canvasRect.height) return;
-      pdfWatermarkLayer.style.width = `${canvasRect.width}px`;
-      pdfWatermarkLayer.style.height = `${canvasRect.height}px`;
-      pdfWatermarkLayer.style.left = `${canvasRect.left - wrapRect.left}px`;
-      pdfWatermarkLayer.style.top = `${canvasRect.top - wrapRect.top}px`;
-    }
-    function getDetectedWatermarkForCurrentPage() {
-      const key = getPdfWatermarkDetectionCacheKey(state.currentSongId, state.pdfPage);
-      return state.pdfWatermarkDetectionCache.get(key) || null;
-    }
-    function rememberDetectedWatermark(songId, pageNumber, detection) {
-      const key = getPdfWatermarkDetectionCacheKey(songId, pageNumber);
-      if (state.pdfWatermarkDetectionCache.size >= PDF_WATERMARK_DETECT_CACHE_LIMIT) {
-        const oldest = state.pdfWatermarkDetectionCache.keys().next().value;
-        if (oldest) state.pdfWatermarkDetectionCache.delete(oldest);
-      }
-      state.pdfWatermarkDetectionCache.set(key, detection || null);
-    }
-    let pdfWatermarkLogoReady = false;
-    let pdfWatermarkLogoFailed = false;
-    function ensurePdfWatermarkLogo() {
-      if (!pdfWatermarkLogo) return Promise.resolve(false);
-      if (pdfWatermarkLogoReady) return Promise.resolve(true);
-      if (pdfWatermarkLogoFailed) return Promise.resolve(false);
-      return new Promise((resolve) => {
-        const finish = (ok) => { pdfWatermarkLogoReady = ok; pdfWatermarkLogoFailed = !ok; resolve(ok); };
-        pdfWatermarkLogo.onload = () => finish(true);
-        pdfWatermarkLogo.onerror = () => {
-          // Fallback embutido garante que a marca continue funcionando mesmo
-          // se o arquivo do repositório ainda não estiver disponível.
-          pdfWatermarkLogo.onerror = () => finish(false);
-          pdfWatermarkLogo.src = PALCO_PRO_WATERMARK_FALLBACK;
-        };
-        try { pdfWatermarkLogo.src = PALCO_PRO_WATERMARK_URL; } catch (_) { pdfWatermarkLogo.src = PALCO_PRO_WATERMARK_FALLBACK; }
-      });
-    }
-    async function applyPdfWatermark(detectionOverride = undefined) {
-      if (!pdfWatermarkLayer || !pdfWatermarkCover || !pdfWatermarkLogo || !pdfViewerCanvas) return;
-      const song = getSongById(state.currentSongId);
-      const config = getPdfWatermarkConfig(state.currentSongId);
-      const manual = config.mode === 'manual';
-      let show = !!song && !!state.pdfDoc && config.enabled;
-      let x = Number(config.x), y = Number(config.y), width = Number(config.width), height = Math.max(0.8, width * 0.17);
-      if (manual) {
-        if (config.pages === 'first' && state.pdfPage !== 1) show = false;
-      } else {
-        const detection = detectionOverride !== undefined ? detectionOverride : getDetectedWatermarkForCurrentPage();
-        show = show && !!detection;
-        if (detection) {
-          x = detection.x; y = detection.y; width = detection.width; height = detection.height;
-        }
-      }
-      if (!show) {
-        pdfWatermarkLayer.classList.add('hidden');
-        pdfWatermarkLayer.setAttribute('aria-hidden', 'true');
-        return;
-      }
-      await ensurePdfWatermarkLogo();
-      if (!pdfWatermarkLogoReady) {
-        pdfWatermarkLayer.classList.add('hidden');
-        pdfWatermarkLayer.setAttribute('aria-hidden', 'true');
-        return;
-      }
-      pdfWatermarkLayer.classList.remove('hidden');
-      pdfWatermarkLayer.setAttribute('aria-hidden', 'false');
-      pdfWatermarkLayer.style.setProperty('--wm-x', `${x}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-y', `${y}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-w', `${width}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-h', `${height}%`);
-      const logoY = manual ? y : (y + height / 2);
-      pdfWatermarkLayer.style.setProperty('--wm-logo-y', `${logoY}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-logo-transform', manual ? 'none' : 'translateY(-50%)');
-      pdfWatermarkLayer.style.setProperty('--wm-opacity', `${Math.max(0.2, Math.min(1, Number(config.opacity)))}`);
-      pdfWatermarkLayer.style.setProperty('--wm-cover-pad-x', `${Math.max(0.5, width * 0.02)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-cover-pad-y', `${Math.max(0.3, height * 0.05)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-cover-color', samplePdfBackgroundColor(pdfViewerCanvas, {
-        x: x / 100 * pdfViewerCanvas.width, y: y / 100 * pdfViewerCanvas.height,
-        width: width / 100 * pdfViewerCanvas.width, height: height / 100 * pdfViewerCanvas.height
-      }));
-      requestAnimationFrame(updatePdfWatermarkLayerBounds);
-    }
-    async function detectAndApplyPdfWatermark() {
-      if (!state.pdfDoc || !pdfViewerCanvas || !state.currentSongId) return null;
-      const config = getPdfWatermarkConfig(state.currentSongId);
-      if (!config.enabled || config.mode === 'manual') {
-        await applyPdfWatermark();
-        return null;
-      }
-      const key = getPdfWatermarkDetectionCacheKey(state.currentSongId, state.pdfPage);
-      if (state.pdfWatermarkDetectionCache.has(key)) {
-        const cached = state.pdfWatermarkDetectionCache.get(key);
-        await applyPdfWatermark(cached);
-        return cached;
-      }
-      let detection = null;
-      try { detection = detectPdfWatermarkBounds(pdfViewerCanvas); } catch (_) { detection = null; }
-      rememberDetectedWatermark(state.currentSongId, state.pdfPage, detection);
-      await applyPdfWatermark(detection);
-      return detection;
-    }
-    async function renderPdfWatermarkEditorPreview() {
-      if (!pdfWatermarkPreviewCanvas || !pdfWatermarkLivePreview || !state.pdfDoc) return;
-      try {
-        const page = await state.pdfDoc.getPage(state.pdfPage || 1);
-        const containerWidth = Math.max(180, pdfWatermarkLivePreview.clientWidth - 2);
-        const base = page.getViewport({ scale: 1 });
-        const scale = Math.min(containerWidth / base.width, 230 / base.height);
-        const viewport = page.getViewport({ scale: Math.max(0.1, scale) });
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
-        pdfWatermarkPreviewCanvas.width = Math.ceil(viewport.width * dpr);
-        pdfWatermarkPreviewCanvas.height = Math.ceil(viewport.height * dpr);
-        pdfWatermarkPreviewCanvas.style.width = `${Math.ceil(viewport.width)}px`;
-        pdfWatermarkPreviewCanvas.style.height = `${Math.ceil(viewport.height)}px`;
-        const ctx = pdfWatermarkPreviewCanvas.getContext('2d', { alpha: false });
-        if (!ctx) return;
-        ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        const detection = detectPdfWatermarkBounds(pdfWatermarkPreviewCanvas);
-        updatePdfWatermarkEditorPreviewOverlay(detection);
-      } catch (_) {}
-    }
-    function updatePdfWatermarkEditorPreviewOverlay(detection = null) {
-      if (!pdfWatermarkPreviewCanvas || !pdfWatermarkPreviewLogo || !pdfWatermarkPreviewCover) return;
-      const containerRect = pdfWatermarkLivePreview.getBoundingClientRect();
-      const canvasRect = pdfWatermarkPreviewCanvas.getBoundingClientRect();
-      const w = canvasRect.width, h = canvasRect.height;
-      if (!w || !h) return;
-      let xPct = Number(pdfWatermarkX?.value || PDF_WATERMARK_DEFAULT.x);
-      let yPct = Number(pdfWatermarkY?.value || PDF_WATERMARK_DEFAULT.y);
-      let widthPct = Number(pdfWatermarkSize?.value || PDF_WATERMARK_DEFAULT.width);
-      if (detection && !state.pdfWatermarkEditing?.manual) {
-        xPct = detection.x; yPct = detection.y; widthPct = detection.width;
-      }
-      const canvasLeft = canvasRect.left - containerRect.left;
-      const canvasTop = canvasRect.top - containerRect.top;
-      const x = canvasLeft + (xPct / 100 * w);
-      const y = canvasTop + (yPct / 100 * h);
-      const logoW = widthPct / 100 * w;
-      const logoH = logoW * 0.165;
-      const padX = Math.max(2, logoW * 0.025);
-      const padY = Math.max(1, logoH * 0.08);
-      const previewAuto = !!detection && !state.pdfWatermarkEditing?.manual;
-      const previewLogoY = previewAuto
-        ? (canvasTop + ((yPct / 100 * h) + (detection.height / 100 * h) / 2))
-        : y;
-      pdfWatermarkPreviewLogo.style.left = `${x}px`;
-      pdfWatermarkPreviewLogo.style.top = `${previewLogoY}px`;
-      pdfWatermarkPreviewLogo.style.transform = previewAuto ? 'translateY(-50%)' : 'none';
-      pdfWatermarkPreviewLogo.style.width = `${logoW}px`;
-      pdfWatermarkPreviewLogo.style.height = 'auto';
-      pdfWatermarkPreviewCover.style.left = `${x - padX}px`;
-      pdfWatermarkPreviewCover.style.top = `${y - padY}px`;
-      pdfWatermarkPreviewCover.style.width = `${logoW + padX*2}px`;
-      pdfWatermarkPreviewCover.style.height = `${logoH + padY*2}px`;
-      pdfWatermarkPreviewCover.style.display = 'block';
-      if (pdfWatermarkEditorNote) {
-        pdfWatermarkEditorNote.textContent = detection && !state.pdfWatermarkEditing?.manual
-          ? `Marca detectada automaticamente nesta página. O tamanho foi calculado proporcionalmente ao PDF.`
-          : `Ajuste somente para “${getSongById(state.currentSongId)?.title || 'esta música'}”.`;
-      }
-    }
-    function updatePdfWatermarkEditorLabels() {
-      if (pdfWatermarkXValue) pdfWatermarkXValue.textContent = `${Number(pdfWatermarkX.value).toFixed(1)}%`;
-      if (pdfWatermarkYValue) pdfWatermarkYValue.textContent = `${Number(pdfWatermarkY.value).toFixed(1)}%`;
-      if (pdfWatermarkSizeValue) pdfWatermarkSizeValue.textContent = `${Number(pdfWatermarkSize.value).toFixed(1)}%`;
-      updatePdfWatermarkEditorPreviewOverlay(null);
-    }
-    async function openPdfWatermarkEditor() {
-      if (!state.currentSongId || !state.pdfDoc) { showToast('Abra uma música com PDF para ajustar a marca.', 1700); return; }
-      const song = getSongById(state.currentSongId);
-      const config = getPdfWatermarkConfig(state.currentSongId);
-      const detection = getDetectedWatermarkForCurrentPage() || detectPdfWatermarkBounds(pdfViewerCanvas);
-      const manual = config.mode === 'manual';
-      state.pdfWatermarkEditing = { manual };
-      const baseConfig = manual ? config : {
-        ...config,
-        x: detection?.x ?? config.x,
-        y: detection?.y ?? config.y,
-        width: detection?.width ?? config.width,
-        pages: config.pages || 'auto'
-      };
-      pdfWatermarkX.value = Number(baseConfig.x);
-      pdfWatermarkY.value = Number(baseConfig.y);
-      pdfWatermarkSize.value = Number(baseConfig.width);
-      pdfWatermarkPages.value = manual ? (config.pages || 'all') : 'auto';
-      if (pdfWatermarkPreviewLogo.getAttribute('src') !== PALCO_PRO_WATERMARK_URL) pdfWatermarkPreviewLogo.src = PALCO_PRO_WATERMARK_URL;
-      updatePdfWatermarkEditorLabels();
-      pdfWatermarkEditor?.classList.add('open');
-      pdfWatermarkEditor?.setAttribute('aria-hidden', 'false');
-      await new Promise(requestAnimationFrame);
-      await renderPdfWatermarkEditorPreview();
-      updatePdfWatermarkEditorPreviewOverlay(detection);
-    }
-    function closePdfWatermarkEditor() {
-      pdfWatermarkEditor?.classList.remove('open');
-      pdfWatermarkEditor?.setAttribute('aria-hidden', 'true');
-      state.pdfWatermarkEditing = null;
-    }
-    function resetPdfWatermarkEditorToDefault() {
-      const detection = detectPdfWatermarkBounds(pdfViewerCanvas);
-      state.pdfWatermarkEditing = { manual: false };
-      pdfWatermarkPages.value = 'auto';
-      pdfWatermarkX.value = Number(detection?.x ?? PDF_WATERMARK_DEFAULT.x);
-      pdfWatermarkY.value = Number(detection?.y ?? PDF_WATERMARK_DEFAULT.y);
-      pdfWatermarkSize.value = Number(detection?.width ?? PDF_WATERMARK_DEFAULT.width);
-      updatePdfWatermarkEditorLabels();
-      updatePdfWatermarkEditorPreviewOverlay(detection);
-    }
-    function savePdfWatermarkFromEditor() {
-      if (!state.currentSongId) return;
-      const wantsAuto = pdfWatermarkPages.value === 'auto' && !state.pdfWatermarkEditing?.manual;
-      if (wantsAuto) {
-        resetPdfWatermarkConfig(state.currentSongId);
-        closePdfWatermarkEditor();
-        showToast('Detecção automática ativada nesta música', 1500);
-        return;
-      }
-      savePdfWatermarkConfig(state.currentSongId, {
-        enabled: true,
-        mode: 'manual',
-        x: Number(pdfWatermarkX.value),
-        y: Number(pdfWatermarkY.value),
-        width: Number(pdfWatermarkSize.value),
-        opacity: PDF_WATERMARK_DEFAULT.opacity,
-        pages: pdfWatermarkPages.value === 'first' ? 'first' : 'all'
-      });
-      closePdfWatermarkEditor();
-      applyPdfWatermark();
-      showToast('Marca d’água ajustada para esta música', 1500);
-    }
-    function bindPdfWatermarkUi() {
-      [pdfWatermarkX, pdfWatermarkY, pdfWatermarkSize].forEach(input => input?.addEventListener('input', () => {
-        state.pdfWatermarkEditing = { manual: true };
-        updatePdfWatermarkEditorLabels();
-        const detected = detectPdfWatermarkBounds(pdfWatermarkPreviewCanvas);
-        updatePdfWatermarkEditorPreviewOverlay(null);
-      }));
-      pdfWatermarkPages?.addEventListener('change', () => {
-        state.pdfWatermarkEditing = { manual: pdfWatermarkPages.value !== 'auto' };
-        updatePdfWatermarkEditorLabels();
-      });
-      pdfWatermarkAdjustBtn?.addEventListener('click', openPdfWatermarkEditor);
-      pdfWatermarkResetSongBtn?.addEventListener('click', () => {
-        if (!state.currentSongId) { showToast('Abra uma música para ajustar a marca.', 1500); return; }
-        resetPdfWatermarkConfig(state.currentSongId);
-        showToast('Detecção automática restaurada para esta música', 1500);
-      });
-      pdfWatermarkDefaultBtn?.addEventListener('click', resetPdfWatermarkEditorToDefault);
-      pdfWatermarkCancelBtn?.addEventListener('click', closePdfWatermarkEditor);
-      pdfWatermarkSaveBtn?.addEventListener('click', savePdfWatermarkFromEditor);
-      pdfWatermarkEditor?.addEventListener('click', (event) => { if (event.target === pdfWatermarkEditor) closePdfWatermarkEditor(); });
-      window.addEventListener('resize', () => requestAnimationFrame(updatePdfWatermarkLayerBounds));
-    }
-
     function closePdfViewer() {
       document.documentElement.style.setProperty('--page-swipe-x', '0px');
       app?.classList.remove('page-swipe-active');
       state.pdfRenderToken += 1; state.pdfDoc = null; state.pdfPage = 1; state.pdfPageCount = 0; state.pdfSongId = '';
       pdfViewerScreen?.classList.remove('open'); pdfViewerScreen?.setAttribute('aria-hidden', 'true');
-      pdfWatermarkLayer?.classList.add('hidden');
-      pdfWatermarkLayer?.setAttribute('aria-hidden', 'true');
       pdfViewerPageIndicator?.classList.add('hidden');
       pdfViewerNote?.classList.add('hidden');
       if (pdfViewerNote) { pdfViewerNote.textContent = ''; pdfViewerNote.setAttribute('aria-hidden', 'true'); }
@@ -3646,21 +3198,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
       await page.render({ canvasContext: ctx, viewport }).promise;
       if (pdfViewerPageIndicator) { pdfViewerPageIndicator.textContent = `Folha ${state.pdfPage} de ${state.pdfPageCount}`; pdfViewerPageIndicator.classList.remove('hidden'); }
-      // Marca d'água é aplicada depois que a página está pronta. Ela nunca
-      // participa do carregamento/renderização do PDF e não pode bloqueá-lo.
-      try { await detectAndApplyPdfWatermark(); } catch (watermarkError) {
-        console.warn('Marca d\'água não aplicada nesta página:', watermarkError);
-        pdfWatermarkLayer?.classList.add('hidden');
-      }
-      // A marca d'água nunca pode impedir a abertura do PDF.
-      // A detecção é tratada de forma isolada depois que a página já foi renderizada.
-      try {
-        await detectAndApplyPdfWatermark();
-      } catch (watermarkError) {
-        console.warn("Falha na marca d'água automática; mantendo o PDF aberto.", watermarkError);
-        pdfWatermarkLayer?.classList.add('hidden');
-        pdfWatermarkLayer?.setAttribute('aria-hidden', 'true');
-      }
     }
     function normalizePublicPdfUrl(url) {
       const value = String(url || '').trim();
@@ -4607,27 +4144,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
     }
 
-    function persistSettings() {
-      let previous = {};
-      try { previous = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-        fontSize: fontSize.value,
-        stanzaSpacing: stanzaSpacing?.value || 2.1,
-        lineHeight: lineHeight.value,
-        textWidth: textWidth.value,
-        overlayOpacity: overlayOpacity.value,
-        baseSpeed: baseSpeed.value,
-        voiceFollowSpeed: voiceFollowSpeed.value,
-        mirror: state.mirror,
-        voiceEnabled: voiceToggle.checked,
-        librarySortMode: state.librarySortMode,
-        libraryFilterValue: state.libraryFilterValue,
-        theme: state.currentTheme,
-        userName,
-        readingPreference: getReadingPreference(),
-        pdfWatermarkBySong: previous.pdfWatermarkBySong && typeof previous.pdfWatermarkBySong === 'object' ? previous.pdfWatermarkBySong : {}
-      }));
-    }
+    function persistSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify({ fontSize: fontSize.value, stanzaSpacing: stanzaSpacing?.value || 2.1, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName, readingPreference: getReadingPreference() })); }
     function renderUserName() {
       if (!userNameDisplay) return;
       userNameDisplay.textContent = userName || 'Seu nome';
@@ -4692,10 +4209,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       editUserNameBtn?.addEventListener('click', (event) => { event.stopPropagation(); editUserName(); });
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
-    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), note: noteInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
+    function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), note: noteInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '', pdfFileName: state.editingPdfFileName || '' })); }
     function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
-    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (noteInput) noteInput.value = typeof saved.note === 'string' ? saved.note : ''; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
+    function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (noteInput) noteInput.value = typeof saved.note === 'string' ? saved.note : ''; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; state.editingPdfFileName = typeof saved.pdfFileName === 'string' ? saved.pdfFileName : ''; updateSongPdfEditorUi(); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
     function getSampleSongs() {
       return [];
@@ -4731,6 +4248,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         estilo: song.style || '',
         usuario: userName || '',
         letra: song.lyrics || '',
+        pdfData: song.pdfData || '',
+        pdfFileName: song.pdfFileName || 'palco-pro.pdf',
         dataCadastro: new Date().toISOString()
       };
 
@@ -4759,6 +4278,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const note = noteInput.value.trim();
       const pdfData = state.editingPdfData || '';
       scriptInput.value = lyrics;
+      if (state.pdfProcessing) { showToast('Aguarde o processamento do PDF terminar.', 1800); return; }
       if (!title) { showToast('Informe o nome da música.', 1500); songTitleInput.focus(); return; }
       if (!artist) { showToast('Informe o artista.', 1500); artistInput.focus(); return; }
       if (!style) { showToast('Informe o estilo musical.', 1500); styleInput.focus(); return; }
@@ -4768,7 +4288,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
       const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
       const payloadId = existingIndex >= 0 && state.currentSongId ? String(state.currentSongId) : createSongId();
-      const payload = { id: payloadId, title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
+      const payload = { id: payloadId, title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: state.editingPdfFileName || previous?.pdfFileName || '' };
       const nextSongs = state.songs.map(song => ({ ...song }));
       const targetIndex = nextSongs.findIndex(song => String(song?.id || '') === payloadId);
       if (targetIndex >= 0) nextSongs[targetIndex] = { ...nextSongs[targetIndex], ...payload, note: String(note || '').trim() };
@@ -5277,7 +4797,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
