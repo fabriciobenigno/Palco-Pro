@@ -2090,10 +2090,6 @@
         <div class="field">
           <label>Marca d’água do PDF</label>
           <div class="panel-note">O Palco Pro tenta localizar automaticamente a marca “letras★”. Ajustes manuais ficam salvos somente para a música atual.</div>
-          <div class="small-row">
-            <button class="ghost-btn" id="pdfWatermarkAdjustBtn" type="button">Ajustar neste PDF</button>
-            <button class="ghost-btn" id="pdfWatermarkResetSongBtn" type="button">Usar automático nesta música</button>
-          </div>
         </div>
 
         <div class="field">
@@ -2334,8 +2330,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const pdfWatermarkXValue = $('pdfWatermarkXValue');
     const pdfWatermarkYValue = $('pdfWatermarkYValue');
     const pdfWatermarkSizeValue = $('pdfWatermarkSizeValue');
-    const pdfWatermarkAdjustBtn = $('pdfWatermarkAdjustBtn');
-    const pdfWatermarkResetSongBtn = $('pdfWatermarkResetSongBtn');
     const pdfWatermarkDefaultBtn = $('pdfWatermarkDefaultBtn');
     const pdfWatermarkCancelBtn = $('pdfWatermarkCancelBtn');
     const pdfWatermarkSaveBtn = $('pdfWatermarkSaveBtn');
@@ -3611,8 +3605,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         state.pdfWatermarkEditing = { manual: pdfWatermarkPages.value !== 'auto' };
         updatePdfWatermarkEditorLabels();
       });
-      pdfWatermarkAdjustBtn?.addEventListener('click', openPdfWatermarkEditor);
-      pdfWatermarkResetSongBtn?.addEventListener('click', () => {
+      /* controles manuais de marca d’água removidos: processamento agora é automático na inclusão do PDF */
+      if (false) pdfWatermarkResetSongBtn?.addEventListener('click', () => {
         if (!state.currentSongId) { showToast('Abra uma música para ajustar a marca.', 1500); return; }
         resetPdfWatermarkConfig(state.currentSongId);
         showToast('Detecção automática restaurada para esta música', 1500);
