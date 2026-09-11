@@ -802,10 +802,12 @@
     .pdf-watermark-logo {
       position: absolute;
       left: var(--wm-x);
-      top: var(--wm-y);
+      top: var(--wm-logo-y, var(--wm-y));
       width: var(--wm-w);
       height: auto;
       display: block;
+      transform: var(--wm-logo-transform, none);
+      transform-origin: center center;
       opacity: var(--wm-opacity, 0.96);
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.10));
       user-select: none;
@@ -851,7 +853,7 @@
       justify-content: center;
     }
     .pdf-watermark-live-preview-canvas { display:block; width:100%; height:auto; max-height:250px; object-fit:contain; }
-    .pdf-watermark-live-preview-logo { position:absolute; display:block; pointer-events:none; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
+    .pdf-watermark-live-preview-logo { position:absolute; display:block; pointer-events:none; transform:var(--wm-preview-logo-transform, none); transform-origin:center center; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
     .pdf-watermark-live-preview-cover { position:absolute; background:#fff; pointer-events:none; }
     .pdf-watermark-range-row { display:grid; gap:7px; }
     .pdf-watermark-editor-actions { display:flex; gap:8px; flex-wrap:wrap; }
@@ -3281,14 +3283,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const aspect = yellow.width / Math.max(1, yellow.height);
       if (aspect < 1.8 || aspect > 7.5) return null;
 
-      // The yellow "letras" word is the strongest stable marker. Expand upward
-      // to include the gray/blue "letras" branding while staying tightly bounded.
-      const expandTop = Math.max(5, Math.round(yellow.height * 0.38));
-      const expandX = Math.max(5, Math.round(yellow.width * 0.035));
+      // A marca original tem duas faixas visuais: a identidade cinza/azul
+      // acima e o texto amarelo abaixo. O amarelo é nosso marcador mais
+      // confiável; a caixa inteira é expandida para cima para cobrir as duas.
+      const expandTop = Math.max(8, Math.round(yellow.height * 1.18));
+      const expandX = Math.max(8, Math.round(yellow.width * 0.045));
       const x = Math.max(0, searchX + yellow.x - expandX);
       const y = Math.max(0, yellow.y - expandTop);
       const right = Math.min(canvas.width, searchX + yellow.x + yellow.width + expandX);
-      const bottom = Math.min(canvas.height, yellow.y + yellow.height + Math.max(2, Math.round(yellow.height * 0.08)));
+      const bottom = Math.min(canvas.height, yellow.y + yellow.height + Math.max(4, Math.round(yellow.height * 0.16)));
       const bounds = { x, y, width: right - x, height: bottom - y };
 
       return {
@@ -3370,6 +3373,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       pdfWatermarkLayer.style.setProperty('--wm-y', `${y}%`);
       pdfWatermarkLayer.style.setProperty('--wm-w', `${width}%`);
       pdfWatermarkLayer.style.setProperty('--wm-h', `${height}%`);
+      // No modo automático a logo fica centralizada verticalmente na
+      // caixa inteira detectada, evitando deixar a marca antiga aparecendo.
+      if (manual) {
+        pdfWatermarkLayer.style.setProperty('--wm-logo-y', `${y}%`);
+        pdfWatermarkLayer.style.setProperty('--wm-logo-transform', 'none');
+      } else {
+        pdfWatermarkLayer.style.setProperty('--wm-logo-y', `${y + height / 2}%`);
+        pdfWatermarkLayer.style.setProperty('--wm-logo-transform', 'translateY(-50%)');
+      }
       pdfWatermarkLayer.style.setProperty('--wm-opacity', `${Math.max(0.2, Math.min(1, Number(config.opacity)))}`);
       pdfWatermarkLayer.style.setProperty('--wm-cover-pad-x', `${Math.max(0.7, width * 0.025)}%`);
       pdfWatermarkLayer.style.setProperty('--wm-cover-pad-y', `${Math.max(0.4, height * 0.08)}%`);
@@ -3445,8 +3457,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       const logoH = logoW * 0.165;
       const padX = Math.max(2, logoW * 0.025);
       const padY = Math.max(1, logoH * 0.08);
+      const previewAuto = !!detection && !state.pdfWatermarkEditing?.manual;
+      const previewLogoY = previewAuto
+        ? (canvasTop + ((yPct / 100 * h) + (detection.height / 100 * h) / 2))
+        : y;
       pdfWatermarkPreviewLogo.style.left = `${x}px`;
-      pdfWatermarkPreviewLogo.style.top = `${y}px`;
+      pdfWatermarkPreviewLogo.style.top = `${previewLogoY}px`;
+      pdfWatermarkPreviewLogo.style.transform = previewAuto ? 'translateY(-50%)' : 'none';
       pdfWatermarkPreviewLogo.style.width = `${logoW}px`;
       pdfWatermarkPreviewLogo.style.height = 'auto';
       pdfWatermarkPreviewCover.style.left = `${x - padX}px`;
