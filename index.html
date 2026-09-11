@@ -1257,32 +1257,33 @@
 
     .detail-mode .detail-panel { display: flex; }
 
-    .first-access-tutorial-gate {
-      position: fixed; inset: 0; z-index: 10040; display: none; align-items: center; justify-content: center;
-      padding: calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 18px);
-      background: radial-gradient(circle at 50% 0%, rgba(100, 160, 255, 0.24), transparent 30%), linear-gradient(180deg, rgba(2,5,10,.98), rgba(5,10,18,.98));
-      backdrop-filter: blur(22px); overflow:auto;
+    .first-access-name-card.tutorial-mode {
+      width: min(100%, 460px);
+      max-height: calc(100vh - 28px);
+      overflow: auto;
+      padding: 22px 20px 18px;
+      gap: 12px;
+      text-align: left;
     }
-    .first-access-tutorial-gate.active { display:flex; }
-    .first-access-tutorial-card {
-      width:min(100%, 460px); max-height:calc(100vh - 36px); overflow:auto;
-      padding:24px; border-radius:30px;
-      background:linear-gradient(180deg, rgba(15,22,36,.96), rgba(8,13,22,.96));
-      border:1px solid rgba(255,255,255,.12); box-shadow:0 30px 90px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.05);
-    }
-    .tutorial-kicker { font-size:10px; letter-spacing:.18em; font-weight:800; color:rgba(143,199,255,.86); text-align:center; margin-bottom:12px; }
-    .tutorial-brand { display:flex; align-items:center; gap:14px; justify-content:center; text-align:left; }
-    .tutorial-icon { width:48px; height:48px; border-radius:14px; object-fit:cover; box-shadow:0 12px 30px rgba(0,0,0,.28); flex:0 0 48px; }
-    .tutorial-brand h2 { margin:0; font-size:28px; line-height:1.1; color:#fff; }
-    .tutorial-brand p { margin:5px 0 0; font-size:13px; line-height:1.5; color:var(--soft-text); }
-    .tutorial-grid { display:grid; gap:9px; margin:20px 0 16px; }
-    .tutorial-item { display:grid; grid-template-columns:38px minmax(0,1fr); gap:11px; align-items:start; padding:12px 13px; border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.035)); border:1px solid rgba(255,255,255,.09); }
-    .tutorial-item-icon { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff; background:linear-gradient(135deg, rgba(85,145,255,.96), rgba(115,194,255,.88)); box-shadow:0 8px 20px rgba(70,130,235,.2); }
-    .tutorial-item strong { display:block; font-size:13px; color:#fff; margin:1px 0 3px; }
-    .tutorial-item div span { display:block; font-size:12px; line-height:1.5; color:rgba(255,255,255,.76); }
-    .tutorial-start-btn { width:100%; min-height:54px; border:1px solid rgba(185,232,255,.32); border-radius:18px; background:linear-gradient(135deg, rgba(118,203,255,.98), rgba(77,150,255,.96)); color:#fff; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 16px 34px rgba(48,108,200,.24), inset 0 1px 0 rgba(255,255,255,.2); }
+    .first-access-name-card.tutorial-mode .first-access-name-icon { width: 48px; height: 48px; margin-bottom: 0; }
+    .first-access-name-card.tutorial-mode h2 { text-align: center; font-size: 26px; }
+    .first-access-name-card.tutorial-mode > p { text-align: center; font-size: 13px; line-height: 1.5; }
+    .tutorial-kicker { font-size:10px; letter-spacing:.18em; font-weight:800; color:rgba(143,199,255,.86); text-align:center; margin-bottom:4px; }
+    .tutorial-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 2px; }
+    .tutorial-item { display:grid; grid-template-columns:32px minmax(0,1fr); gap:8px; align-items:start; padding:10px; border-radius:15px; background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.035)); border:1px solid rgba(255,255,255,.09); }
+    .tutorial-item-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#fff; background:linear-gradient(135deg, rgba(85,145,255,.96), rgba(115,194,255,.88)); box-shadow:0 7px 16px rgba(70,130,235,.2); }
+    .tutorial-item strong { display:block; font-size:12px; color:#fff; margin:0 0 2px; }
+    .tutorial-item div span { display:block; font-size:10.5px; line-height:1.35; color:rgba(255,255,255,.76); }
+    .tutorial-start-btn { width:100%; min-height:48px; margin-top:8px; border:1px solid rgba(185,232,255,.32); border-radius:16px; background:linear-gradient(135deg, rgba(118,203,255,.98), rgba(77,150,255,.96)); color:#fff; font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 14px 30px rgba(48,108,200,.24), inset 0 1px 0 rgba(255,255,255,.2); }
     .tutorial-start-btn:active { transform:translateY(1px); }
-    .tutorial-tip { margin-top:9px; text-align:center; font-size:10px; line-height:1.5; color:var(--note-text); }
+    @media (max-width: 390px) {
+      .first-access-name-card.tutorial-mode { padding:18px 14px 14px; }
+      .tutorial-grid { gap:6px; }
+      .tutorial-item { padding:8px; grid-template-columns:28px minmax(0,1fr); gap:7px; }
+      .tutorial-item-icon { width:28px; height:28px; border-radius:9px; font-size:14px; }
+      .tutorial-item strong { font-size:11px; }
+      .tutorial-item div span { font-size:9.5px; line-height:1.3; }
+    }
 
     .browser-entry-gate {
       position: fixed; inset: 0; z-index: 9999; display: none;
@@ -1850,55 +1851,31 @@
 <body>
   <div class="app" id="app">
     <div class="first-access-name-gate" id="firstAccessNameGate" aria-hidden="true">
-      <div class="first-access-name-card">
+      <div class="first-access-name-card" id="firstAccessNameCard">
         <img src="palco-pro-icon.png" alt="Ícone do app Palco Pro" class="first-access-name-icon" />
-        <h2>Bem-vindo ao Palco Pro</h2>
-        <p>Antes de começar, informe seu nome de usuário.</p>
-        <div class="field">
-          <label for="firstAccessNameInput">Nome de usuário</label>
-          <input id="firstAccessNameInput" type="text" maxlength="120" autocomplete="name" placeholder="Digite seu nome" />
+        <div id="firstAccessNameStep">
+          <h2>Bem-vindo ao Palco Pro</h2>
+          <p>Antes de começar, informe seu nome de usuário.</p>
+          <div class="field" style="margin-top:10px; text-align:left;">
+            <label for="firstAccessNameInput">Nome de usuário</label>
+            <input id="firstAccessNameInput" type="text" maxlength="120" autocomplete="name" placeholder="Digite seu nome" />
+          </div>
+          <button class="entry-nav-btn" type="button" id="saveFirstAccessNameBtn" style="margin-top:2px; width:100%;">Continuar</button>
         </div>
-        <button class="entry-nav-btn" type="button" id="saveFirstAccessNameBtn">Continuar</button>
-      </div>
-    </div>
-    <div class="first-access-tutorial-gate" id="firstAccessTutorialGate" aria-hidden="true">
-      <div class="first-access-tutorial-card">
-        <div class="tutorial-kicker">PRIMEIROS PASSOS</div>
-        <div class="tutorial-brand">
-          <img src="palco-pro-icon.png" alt="Ícone do app Palco Pro" class="tutorial-icon" />
-          <div>
-            <h2>Tutorial</h2>
-            <p>Veja rapidamente como usar o Palco Pro no palco.</p>
+        <div id="firstAccessTutorialStep" hidden>
+          <div class="tutorial-kicker">PRIMEIROS PASSOS</div>
+          <h2>Tutorial</h2>
+          <p>Aprenda rapidamente como usar o Palco Pro no palco.</p>
+          <div class="tutorial-grid">
+            <div class="tutorial-item"><span class="tutorial-item-icon">♫</span><div><strong>Repertório</strong><span>Toque no ícone musical para abrir e escolher suas músicas.</span></div></div>
+            <div class="tutorial-item"><span class="tutorial-item-icon">＋</span><div><strong>Adicionar</strong><span>Cadastre título, tom, letra ou PDF e salve no repertório.</span></div></div>
+            <div class="tutorial-item"><span class="tutorial-item-icon">‹</span><div><strong>Deslizar</strong><span>Deslize para a esquerda para revelar as ações.</span></div></div>
+            <div class="tutorial-item"><span class="tutorial-item-icon">✎</span><div><strong>Editar</strong><span>Use as ações da música para editar ou excluir.</span></div></div>
+            <div class="tutorial-item"><span class="tutorial-item-icon">▶</span><div><strong>Leitura</strong><span>Abra a música para ler a letra ou o PDF.</span></div></div>
+            <div class="tutorial-item"><span class="tutorial-item-icon">⚙</span><div><strong>Ajustes</strong><span>Personalize o app e atualize quando houver uma nova versão.</span></div></div>
           </div>
+          <button class="tutorial-start-btn" type="button" id="closeFirstAccessTutorialBtn">Começar a usar o app</button>
         </div>
-        <div class="tutorial-grid">
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">♫</span>
-            <div><strong>Repertório</strong><span>Toque no ícone musical para abrir, pesquisar e escolher suas músicas.</span></div>
-          </div>
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">＋</span>
-            <div><strong>Adicionar música</strong><span>Cadastre título, artista, tom, letra ou PDF e salve no seu repertório.</span></div>
-          </div>
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">‹</span>
-            <div><strong>Deslizar</strong><span>Deslize uma música para a esquerda para revelar as ações. Deslize para a direita para voltar.</span></div>
-          </div>
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">✎</span>
-            <div><strong>Editar</strong><span>Use as ações da música para editar, excluir ou ajustar o que precisar.</span></div>
-          </div>
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">▶</span>
-            <div><strong>Leitura</strong><span>Abra a música para ler a letra ou o PDF e use os controles de navegação durante a apresentação.</span></div>
-          </div>
-          <div class="tutorial-item">
-            <span class="tutorial-item-icon">⚙</span>
-            <div><strong>Ajustes</strong><span>Personalize leitura, temas, backup e atualize o app quando houver uma nova versão.</span></div>
-          </div>
-        </div>
-        <button class="tutorial-start-btn" type="button" id="closeFirstAccessTutorialBtn">Começar a usar o app</button>
-        <div class="tutorial-tip">Uma visão rápida para você começar.</div>
       </div>
     </div>
 
@@ -2405,6 +2382,9 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const saveFirstAccessNameBtn = $('saveFirstAccessNameBtn');
     const firstAccessTutorialGate = $('firstAccessTutorialGate');
     const closeFirstAccessTutorialBtn = $('closeFirstAccessTutorialBtn');
+    const firstAccessNameCard = $('firstAccessNameCard');
+    const firstAccessNameStep = $('firstAccessNameStep');
+    const firstAccessTutorialStep = $('firstAccessTutorialStep');
     const libraryPanel = $('libraryPanel');
     const librarySearchInput = $('librarySearchInput');
     const librarySearchSuggestions = $('librarySearchSuggestions');
@@ -4718,19 +4698,27 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     function shouldShowFirstAccessNameGate() { return isStandaloneMode() && !userName; }
     function updateFirstAccessNameGate() {
       if (!firstAccessNameGate) return;
-      const visible = shouldShowFirstAccessNameGate();
+      const visible = shouldShowFirstAccessNameGate() || (isStandaloneMode() && !!userName && localStorage.getItem('PALCO_PRO_FIRST_ACCESS_TUTORIAL_SEEN') !== '1');
       firstAccessNameGate.classList.toggle('active', visible);
       firstAccessNameGate.setAttribute('aria-hidden', visible ? 'false' : 'true');
-      if (visible) requestAnimationFrame(() => firstAccessNameInput?.focus());
+      if (visible && shouldShowFirstAccessNameGate()) requestAnimationFrame(() => firstAccessNameInput?.focus());
+    }
+    function showFirstAccessTutorialStep() {
+      firstAccessNameStep?.setAttribute('hidden', '');
+      firstAccessTutorialStep?.removeAttribute('hidden');
+      firstAccessNameCard?.classList.add('tutorial-mode');
     }
     function shouldShowFirstAccessTutorial() {
       return isStandaloneMode() && !!userName && localStorage.getItem('PALCO_PRO_FIRST_ACCESS_TUTORIAL_SEEN') !== '1';
     }
     function updateFirstAccessTutorialGate() {
-      if (!firstAccessTutorialGate) return;
-      const visible = shouldShowFirstAccessTutorial() && !firstAccessNameGate?.classList.contains('active');
-      firstAccessTutorialGate.classList.toggle('active', visible);
-      firstAccessTutorialGate.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      if (shouldShowFirstAccessTutorial()) showFirstAccessTutorialStep();
+      else {
+        firstAccessNameStep?.removeAttribute('hidden');
+        firstAccessTutorialStep?.setAttribute('hidden', '');
+        firstAccessNameCard?.classList.remove('tutorial-mode');
+      }
+      updateFirstAccessNameGate();
     }
     function closeFirstAccessTutorial() {
       try { localStorage.setItem('PALCO_PRO_FIRST_ACCESS_TUTORIAL_SEEN', '1'); } catch (_) {}
@@ -4738,8 +4726,8 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     }
     function submitFirstAccessName() {
       if (saveUserName(firstAccessNameInput?.value || '')) {
+        showFirstAccessTutorialStep();
         updateFirstAccessNameGate();
-        updateFirstAccessTutorialGate();
       }
     }
     function closeUserNameSwipe() {
