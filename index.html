@@ -3578,7 +3578,15 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
       await page.render({ canvasContext: ctx, viewport }).promise;
       if (pdfViewerPageIndicator) { pdfViewerPageIndicator.textContent = `Folha ${state.pdfPage} de ${state.pdfPageCount}`; pdfViewerPageIndicator.classList.remove('hidden'); }
-      await detectAndApplyPdfWatermark();
+      // A marca d'água nunca pode impedir a abertura do PDF.
+      // A detecção é tratada de forma isolada depois que a página já foi renderizada.
+      try {
+        await detectAndApplyPdfWatermark();
+      } catch (watermarkError) {
+        console.warn("Falha na marca d'água automática; mantendo o PDF aberto.", watermarkError);
+        pdfWatermarkLayer?.classList.add('hidden');
+        pdfWatermarkLayer?.setAttribute('aria-hidden', 'true');
+      }
     }
     function normalizePublicPdfUrl(url) {
       const value = String(url || '').trim();
