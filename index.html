@@ -3686,12 +3686,14 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
           return;
         }
 
-        app.classList.remove('page-swipe-active');
+        // PDF: mantém a camada da virada ativa durante a conclusão.
+        // Assim, ao atingir o ponto final, a folha simplesmente permanece no lugar,
+        // sem uma segunda animação, puxão ou efeito de retorno.
         if (g.previewPromise) await g.previewPromise.catch(() => false);
+        app.classList.add('page-swipe-active');
         setX(travel);
         setPreviewX(0);
         pdfPagePreview?.classList.add('active');
-        await new Promise(resolve => setTimeout(resolve, 300));
 
         if (g.target?.type === 'pdf-page' && state.pdfDoc) {
           // O canvas principal está fora da tela; trocamos o conteúdo nele
