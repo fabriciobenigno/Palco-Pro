@@ -3175,6 +3175,51 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         showToast(error?.message || 'Não foi possível preparar o PDF.',2200);
       } finally { state.pdfProcessing=false; if(attachSongPdfBtn) attachSongPdfBtn.disabled=false; if(songPdfInput) songPdfInput.value=''; }
     }
+    function isPdfFileInput(input) {
+      if (!input || input.type !== 'file') return false;
+      const accept = String(input.getAttribute('accept') || '').toLowerCase();
+      return accept.includes('.pdf') || accept.includes('application/pdf');
+    }
+
+    function bindGlobalPdfAttachmentProcessing() {
+      document.addEventListener('change', (event) => {
+        const input = event.target;
+        if (!isPdfFileInput(input)) return;
+        if (input.id === 'songPdfInput') return;
+        handleGenericPdfAttachmentInput(input);
+      }, true);
+    }
+
+    async function handleGenericPdfAttachmentInput(input) {
+      if (!input || !input.files || !input.files.length || state.pdfProcessing) return;
+      const file = input.files[0];
+      if (!file || (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name || ''))) return;
+      state.pdfProcessing = true;
+      try {
+        const result = await processAttachedPdfWithWatermark(file);
+        const base64 = result.dataUrl.split(',')[1] || '';
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const processedFile = new File([bytes], file.name || 'palco-pro.pdf', { type: 'application/pdf', lastModified: Date.now() });
+        if (typeof DataTransfer !== 'undefined') {
+          const transfer = new DataTransfer();
+          transfer.items.add(processedFile);
+          input.files = transfer.files;
+        }
+        input.dispatchEvent(new CustomEvent('palco-pro-pdf-ready', {
+          bubbles: true,
+          detail: { file: processedFile, detectedCount: result.detectedCount, pageCount: result.pageCount }
+        }));
+        showToast(result.detectedCount ? 'PDF preparado com a marca Palco Pro' : 'PDF preparado', 1600);
+      } catch (error) {
+        console.error('Falha ao preparar PDF anexado:', error);
+        showToast(error?.message || 'Não foi possível preparar o PDF.', 2200);
+      } finally {
+        state.pdfProcessing = false;
+      }
+    }
+
     function closePdfViewer() {
       document.documentElement.style.setProperty('--page-swipe-x', '0px');
       app?.classList.remove('page-swipe-active');
@@ -4797,7 +4842,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       bindGlobalPdfAttachmentProcessing();
+      repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
