@@ -784,39 +784,71 @@
       border: 1px solid var(--glass-border); color: var(--soft-text); font-size: 11px; font-weight: 700;
       backdrop-filter: blur(14px); pointer-events: none;
     }
-
     .pdf-watermark-layer {
-      position: absolute; z-index: 29; pointer-events: none; overflow: visible;
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      overflow: visible;
     }
     .pdf-watermark-cover {
       position: absolute;
-      left: calc(var(--wm-x) - var(--wm-cover-pad));
+      left: calc(var(--wm-x) - var(--wm-cover-pad-x));
       top: calc(var(--wm-y) - var(--wm-cover-pad-y));
-      width: calc(var(--wm-w) + (var(--wm-cover-pad) * 2));
+      width: calc(var(--wm-w) + (var(--wm-cover-pad-x) * 2));
       height: calc(var(--wm-h) + (var(--wm-cover-pad-y) * 2));
-      border-radius: 2px; background: var(--wm-cover-color, #fff);
+      border-radius: 2px;
+      background: var(--wm-cover-color, #fff);
     }
     .pdf-watermark-logo {
-      position: absolute; left: var(--wm-x); top: var(--wm-y); width: var(--wm-w); height: auto;
-      display: block; opacity: var(--wm-opacity, 0.94); filter: drop-shadow(0 1px 2px rgba(0,0,0,0.10));
-      user-select: none; -webkit-user-select: none;
+      position: absolute;
+      left: var(--wm-x);
+      top: var(--wm-y);
+      width: var(--wm-w);
+      height: auto;
+      display: block;
+      opacity: var(--wm-opacity, 0.96);
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.10));
+      user-select: none;
+      -webkit-user-select: none;
     }
     .pdf-watermark-editor {
-      position: fixed; inset: 0; z-index: 10040; display: none; align-items: center; justify-content: center;
+      position: fixed;
+      inset: 0;
+      z-index: 10040;
+      display: none;
+      align-items: center;
+      justify-content: center;
       padding: calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 18px);
-      background: rgba(2,6,12,0.70); backdrop-filter: blur(16px);
+      background: rgba(2,6,12,0.70);
+      backdrop-filter: blur(16px);
     }
     .pdf-watermark-editor.open { display: flex; }
     .pdf-watermark-editor-card {
-      width: min(100%, 430px); max-height: min(90vh, 760px); overflow: auto; display: grid; gap: 14px;
-      padding: 20px; border-radius: 26px; background: var(--card-bg); border: 1px solid var(--card-border);
+      width: min(100%, 430px);
+      max-height: min(90vh, 760px);
+      overflow: auto;
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+      border-radius: 26px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       box-shadow: 0 28px 80px rgba(0,0,0,0.44);
     }
     .pdf-watermark-editor-title { margin: 0; font-size: 18px; font-weight: 800; color: #fff; }
     .pdf-watermark-editor-note { margin: 0; font-size: 12px; line-height: 1.55; color: var(--soft-text); }
     .pdf-watermark-live-preview {
-      position: relative; width: 100%; max-height: 250px; min-height: 160px; border-radius: 18px; overflow: hidden;
-      border: 1px solid var(--card-border); background: #111; display: flex; align-items: center; justify-content: center;
+      position: relative;
+      width: 100%;
+      max-height: 250px;
+      min-height: 160px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .pdf-watermark-live-preview-canvas { display:block; width:100%; height:auto; max-height:250px; object-fit:contain; }
     .pdf-watermark-live-preview-logo { position:absolute; display:block; pointer-events:none; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.12)); }
@@ -1863,18 +1895,18 @@
       <div class="pdf-viewer-page-wrap" id="pdfViewerPageWrap">
         <div class="page-swipe-preview pdf" id="pdfPagePreview"><canvas id="pdfPagePreviewCanvas" aria-label="Prévia da próxima página"></canvas></div>
         <canvas class="pdf-viewer-canvas" id="pdfViewerCanvas" aria-label="Página do PDF da música"></canvas>
-        <div class="pdf-watermark-layer hidden" id="pdfWatermarkLayer" aria-hidden="true">
-          <div class="pdf-watermark-cover" id="pdfWatermarkCover"></div>
-          <img class="pdf-watermark-logo" id="pdfWatermarkLogo" alt="Palco Pro" />
-        </div>
+      <div class="pdf-watermark-layer hidden" id="pdfWatermarkLayer" aria-hidden="true">
+        <div class="pdf-watermark-cover" id="pdfWatermarkCover"></div>
+        <img class="pdf-watermark-logo" id="pdfWatermarkLogo" alt="Palco Pro" />
+      </div>
       </div>
       <div class="pdf-viewer-page-indicator hidden" id="pdfViewerPageIndicator"></div>
     </div>
 
-    <div class="pdf-watermark-editor" id="pdfWatermarkEditor" aria-hidden="true">
+        <div class="pdf-watermark-editor" id="pdfWatermarkEditor" aria-hidden="true">
       <div class="pdf-watermark-editor-card">
         <h3 class="pdf-watermark-editor-title">Marca d’água do PDF</h3>
-        <p class="pdf-watermark-editor-note" id="pdfWatermarkEditorNote">Ajuste a marca somente para a música atualmente selecionada.</p>
+        <p class="pdf-watermark-editor-note" id="pdfWatermarkEditorNote">O modo automático procura a marca “letras★” na página e ajusta sua logo proporcionalmente.</p>
         <div class="pdf-watermark-live-preview" id="pdfWatermarkLivePreview">
           <canvas class="pdf-watermark-live-preview-canvas" id="pdfWatermarkPreviewCanvas" aria-label="Prévia do PDF com a marca do Palco Pro"></canvas>
           <div class="pdf-watermark-live-preview-cover" id="pdfWatermarkPreviewCover"></div>
@@ -1896,21 +1928,22 @@
           <div class="value-row"><span>Menor</span><strong id="pdfWatermarkSizeValue">13.5%</strong><span>Maior</span></div>
         </div>
         <div class="field">
-          <label for="pdfWatermarkPages">Aplicação</label>
+          <label for="pdfWatermarkPages">Aplicação manual</label>
           <select id="pdfWatermarkPages">
+            <option value="auto">Automático — detectar em cada página</option>
             <option value="first">Somente a primeira página</option>
             <option value="all">Todas as páginas</option>
           </select>
         </div>
         <div class="pdf-watermark-editor-actions">
-          <button class="ghost-btn" id="pdfWatermarkDefaultBtn" type="button">Usar padrão</button>
+          <button class="ghost-btn" id="pdfWatermarkDefaultBtn" type="button">Voltar ao automático</button>
           <button class="ghost-btn" id="pdfWatermarkCancelBtn" type="button">Cancelar</button>
           <button class="ghost-btn" id="pdfWatermarkSaveBtn" type="button">Salvar nesta música</button>
         </div>
       </div>
     </div>
 
-        <div class="library-screen" id="libraryPanel">
+    <div class="library-screen" id="libraryPanel">
       <div class="library-shell">
         <div class="library-header">
           <div class="library-title-wrap">
@@ -2049,10 +2082,10 @@
 
         <div class="field">
           <label>Marca d’água do PDF</label>
-          <div class="panel-note">A logo Palco Pro é aplicada sobre a marca do PDF. O ajuste manual fica salvo somente para a música selecionada.</div>
+          <div class="panel-note">O Palco Pro tenta localizar automaticamente a marca “letras★”. Ajustes manuais ficam salvos somente para a música atual.</div>
           <div class="small-row">
             <button class="ghost-btn" id="pdfWatermarkAdjustBtn" type="button">Ajustar neste PDF</button>
-            <button class="ghost-btn" id="pdfWatermarkResetSongBtn" type="button">Usar padrão nesta música</button>
+            <button class="ghost-btn" id="pdfWatermarkResetSongBtn" type="button">Usar automático nesta música</button>
           </div>
         </div>
 
@@ -2228,9 +2261,10 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = './catalogo.json';
-    const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
     const PALCO_PRO_WATERMARK_URL = './marca-dagua-palco-pro.png';
-    const PDF_WATERMARK_DEFAULT = Object.freeze({ enabled: true, x: 79.0, y: 3.8, width: 13.5, opacity: 0.94, pages: 'first' });
+    const PDF_WATERMARK_DEFAULT = Object.freeze({ enabled: true, mode: 'auto', x: 79.0, y: 3.8, width: 13.5, opacity: 0.96, pages: 'auto' });
+    const PDF_WATERMARK_DETECT_CACHE_LIMIT = 80;
+    const SUGGESTIONS_CACHE_KEY = 'palco-pro-suggestions-cache-v1';
 
     // === INTEGRAÇÃO COM GOOGLE APPS SCRIPT ===
     // Cole aqui a URL da implantação do seu Web App.
@@ -2253,8 +2287,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       currentTheme: 'original',
       editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
       lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '',
-      librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(),
-      pdfWatermarkEditing: null
+      librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(), pdfWatermarkDetectionCache: new Map(), pdfWatermarkEditing: null
     };
 
     const app = $('app');
@@ -2278,8 +2311,8 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const pdfViewerPageIndicator = $('pdfViewerPageIndicator');
     const pdfViewerNote = $('pdfViewerNote');
     const pdfWatermarkLayer = $('pdfWatermarkLayer');
-    const pdfWatermarkLogo = $('pdfWatermarkLogo');
     const pdfWatermarkCover = $('pdfWatermarkCover');
+    const pdfWatermarkLogo = $('pdfWatermarkLogo');
     const pdfWatermarkEditor = $('pdfWatermarkEditor');
     const pdfWatermarkEditorNote = $('pdfWatermarkEditorNote');
     const pdfWatermarkLivePreview = $('pdfWatermarkLivePreview');
@@ -3202,7 +3235,94 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
       if (settings.pdfWatermarkBySong && typeof settings.pdfWatermarkBySong === 'object') delete settings.pdfWatermarkBySong[id];
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      if (id) state.pdfWatermarkDetectionCache.forEach((_, key) => { if (String(key).startsWith(`${id}:`)) state.pdfWatermarkDetectionCache.delete(key); });
       applyPdfWatermark();
+    }
+    function getPdfWatermarkDetectionCacheKey(songId, pageNumber) {
+      return `${String(songId || '')}:${Number(pageNumber) || 1}`;
+    }
+    function getPdfImagePixelBounds(data, width, height, matcher) {
+      let minX = width, minY = height, maxX = -1, maxY = -1, count = 0;
+      for (let y = 0; y < height; y++) {
+        const row = y * width * 4;
+        for (let x = 0; x < width; x++) {
+          const i = row + x * 4;
+          if (!matcher(data[i], data[i + 1], data[i + 2], data[i + 3])) continue;
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+          count++;
+        }
+      }
+      return count ? { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1, count } : null;
+    }
+    function detectPdfWatermarkBounds(canvas) {
+      if (!canvas || !canvas.width || !canvas.height) return null;
+      let imageData;
+      try {
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return null;
+        const searchX = Math.max(0, Math.floor(canvas.width * 0.55));
+        const searchY = 0;
+        const searchW = canvas.width - searchX;
+        const searchH = Math.max(1, Math.floor(canvas.height * 0.20));
+        imageData = ctx.getImageData(searchX, searchY, searchW, searchH);
+      } catch (_) { return null; }
+
+      const yellow = getPdfImagePixelBounds(imageData.data, imageData.width, imageData.height, (r,g,b,a) => {
+        if (a < 180) return false;
+        const max = Math.max(r,g,b), min = Math.min(r,g,b);
+        const sat = max ? (max - min) / max : 0;
+        return r > 120 && g > 150 && b < 160 && (g - b) > 45 && (r - b) > 20 && sat > 0.30;
+      });
+      if (!yellow || yellow.count < 45 || yellow.width < 18 || yellow.height < 7) return null;
+
+      const aspect = yellow.width / Math.max(1, yellow.height);
+      if (aspect < 1.8 || aspect > 7.5) return null;
+
+      // The yellow "letras" word is the strongest stable marker. Expand upward
+      // to include the gray/blue "letras" branding while staying tightly bounded.
+      const expandTop = Math.max(5, Math.round(yellow.height * 0.38));
+      const expandX = Math.max(5, Math.round(yellow.width * 0.035));
+      const x = Math.max(0, searchX + yellow.x - expandX);
+      const y = Math.max(0, yellow.y - expandTop);
+      const right = Math.min(canvas.width, searchX + yellow.x + yellow.width + expandX);
+      const bottom = Math.min(canvas.height, yellow.y + yellow.height + Math.max(2, Math.round(yellow.height * 0.08)));
+      const bounds = { x, y, width: right - x, height: bottom - y };
+
+      return {
+        x: (bounds.x / canvas.width) * 100,
+        y: (bounds.y / canvas.height) * 100,
+        width: (bounds.width / canvas.width) * 100,
+        height: (bounds.height / canvas.height) * 100,
+        confidence: Math.min(1, yellow.count / 900)
+      };
+    }
+    function samplePdfBackgroundColor(canvas, bounds) {
+      if (!canvas || !bounds) return '#fff';
+      try {
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return '#fff';
+        const x = Math.max(0, Math.round(bounds.x));
+        const y = Math.max(0, Math.round(bounds.y));
+        const w = Math.max(1, Math.min(canvas.width - x, Math.round(bounds.width)));
+        const h = Math.max(1, Math.min(canvas.height - y, Math.round(bounds.height)));
+        const samples = [];
+        const probes = [
+          [x - 4, y + Math.floor(h * 0.20)], [x + w + 4, y + Math.floor(h * 0.20)],
+          [x + Math.floor(w * 0.20), y - 4], [x + Math.floor(w * 0.80), y - 4],
+          [x + Math.floor(w * 0.20), y + h + 4], [x + Math.floor(w * 0.80), y + h + 4]
+        ];
+        probes.forEach(([px,py]) => {
+          if (px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) return;
+          const d = ctx.getImageData(px, py, 1, 1).data;
+          samples.push([d[0], d[1], d[2]]);
+        });
+        if (!samples.length) return '#fff';
+        const avg = samples.reduce((acc, c) => [acc[0]+c[0], acc[1]+c[1], acc[2]+c[2]], [0,0,0]).map(v => Math.round(v / samples.length));
+        return `rgb(${avg[0]}, ${avg[1]}, ${avg[2]})`;
+      } catch (_) { return '#fff'; }
     }
     function updatePdfWatermarkLayerBounds() {
       if (!pdfWatermarkLayer || !pdfViewerCanvas || !pdfViewerPageWrap) return;
@@ -3214,23 +3334,75 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       pdfWatermarkLayer.style.left = `${canvasRect.left - wrapRect.left}px`;
       pdfWatermarkLayer.style.top = `${canvasRect.top - wrapRect.top}px`;
     }
-    function applyPdfWatermark() {
+    function getDetectedWatermarkForCurrentPage() {
+      const key = getPdfWatermarkDetectionCacheKey(state.currentSongId, state.pdfPage);
+      return state.pdfWatermarkDetectionCache.get(key) || null;
+    }
+    function rememberDetectedWatermark(songId, pageNumber, detection) {
+      const key = getPdfWatermarkDetectionCacheKey(songId, pageNumber);
+      if (state.pdfWatermarkDetectionCache.size >= PDF_WATERMARK_DETECT_CACHE_LIMIT) {
+        const oldest = state.pdfWatermarkDetectionCache.keys().next().value;
+        if (oldest) state.pdfWatermarkDetectionCache.delete(oldest);
+      }
+      state.pdfWatermarkDetectionCache.set(key, detection || null);
+    }
+    function applyPdfWatermark(detectionOverride = undefined) {
       if (!pdfWatermarkLayer || !pdfWatermarkLogo || !pdfViewerCanvas) return;
       const song = getSongById(state.currentSongId);
       const config = getPdfWatermarkConfig(state.currentSongId);
-      const show = !!song && !!state.pdfDoc && config.enabled && (config.pages === 'all' || (config.pages === 'first' && state.pdfPage === 1));
+      const manual = config.mode === 'manual';
+      let show = !!song && !!state.pdfDoc && config.enabled;
+      let x = Number(config.x), y = Number(config.y), width = Number(config.width), height = Math.max(0.8, width * 0.17);
+      if (manual) {
+        if (config.pages === 'first' && state.pdfPage !== 1) show = false;
+      } else {
+        const detection = detectionOverride !== undefined ? detectionOverride : getDetectedWatermarkForCurrentPage();
+        show = show && !!detection;
+        if (detection) {
+          x = detection.x; y = detection.y; width = detection.width; height = detection.height;
+        }
+      }
       if (pdfWatermarkLogo.getAttribute('src') !== PALCO_PRO_WATERMARK_URL) pdfWatermarkLogo.src = PALCO_PRO_WATERMARK_URL;
       pdfWatermarkLayer.classList.toggle('hidden', !show);
       pdfWatermarkLayer.setAttribute('aria-hidden', show ? 'false' : 'true');
       if (!show) return;
-      pdfWatermarkLayer.style.setProperty('--wm-x', `${Number(config.x)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-y', `${Number(config.y)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-w', `${Number(config.width)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-h', `${Math.max(0.8, Number(config.width) * 0.1575)}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-x', `${x}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-y', `${y}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-w', `${width}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-h', `${height}%`);
       pdfWatermarkLayer.style.setProperty('--wm-opacity', `${Math.max(0.2, Math.min(1, Number(config.opacity)))}`);
-      pdfWatermarkLayer.style.setProperty('--wm-cover-pad', `${Math.max(0.8, Number(config.width) * 0.018)}%`);
-      pdfWatermarkLayer.style.setProperty('--wm-cover-pad-y', `${Math.max(0.5, Number(config.width) * 0.028)}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-cover-pad-x', `${Math.max(0.7, width * 0.025)}%`);
+      pdfWatermarkLayer.style.setProperty('--wm-cover-pad-y', `${Math.max(0.4, height * 0.08)}%`);
+      if (manual) {
+        pdfWatermarkLayer.style.setProperty('--wm-cover-color', samplePdfBackgroundColor(pdfViewerCanvas, {
+          x: x / 100 * pdfViewerCanvas.width, y: y / 100 * pdfViewerCanvas.height,
+          width: width / 100 * pdfViewerCanvas.width, height: height / 100 * pdfViewerCanvas.height
+        }));
+      } else {
+        pdfWatermarkLayer.style.setProperty('--wm-cover-color', samplePdfBackgroundColor(pdfViewerCanvas, {
+          x: x / 100 * pdfViewerCanvas.width, y: y / 100 * pdfViewerCanvas.height,
+          width: width / 100 * pdfViewerCanvas.width, height: height / 100 * pdfViewerCanvas.height
+        }));
+      }
       requestAnimationFrame(updatePdfWatermarkLayerBounds);
+    }
+    async function detectAndApplyPdfWatermark() {
+      if (!state.pdfDoc || !pdfViewerCanvas || !state.currentSongId) return null;
+      const config = getPdfWatermarkConfig(state.currentSongId);
+      if (!config.enabled || config.mode === 'manual') {
+        applyPdfWatermark();
+        return null;
+      }
+      const cached = getDetectedWatermarkForCurrentPage();
+      if (cached !== null) {
+        applyPdfWatermark(cached);
+        return cached;
+      }
+      const detection = detectPdfWatermarkBounds(pdfViewerCanvas);
+      rememberDetectedWatermark(state.currentSongId, state.pdfPage, detection);
+      if (state.pdfWatermarkDetectionCache.size > PDF_WATERMARK_DETECT_CACHE_LIMIT) state.pdfWatermarkDetectionCache.clear();
+      applyPdfWatermark(detection);
+      return detection;
     }
     async function renderPdfWatermarkEditorPreview() {
       if (!pdfWatermarkPreviewCanvas || !pdfWatermarkLivePreview || !state.pdfDoc) return;
@@ -3249,62 +3421,131 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         if (!ctx) return;
         ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
         await page.render({ canvasContext: ctx, viewport }).promise;
-        updatePdfWatermarkEditorPreviewOverlay();
+        const detection = detectPdfWatermarkBounds(pdfWatermarkPreviewCanvas);
+        updatePdfWatermarkEditorPreviewOverlay(detection);
       } catch (_) {}
     }
-    function updatePdfWatermarkEditorPreviewOverlay() {
+    function updatePdfWatermarkEditorPreviewOverlay(detection = null) {
       if (!pdfWatermarkPreviewCanvas || !pdfWatermarkPreviewLogo || !pdfWatermarkPreviewCover) return;
       const containerRect = pdfWatermarkLivePreview.getBoundingClientRect();
       const canvasRect = pdfWatermarkPreviewCanvas.getBoundingClientRect();
-      const w = canvasRect.width; const h = canvasRect.height;
+      const w = canvasRect.width, h = canvasRect.height;
       if (!w || !h) return;
+      let xPct = Number(pdfWatermarkX?.value || PDF_WATERMARK_DEFAULT.x);
+      let yPct = Number(pdfWatermarkY?.value || PDF_WATERMARK_DEFAULT.y);
+      let widthPct = Number(pdfWatermarkSize?.value || PDF_WATERMARK_DEFAULT.width);
+      if (detection && !state.pdfWatermarkEditing?.manual) {
+        xPct = detection.x; yPct = detection.y; widthPct = detection.width;
+      }
       const canvasLeft = canvasRect.left - containerRect.left;
       const canvasTop = canvasRect.top - containerRect.top;
-      const x = canvasLeft + (Number(pdfWatermarkX.value) / 100 * w);
-      const y = canvasTop + (Number(pdfWatermarkY.value) / 100 * h);
-      const logoW = Number(pdfWatermarkSize.value) / 100 * w;
-      const logoH = logoW * 0.1575;
-      const padX = Math.max(2, logoW * 0.018);
-      const padY = Math.max(1, logoW * 0.028);
-      pdfWatermarkPreviewLogo.style.left = `${x}px`; pdfWatermarkPreviewLogo.style.top = `${y}px`; pdfWatermarkPreviewLogo.style.width = `${logoW}px`; pdfWatermarkPreviewLogo.style.height = 'auto';
-      pdfWatermarkPreviewCover.style.left = `${x - padX}px`; pdfWatermarkPreviewCover.style.top = `${y - padY}px`; pdfWatermarkPreviewCover.style.width = `${logoW + padX*2}px`; pdfWatermarkPreviewCover.style.height = `${logoH + padY*2}px`;
-      pdfWatermarkPreviewCover.style.display = (pdfWatermarkPages.value === 'first' && state.pdfPage !== 1) ? 'none' : 'block';
+      const x = canvasLeft + (xPct / 100 * w);
+      const y = canvasTop + (yPct / 100 * h);
+      const logoW = widthPct / 100 * w;
+      const logoH = logoW * 0.165;
+      const padX = Math.max(2, logoW * 0.025);
+      const padY = Math.max(1, logoH * 0.08);
+      pdfWatermarkPreviewLogo.style.left = `${x}px`;
+      pdfWatermarkPreviewLogo.style.top = `${y}px`;
+      pdfWatermarkPreviewLogo.style.width = `${logoW}px`;
+      pdfWatermarkPreviewLogo.style.height = 'auto';
+      pdfWatermarkPreviewCover.style.left = `${x - padX}px`;
+      pdfWatermarkPreviewCover.style.top = `${y - padY}px`;
+      pdfWatermarkPreviewCover.style.width = `${logoW + padX*2}px`;
+      pdfWatermarkPreviewCover.style.height = `${logoH + padY*2}px`;
+      pdfWatermarkPreviewCover.style.display = 'block';
+      if (pdfWatermarkEditorNote) {
+        pdfWatermarkEditorNote.textContent = detection && !state.pdfWatermarkEditing?.manual
+          ? `Marca detectada automaticamente nesta página. O tamanho foi calculado proporcionalmente ao PDF.`
+          : `Ajuste somente para “${getSongById(state.currentSongId)?.title || 'esta música'}”.`;
+      }
     }
     function updatePdfWatermarkEditorLabels() {
       if (pdfWatermarkXValue) pdfWatermarkXValue.textContent = `${Number(pdfWatermarkX.value).toFixed(1)}%`;
       if (pdfWatermarkYValue) pdfWatermarkYValue.textContent = `${Number(pdfWatermarkY.value).toFixed(1)}%`;
       if (pdfWatermarkSizeValue) pdfWatermarkSizeValue.textContent = `${Number(pdfWatermarkSize.value).toFixed(1)}%`;
-      updatePdfWatermarkEditorPreviewOverlay();
+      updatePdfWatermarkEditorPreviewOverlay(null);
     }
     async function openPdfWatermarkEditor() {
       if (!state.currentSongId || !state.pdfDoc) { showToast('Abra uma música com PDF para ajustar a marca.', 1700); return; }
-      const song = getSongById(state.currentSongId); const config = getPdfWatermarkConfig(state.currentSongId);
-      pdfWatermarkX.value = Number(config.x); pdfWatermarkY.value = Number(config.y); pdfWatermarkSize.value = Number(config.width); pdfWatermarkPages.value = config.pages || PDF_WATERMARK_DEFAULT.pages;
-      if (pdfWatermarkEditorNote) pdfWatermarkEditorNote.textContent = `Ajuste somente para “${song?.title || 'esta música'}”.`;
+      const song = getSongById(state.currentSongId);
+      const config = getPdfWatermarkConfig(state.currentSongId);
+      const detection = getDetectedWatermarkForCurrentPage() || detectPdfWatermarkBounds(pdfViewerCanvas);
+      const manual = config.mode === 'manual';
+      state.pdfWatermarkEditing = { manual };
+      const baseConfig = manual ? config : {
+        ...config,
+        x: detection?.x ?? config.x,
+        y: detection?.y ?? config.y,
+        width: detection?.width ?? config.width,
+        pages: config.pages || 'auto'
+      };
+      pdfWatermarkX.value = Number(baseConfig.x);
+      pdfWatermarkY.value = Number(baseConfig.y);
+      pdfWatermarkSize.value = Number(baseConfig.width);
+      pdfWatermarkPages.value = manual ? (config.pages || 'all') : 'auto';
       if (pdfWatermarkPreviewLogo.getAttribute('src') !== PALCO_PRO_WATERMARK_URL) pdfWatermarkPreviewLogo.src = PALCO_PRO_WATERMARK_URL;
       updatePdfWatermarkEditorLabels();
-      pdfWatermarkEditor?.classList.add('open'); pdfWatermarkEditor?.setAttribute('aria-hidden', 'false');
+      pdfWatermarkEditor?.classList.add('open');
+      pdfWatermarkEditor?.setAttribute('aria-hidden', 'false');
       await new Promise(requestAnimationFrame);
       await renderPdfWatermarkEditorPreview();
+      updatePdfWatermarkEditorPreviewOverlay(detection);
     }
     function closePdfWatermarkEditor() {
-      pdfWatermarkEditor?.classList.remove('open'); pdfWatermarkEditor?.setAttribute('aria-hidden', 'true');
+      pdfWatermarkEditor?.classList.remove('open');
+      pdfWatermarkEditor?.setAttribute('aria-hidden', 'true');
       state.pdfWatermarkEditing = null;
     }
     function resetPdfWatermarkEditorToDefault() {
-      pdfWatermarkX.value = PDF_WATERMARK_DEFAULT.x; pdfWatermarkY.value = PDF_WATERMARK_DEFAULT.y; pdfWatermarkSize.value = PDF_WATERMARK_DEFAULT.width; pdfWatermarkPages.value = PDF_WATERMARK_DEFAULT.pages;
+      const detection = detectPdfWatermarkBounds(pdfViewerCanvas);
+      state.pdfWatermarkEditing = { manual: false };
+      pdfWatermarkPages.value = 'auto';
+      pdfWatermarkX.value = Number(detection?.x ?? PDF_WATERMARK_DEFAULT.x);
+      pdfWatermarkY.value = Number(detection?.y ?? PDF_WATERMARK_DEFAULT.y);
+      pdfWatermarkSize.value = Number(detection?.width ?? PDF_WATERMARK_DEFAULT.width);
       updatePdfWatermarkEditorLabels();
+      updatePdfWatermarkEditorPreviewOverlay(detection);
     }
     function savePdfWatermarkFromEditor() {
       if (!state.currentSongId) return;
-      savePdfWatermarkConfig(state.currentSongId, { enabled: true, x: Number(pdfWatermarkX.value), y: Number(pdfWatermarkY.value), width: Number(pdfWatermarkSize.value), opacity: PDF_WATERMARK_DEFAULT.opacity, pages: pdfWatermarkPages.value || PDF_WATERMARK_DEFAULT.pages });
-      closePdfWatermarkEditor(); applyPdfWatermark(); showToast('Marca d’água ajustada para esta música', 1500);
+      const wantsAuto = pdfWatermarkPages.value === 'auto' && !state.pdfWatermarkEditing?.manual;
+      if (wantsAuto) {
+        resetPdfWatermarkConfig(state.currentSongId);
+        closePdfWatermarkEditor();
+        showToast('Detecção automática ativada nesta música', 1500);
+        return;
+      }
+      savePdfWatermarkConfig(state.currentSongId, {
+        enabled: true,
+        mode: 'manual',
+        x: Number(pdfWatermarkX.value),
+        y: Number(pdfWatermarkY.value),
+        width: Number(pdfWatermarkSize.value),
+        opacity: PDF_WATERMARK_DEFAULT.opacity,
+        pages: pdfWatermarkPages.value === 'first' ? 'first' : 'all'
+      });
+      closePdfWatermarkEditor();
+      applyPdfWatermark();
+      showToast('Marca d’água ajustada para esta música', 1500);
     }
     function bindPdfWatermarkUi() {
-      [pdfWatermarkX, pdfWatermarkY, pdfWatermarkSize].forEach(input => input?.addEventListener('input', updatePdfWatermarkEditorLabels));
-      pdfWatermarkPages?.addEventListener('change', updatePdfWatermarkEditorLabels);
+      [pdfWatermarkX, pdfWatermarkY, pdfWatermarkSize].forEach(input => input?.addEventListener('input', () => {
+        state.pdfWatermarkEditing = { manual: true };
+        updatePdfWatermarkEditorLabels();
+        const detected = detectPdfWatermarkBounds(pdfWatermarkPreviewCanvas);
+        updatePdfWatermarkEditorPreviewOverlay(null);
+      }));
+      pdfWatermarkPages?.addEventListener('change', () => {
+        state.pdfWatermarkEditing = { manual: pdfWatermarkPages.value !== 'auto' };
+        updatePdfWatermarkEditorLabels();
+      });
       pdfWatermarkAdjustBtn?.addEventListener('click', openPdfWatermarkEditor);
-      pdfWatermarkResetSongBtn?.addEventListener('click', () => { if (!state.currentSongId) { showToast('Abra uma música para ajustar a marca.', 1500); return; } resetPdfWatermarkConfig(state.currentSongId); showToast('Padrão restaurado para esta música', 1400); });
+      pdfWatermarkResetSongBtn?.addEventListener('click', () => {
+        if (!state.currentSongId) { showToast('Abra uma música para ajustar a marca.', 1500); return; }
+        resetPdfWatermarkConfig(state.currentSongId);
+        showToast('Detecção automática restaurada para esta música', 1500);
+      });
       pdfWatermarkDefaultBtn?.addEventListener('click', resetPdfWatermarkEditorToDefault);
       pdfWatermarkCancelBtn?.addEventListener('click', closePdfWatermarkEditor);
       pdfWatermarkSaveBtn?.addEventListener('click', savePdfWatermarkFromEditor);
@@ -3317,11 +3558,11 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       app?.classList.remove('page-swipe-active');
       state.pdfRenderToken += 1; state.pdfDoc = null; state.pdfPage = 1; state.pdfPageCount = 0; state.pdfSongId = '';
       pdfViewerScreen?.classList.remove('open'); pdfViewerScreen?.setAttribute('aria-hidden', 'true');
+      pdfWatermarkLayer?.classList.add('hidden');
+      pdfWatermarkLayer?.setAttribute('aria-hidden', 'true');
       pdfViewerPageIndicator?.classList.add('hidden');
       pdfViewerNote?.classList.add('hidden');
       if (pdfViewerNote) { pdfViewerNote.textContent = ''; pdfViewerNote.setAttribute('aria-hidden', 'true'); }
-      pdfWatermarkLayer?.classList.add('hidden');
-      pdfWatermarkLayer?.setAttribute('aria-hidden', 'true');
     }
     async function renderPdfPage(pageNumber = state.pdfPage) {
       if (!state.pdfDoc || !pdfViewerCanvas || !pdfViewerPageWrap) return;
@@ -3337,7 +3578,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle='#fff'; ctx.fillRect(0,0,viewport.width,viewport.height);
       await page.render({ canvasContext: ctx, viewport }).promise;
       if (pdfViewerPageIndicator) { pdfViewerPageIndicator.textContent = `Folha ${state.pdfPage} de ${state.pdfPageCount}`; pdfViewerPageIndicator.classList.remove('hidden'); }
-      applyPdfWatermark();
+      await detectAndApplyPdfWatermark();
     }
     function normalizePublicPdfUrl(url) {
       const value = String(url || '').trim();
@@ -4283,10 +4524,27 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (pdfRadio) pdfRadio.checked = preference === 'pdf';
       if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
     }
+
     function persistSettings() {
-      let existing = {};
-      try { existing = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...existing, fontSize: fontSize.value, stanzaSpacing: stanzaSpacing?.value || 2.1, lineHeight: lineHeight.value, textWidth: textWidth.value, overlayOpacity: overlayOpacity.value, baseSpeed: baseSpeed.value, voiceFollowSpeed: voiceFollowSpeed.value, mirror: state.mirror, voiceEnabled: voiceToggle.checked, librarySortMode: state.librarySortMode, libraryFilterValue: state.libraryFilterValue, theme: state.currentTheme, userName, readingPreference: getReadingPreference() }));
+      let previous = {};
+      try { previous = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) {}
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        fontSize: fontSize.value,
+        stanzaSpacing: stanzaSpacing?.value || 2.1,
+        lineHeight: lineHeight.value,
+        textWidth: textWidth.value,
+        overlayOpacity: overlayOpacity.value,
+        baseSpeed: baseSpeed.value,
+        voiceFollowSpeed: voiceFollowSpeed.value,
+        mirror: state.mirror,
+        voiceEnabled: voiceToggle.checked,
+        librarySortMode: state.librarySortMode,
+        libraryFilterValue: state.libraryFilterValue,
+        theme: state.currentTheme,
+        userName,
+        readingPreference: getReadingPreference(),
+        pdfWatermarkBySong: previous.pdfWatermarkBySong && typeof previous.pdfWatermarkBySong === 'object' ? previous.pdfWatermarkBySong : {}
+      }));
     }
     function renderUserName() {
       if (!userNameDisplay) return;
@@ -4937,7 +5195,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -5059,7 +5317,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         }
       });
     }
-    async function init() { registerServiceWorker(); bindPdfWatermarkUi(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
 </body>
