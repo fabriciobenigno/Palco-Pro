@@ -1492,10 +1492,21 @@
     }
 
     /* O salvar fica sempre depois da caixa da letra, sem sobreposição. */
+    .song-editor-panel .song-lyrics-field {
+      flex: 0 0 auto !important;
+      order: 0 !important;
+      min-height: auto !important;
+    }
     .song-editor-panel .save-song-field {
-      flex: 0 0 auto;
-      margin-top: 0 !important;
-      order: 99;
+      position: static !important;
+      flex: 0 0 auto !important;
+      width: 100% !important;
+      margin-top: 10px !important;
+      padding: 0 !important;
+      order: 1 !important;
+      align-self: stretch !important;
+      display: block !important;
+      transform: none !important;
     }
     .song-editor-panel .save-song-btn {
       width: 100%;
@@ -2214,9 +2225,9 @@
             <div class="panel-note" id="songPdfStatus">Sem PDF anexado. A letra cadastrada será usada na leitura.</div>
           </div>
 
-          <div class="field" style="flex:1; min-height: 0;">
+          <div class="field song-lyrics-field">
             <label for="scriptInput">Letra da música</label>
-            <textarea id="scriptInput" style="min-height: 220px;">Abra o repertório pelo ícone musical.
+            <textarea id="scriptInput" style="min-height: 220px; width: 100%; display: block;">Abra o repertório pelo ícone musical.
 
 Deslize uma música para a esquerda para revelar as ações.
 
