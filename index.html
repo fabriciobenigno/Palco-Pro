@@ -1491,6 +1491,30 @@
       min-width: 132px;
     }
 
+    /* O salvar fica sempre depois da caixa da letra, sem sobreposição. */
+    .song-editor-panel .save-song-field {
+      flex: 0 0 auto;
+      margin-top: 0 !important;
+      order: 99;
+    }
+    .song-editor-panel .save-song-btn {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(110, 230, 150, 0.55);
+      background: linear-gradient(180deg, #36c978 0%, #20a85d 100%);
+      color: #ffffff;
+      box-shadow: 0 12px 28px rgba(20, 160, 82, 0.24), inset 0 1px 0 rgba(255,255,255,0.16);
+      cursor: pointer;
+    }
+    .song-editor-panel .save-song-btn:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+    .song-editor-panel .save-song-btn:active {
+      transform: translateY(0);
+      filter: brightness(0.98);
+    }
+
     .suggestions-panel {
       z-index: 60;
       pointer-events: auto;
@@ -2201,8 +2225,9 @@ Use Editar para alterar uma música e abra a música para iniciar a leitura.
 Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</textarea>
           </div>
 
-          <div class="field" style="margin-top: 2px;">
-            <button class="ghost-btn" id="saveSongBtn">Salvar música</button>
+          <!-- Salvar música: propositalmente fica abaixo da caixa da letra. -->
+          <div class="field save-song-field">
+            <button class="ghost-btn save-song-btn" id="saveSongBtn" type="button">Salvar música</button>
           </div>
         </div>
       
