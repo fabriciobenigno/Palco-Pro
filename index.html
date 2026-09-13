@@ -2291,7 +2291,7 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       toastTimer: null, pdfOfflineFeedbackTimer: null, selectedSongActionId: null, revealedSongId: null, librarySortMode: 'alpha', libraryFilterValue: '', suggestionSongs: [], selectedSuggestionIds: [], suggestionsLoadedAt: 0,
       deferredInstallPrompt: null, installPromptAvailable: false,
       currentTheme: 'original',
-      editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
+      editingPdfData: '', pdfProcessing: false, editingPdfFileName: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
       lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '',
       librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(), pdfWatermarkDetectionCache: new Map(), pdfWatermarkEditing: null
     };
@@ -2307,6 +2307,9 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
     const artistInput = $('artistInput');
     const styleInput = $('styleInput');
     const noteInput = $('noteInput');
+    const WATERMARK_LOGO_URL = './marca-dagua-palco-pro.png';
+    const PDF_LIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+    const processedPdfFiles = new WeakSet();
     const attachSongPdfBtn = $('attachSongPdfBtn');
     const songPdfInput = $('songPdfInput');
     const removeSongPdfBtn = $('removeSongPdfBtn');
@@ -3279,10 +3282,18 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
 
     async function processAttachedPdfWithWatermark(file) {
       if (!window.pdfjsLib) throw new Error('O leitor de PDF ainda não está disponível.');
-      if (pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      if (pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
       const pdfLib = await loadExternalScriptOnce(PDF_LIB_URL, 'PDFLib');
       const originalBytes = new Uint8Array(await file.arrayBuffer());
-      const detectDoc = await pdfjsLib.getDocument({ data: originalBytes.slice() }).promise;
+      let detectDoc;
+      try {
+        detectDoc = await pdfjsLib.getDocument({ data: originalBytes.slice() }).promise;
+      } catch (workerError) {
+        console.warn('Falha no worker do PDF; tentando leitura local no navegador.', workerError);
+        detectDoc = await pdfjsLib.getDocument({ data: originalBytes.slice(), disableWorker: true }).promise;
+      }
       const outDoc = await pdfLib.PDFDocument.load(originalBytes);
       const logo = await outDoc.embedPng(await loadWatermarkLogoBytes());
       let detectedCount = 0;
@@ -3324,7 +3335,6 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
         showToast(error?.message || 'Não foi possível preparar o PDF.',2200);
       } finally { state.pdfProcessing=false; if(attachSongPdfBtn) attachSongPdfBtn.disabled=false; if(songPdfInput) songPdfInput.value=''; }
     }
-
     function getPdfWatermarkStore() {
       try {
         const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
@@ -3517,6 +3527,13 @@ O repertório salvo permanece disponível ao reabrir o app instalado.</textarea>
       if (!pdfWatermarkLayer || !pdfWatermarkCover || !pdfWatermarkLogo || !pdfViewerCanvas) return;
       const song = getSongById(state.currentSongId);
       const config = getPdfWatermarkConfig(state.currentSongId);
+      const songPdfData = String(song?.pdfData || '');
+      const embeddedProcessedPdf = songPdfData.startsWith('data:application/pdf') && state.editingPdfData === songPdfData;
+      if (embeddedProcessedPdf) {
+        pdfWatermarkLayer.classList.add('hidden');
+        pdfWatermarkLayer.setAttribute('aria-hidden', 'true');
+        return;
+      }
       const manual = config.mode === 'manual';
       let show = !!song && !!state.pdfDoc && config.enabled;
       let x = Number(config.x), y = Number(config.y), width = Number(config.width), height = Math.max(0.8, width * 0.17);
