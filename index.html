@@ -3405,7 +3405,21 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         const ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:true}); if(!ctx) continue;
         ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
         await pdfJsPage.render({canvasContext:ctx,viewport}).promise;
-        const box=detectWatermarkBoxFromCanvas(canvas); if(!box) continue;
+        let box=detectWatermarkBoxFromCanvas(canvas);
+        // Em computadores, alguns PDFs/combinações de renderização não permitem
+        // que a marca amarela seja detectada com a mesma tolerância do celular.
+        // Nesses casos usamos apenas no desktop a posição padrão do cabeçalho
+        // superior direito onde a marca original fica no modelo de partitura.
+        if(!box && window.matchMedia && window.matchMedia('(pointer:fine)').matches){
+          const fw=canvas.width, fh=canvas.height;
+          box={
+            x:Math.floor(fw*0.72),
+            y:Math.floor(fh*0.018),
+            width:Math.max(1,Math.floor(fw*0.24)),
+            height:Math.max(1,Math.floor(fh*0.075))
+          };
+        }
+        if(!box) continue;
         const page=outDoc.getPage(idx), pw=page.getWidth(), ph=page.getHeight();
         const x=box.x/scale, y=ph-(box.y+box.height)/scale, w=box.width/scale, h=box.height/scale, bg=sampleBackgroundColor(canvas,box);
         page.drawRectangle({x,y,width:w,height:h,color:pdfLib.rgb(bg.r,bg.g,bg.b)});
