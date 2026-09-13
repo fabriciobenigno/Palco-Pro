@@ -3318,9 +3318,34 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     }
 
     async function loadWatermarkLogoBytes() {
-      const response = await fetch(WATERMARK_LOGO_URL, { cache: 'no-store' });
-      if (!response.ok) throw new Error('A logo do Palco Pro não pôde ser carregada.');
-      return new Uint8Array(await response.arrayBuffer());
+      const urls = [];
+      try {
+        urls.push(new URL(WATERMARK_LOGO_URL, document.baseURI).href);
+      } catch (_) {}
+      try {
+        const absolute = new URL('./marca-dagua-palco-pro.png', window.location.href).href;
+        if (!urls.includes(absolute)) urls.push(absolute);
+      } catch (_) {}
+
+      let lastError = null;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, {
+            cache: 'reload',
+            credentials: 'same-origin'
+          });
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          const bytes = new Uint8Array(await response.arrayBuffer());
+          // PNG signature: evita tentar incorporar uma página HTML/cache corrompido como imagem.
+          if (bytes.length < 8 || bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4e || bytes[3] !== 0x47) {
+            throw new Error('O arquivo carregado não é um PNG válido.');
+          }
+          return bytes;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw new Error('A logo do Palco Pro não pôde ser carregada no navegador.' + (lastError?.message ? ' ' + lastError.message : ''));
     }
 
     function isWatermarkYellowPixel(r, g, b) {
