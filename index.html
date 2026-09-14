@@ -2121,6 +2121,14 @@
           <button class="more-options-toggle" id="moreOptionsBtn" type="button">Mais opções</button>
 
           <div class="more-options-panel" id="moreOptionsPanel">
+            <div class="toggle-row">
+              <span>Navegação ao deslizar</span>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.78);"><input id="swipeSongRadio" type="radio" name="swipeNavigation" value="song" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;"> Músicas</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.78);"><input id="swipeStanzaRadio" type="radio" name="swipeNavigation" value="stanza" style="width:16px;height:16px;margin:0;accent-color:#6cb7ff;"> Estrofes</label>
+              </div>
+            </div>
+            <div class="panel-note">Na opção Estrofes, o deslize horizontal avança ou retorna uma estrofe; nos limites, muda de música começando pela primeira estrofe.</div>
             <div class="field">
               <label for="fontSize">Tamanho da letra</label>
               <input id="fontSize" type="range" min="20" max="64" value="30" />
@@ -2361,6 +2369,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const state = {
       wasPlayingBeforeDrag: false,
       lines: [], flatWords: [], lineWords: [], lineWordStarts: [], currentLine: 0, scrollOffset: 0,
+      swipeNavigation: 'song',
       playing: false, rafId: null, lastFrameTs: 0, baseSpeed: 20, voiceFollowSpeed: 0.62,
       voiceBoostStrength: 30, voiceBoostDuration: 180, manualBoost: 0, temporaryBoostUntil: 0,
       voiceEnabled: false, recognitionReady: false, recognitionRunning: false, recognition: null,
@@ -2489,6 +2498,8 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const editUserNameBtn = $('editUserNameBtn');
     const userNameCard = $('userNameCard');
     const userNameDisplay = $('userNameDisplay');
+    const swipeSongRadio = $('swipeSongRadio');
+    const swipeStanzaRadio = $('swipeStanzaRadio');
 
     let userName = '';
 
@@ -4284,6 +4295,52 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (state.wasPlayingBeforeDrag) startScroll();
       state.wasPlayingBeforeDrag = false;
     }
+    function getCurrentVisualStanzaIndex() {
+      const lines = getLineElements();
+      if (!lines.length) return 0;
+      const contentRect = promptContent.getBoundingClientRect();
+      const guideY = contentRect.top + (contentRect.height * 0.42);
+      let bestIndex = Math.max(0, Math.min(state.currentLine, lines.length - 1));
+      let bestDistance = Infinity;
+      lines.forEach((line, index) => {
+        const rect = line.getBoundingClientRect();
+        const centerY = rect.top + (rect.height / 2);
+        const distance = Math.abs(centerY - guideY);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+      });
+      return bestIndex;
+    }
+    function placeStanzaForSwipe(index) {
+      const lines = getLineElements();
+      const target = lines[index];
+      if (!target) return;
+      const contentRect = promptContent.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const desiredY = contentRect.top + (contentRect.height * 0.42);
+      const currentY = targetRect.top + (targetRect.height / 2);
+      state.currentLine = Math.max(0, Math.min(index, lines.length - 1));
+      state.scrollOffset += desiredY - currentY;
+      applyScroll(false);
+      markLines();
+      captureAnchor();
+    }
+    async function navigateLyricsBySwipe(direction) {
+      if (getSwipeNavigationPreference() !== 'stanza') return false;
+      const lines = getLineElements();
+      if (!lines.length) return false;
+      const currentIndex = getCurrentVisualStanzaIndex();
+      const targetIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+      if (targetIndex >= 0 && targetIndex < lines.length) {
+        placeStanzaForSwipe(targetIndex);
+        return true;
+      }
+      if (direction === 'next') await nextSong();
+      else await previousSong();
+      return true;
+    }
     function bindTextDrag() {
       const SWIPE_MIN = 76;
       const SWIPE_RATIO = 0.24;
@@ -4413,16 +4470,22 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
           else return;
           if (gesture.axis === 'vertical') { gesture.verticalFallback = true; beginTextDrag(gesture.id, gesture.startY); moveTextDrag(gesture.y); return; }
           gesture.moved = true; app.classList.add('page-swipe-active');
-          requestPreview(dx < 0 ? 'next' : 'previous');
+          if (!(gesture.mode === 'lyrics' && getSwipeNavigationPreference() === 'stanza')) requestPreview(dx < 0 ? 'next' : 'previous');
         }
         if (gesture.axis === 'vertical') { moveTextDrag(gesture.y); return; }
         gesture.moved = true;
         const width = Math.max(280, window.innerWidth || 390); const clamped = Math.max(-width, Math.min(width, dx));
         const direction = dx < 0 ? 'next' : 'previous';
-        if (gesture.direction !== direction) requestPreview(direction);
 
-        // A LETRA mantém exatamente o comportamento visual aprovado.
+        // No modo atual, a letra mantém o efeito de troca de música.
+        // No modo Estrofes, o gesto apenas acompanha levemente o movimento e a troca acontece na soltura.
         if (gesture.mode === 'lyrics') {
+          if (getSwipeNavigationPreference() === 'stanza') {
+            setX(clamped * 0.08);
+            setPreviewX(direction === 'next' ? width : -width);
+            return;
+          }
+          if (gesture.direction !== direction) requestPreview(direction);
           setX(clamped);
           if (gesture.previewReady) {
             setPreviewX(direction === 'next' ? width + dx : -width + dx);
@@ -4503,9 +4566,19 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         const direction = dx < 0 ? 'next' : 'previous';
         const travel = direction === 'next' ? -width : width;
 
-        // Aprovado: a navegação da LETRA permanece exatamente com o efeito atual.
+        // A navegação da LETRA pode permanecer por música ou avançar por estrofes, conforme o ajuste.
         if (g.mode === 'lyrics') {
-          if (!passed) { app.classList.remove('page-swipe-active'); setX(0); setPreviewX(direction === 'next' ? width : -width); await new Promise(resolve => setTimeout(resolve, 285)); clearVisual(); if (g.wasPlaying) startScroll(); return; }
+          if (!passed) {
+            clearVisual();
+            if (g.wasPlaying) startScroll();
+            return;
+          }
+          if (getSwipeNavigationPreference() === 'stanza') {
+            clearVisual();
+            await navigateLyricsBySwipe(direction);
+            if (g.wasPlaying) startScroll();
+            return;
+          }
           app.classList.remove('page-swipe-active');
           if (g.previewPromise) await g.previewPromise.catch(() => false);
           setX(travel); setPreviewX(0); lyricsPagePreview?.classList.add('active');
@@ -4807,7 +4880,10 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (baseSpeed) baseSpeed.value = '20';
       if (voiceFollowSpeed) voiceFollowSpeed.value = '62';
       state.mirror = false;
+      state.swipeNavigation = 'song';
       if (mirrorToggle) mirrorToggle.checked = false;
+      if (swipeSongRadio) swipeSongRadio.checked = true;
+      if (swipeStanzaRadio) swipeStanzaRadio.checked = false;
       if (voiceToggle) voiceToggle.checked = false;
       state.baseSpeed = Number(baseSpeed?.value || 20);
       state.voiceFollowSpeed = Number(voiceFollowSpeed?.value || 62) / 100;
@@ -4841,6 +4917,15 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (pdfRadio) pdfRadio.checked = preference === 'pdf';
       if (lyricsRadio) lyricsRadio.checked = preference === 'lyrics';
     }
+    function getSwipeNavigationPreference() {
+      return state.swipeNavigation === 'stanza' ? 'stanza' : 'song';
+    }
+    function setSwipeNavigationPreference(value) {
+      state.swipeNavigation = value === 'stanza' ? 'stanza' : 'song';
+      if (swipeSongRadio) swipeSongRadio.checked = state.swipeNavigation === 'song';
+      if (swipeStanzaRadio) swipeStanzaRadio.checked = state.swipeNavigation === 'stanza';
+      persistSettings();
+    }
 
     function persistSettings() {
       let previous = {};
@@ -4860,6 +4945,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         theme: state.currentTheme,
         userName,
         readingPreference: getReadingPreference(),
+        swipeNavigation: getSwipeNavigationPreference(),
         pdfWatermarkBySong: previous.pdfWatermarkBySong && typeof previous.pdfWatermarkBySong === 'object' ? previous.pdfWatermarkBySong : {}
       }));
     }
@@ -4952,7 +5038,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       document.addEventListener('pointerdown', (event) => { if (!userNameSwipe.contains(event.target)) closeUserNameSwipe(); });
     }
     function persistCurrentDraft() { localStorage.setItem(CURRENT_KEY, JSON.stringify({ title: songTitleInput.value.trim(), artist: artistInput.value.trim(), style: styleInput.value.trim(), note: noteInput.value.trim(), lyrics: scriptInput.value, pdfData: state.editingPdfData || '' })); }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; if (saved.librarySortMode) state.librarySortMode = saved.librarySortMode; if (typeof saved.libraryFilterValue === 'string') state.libraryFilterValue = saved.libraryFilterValue; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (saved.swipeNavigation === 'stanza' || saved.swipeNavigation === 'song') { state.swipeNavigation = saved.swipeNavigation; } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; if (swipeSongRadio) swipeSongRadio.checked = state.swipeNavigation === 'song'; if (swipeStanzaRadio) swipeStanzaRadio.checked = state.swipeNavigation === 'stanza'; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
     function loadCurrentDraft() { try { const saved = JSON.parse(localStorage.getItem(CURRENT_KEY) || '{}'); if (saved.title) songTitleInput.value = saved.title; if (saved.artist) artistInput.value = saved.artist; if (saved.style) styleInput.value = saved.style; if (noteInput) noteInput.value = typeof saved.note === 'string' ? saved.note : ''; if (saved.lyrics) scriptInput.value = saved.lyrics; state.editingPdfData = typeof saved.pdfData === 'string' ? saved.pdfData : ''; updateSongPdfEditorUi(); } catch (_) {} }
     function saveSongs() { localStorage.setItem(getSongsStorageKey(), JSON.stringify(state.songs)); }
@@ -5574,7 +5660,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
       if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
-      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
+      librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); if (swipeSongRadio) swipeSongRadio.addEventListener('change', () => { if (swipeSongRadio.checked) setSwipeNavigationPreference('song'); }); if (swipeStanzaRadio) swipeStanzaRadio.addEventListener('change', () => { if (swipeStanzaRadio.checked) setSwipeNavigationPreference('stanza'); }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
