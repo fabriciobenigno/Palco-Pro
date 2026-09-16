@@ -2543,7 +2543,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.10.0';
+    const APP_VERSION = '1.11.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5825,16 +5825,43 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       }
       throw lastError || new Error('Não foi possível consultar a internet.');
     }
+    async function requestFastCrossBrowserJson(url, jsonpParam, timeoutMs) {
+      const limit = timeoutMs || 4500;
+      return await new Promise(function(resolve, reject) {
+        let settled = false;
+        let pending = 0;
+        const errors = [];
+        const finish = function(ok, value) {
+          if (settled) return;
+          if (ok) { settled = true; resolve(value); return; }
+          errors.push(value);
+          pending -= 1;
+          if (pending <= 0) {
+            settled = true;
+            reject(errors[0] || new Error('Não foi possível consultar a internet.'));
+          }
+        };
+        const launch = function(promise) {
+          pending += 1;
+          Promise.resolve(promise).then(function(value){ finish(true, value); }).catch(function(error){ finish(false, error); });
+        };
+        if (typeof fetch === 'function') {
+          launch(fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}}).then(function(response){
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+          }));
+        }
+        if (typeof XMLHttpRequest !== 'undefined') launch(requestJsonViaXhr(url, limit));
+        if (jsonpParam) launch(requestJsonViaJsonp(url, jsonpParam));
+        if (!pending) finish(false, new Error('Nenhum método de consulta disponível.'));
+      });
+    }
     async function searchItunesSource(titleQuery) {
       const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR';
-      // Estratégia retrocompatível: tenta JSONP primeiro (funciona sem CORS/fetch),
-      // e só recorre a fetch/XHR se o navegador bloquear o callback.
-      let data;
-      try {
-        data = await requestJsonViaJsonp(url, 'callback');
-      } catch (_) {
-        data = await requestInternetJson(url, { jsonp: 'callback', timeoutMs: 5500 });
-      }
+      // Estratégia retrocompatível: o mesmo endpoint rápido do ADM continua
+      // sendo a fonte principal. Fetch/XHR/JSONP são disparados em paralelo
+      // para que PC, Safari/iPhone e navegadores antigos usem o primeiro que responder.
+      const data = await requestFastCrossBrowserJson(url, 'callback', 4200);
       return (Array.isArray(data && data.results) ? data.results : []).map(function(item) {
         return { trackName: item.trackName || '', artistName: item.artistName || '', primaryGenreName: item.primaryGenreName || '', collectionName: item.collectionName || '', releaseDate: item.releaseDate || '', trackId: item.trackId || '', trackViewUrl: item.trackViewUrl || '', previewUrl: item.previewUrl || '', source: 'iTunes' };
       }).filter(function(item) { return normalizeExternalMusicText(item.trackName); });
@@ -6026,26 +6053,43 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       }
       const bytes=await doc.save({useObjectStreams:true}); return uint8ArrayToPdfDataUrl(bytes);
     }
-    async function openGeneratedSearchPdfPreview(dataUrl) {
-      if (!dataUrl || !window.pdfjsLib) { showToast('PDF não disponível para visualização.',1600); return; }
+    async function ensureMainPdfJsReady() {
+      if (window.pdfjsLib && typeof window.pdfjsLib.getDocument === 'function') return window.pdfjsLib;
       try {
+        await loadExternalScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', 'pdfjsLib');
+      } catch (_) {
+        try { await loadExternalScriptOnce('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js', 'pdfjsLib'); } catch (_) {}
+      }
+      if (!window.pdfjsLib || typeof window.pdfjsLib.getDocument !== 'function') throw new Error('O leitor de PDF não pôde ser carregado neste navegador.');
+      return window.pdfjsLib;
+    }
+    async function openGeneratedSearchPdfPreview(dataUrl) {
+      try {
+        if (!dataUrl || !String(dataUrl).startsWith('data:application/pdf')) {
+          showToast('PDF ainda não foi gerado. Aguarde o preenchimento automático.',1900);
+          return;
+        }
+        const lib = await ensureMainPdfJsReady();
+        lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const base64=String(dataUrl).split(',')[1]||'';
+        if (!base64) throw new Error('Dados do PDF inválidos.');
+        const binary=atob(base64);
+        const bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
         closePdfViewer();
-        if (pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        const base64 = String(dataUrl).split(',')[1] || '';
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
         state.pdfSongId='__search_preview__';
+        state.pdfUrl='';
         state.pdfPage=1;
-        state.pdfDoc=await pdfjsLib.getDocument({data:bytes}).promise;
+        state.pdfDoc=await lib.getDocument({data:bytes}).promise;
         state.pdfPageCount=state.pdfDoc.numPages||1;
         pdfViewerScreen?.classList.add('open');
         pdfViewerScreen?.setAttribute('aria-hidden','false');
+        if(pdfViewerPageIndicator){pdfViewerPageIndicator.textContent=`Folha 1 de ${state.pdfPageCount}`;pdfViewerPageIndicator.classList.remove('hidden');}
         await renderPdfPage(1,true);
       } catch (error) {
         console.error('Prévia PDF automático:',error);
         closePdfViewer();
-        showToast('Não foi possível abrir o PDF. Tente novamente.',1900);
+        showToast(error?.message||'Não foi possível abrir o PDF. Tente novamente.',2200);
       }
     }
     async function selectExternalMusicResult(index) {
