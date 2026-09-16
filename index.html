@@ -2279,11 +2279,17 @@
             <label for="scriptInput">Letra da música</label>
             <textarea id="scriptInput" style="min-height: 220px; width: 100%; display: block;">Abra o repertório pelo ícone musical.
 
-Deslize uma música para a esquerda para revelar as ações.
+Cadastre uma música manualmente ou toque em “Sugestões” para escolher músicas do nosso catálogo.
 
-Use Editar para alterar uma música e abra a música para iniciar a leitura.
+Crie suas próprias listas de repertório para diferentes apresentações e momentos.
 
-Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</textarea>
+Deslize uma música para a esquerda para acessar as ações disponíveis, como editar ou excluir.
+
+Toque em uma música para iniciar a leitura.
+
+Na tela principal, deslize para navegar entre músicas ou estrofes. Você pode escolher o comportamento do deslize em “Ajustes”.
+
+Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajustes”.</textarea>
           </div>
 
           <!-- Salvar música: propositalmente fica abaixo da caixa da letra. -->
@@ -2555,7 +2561,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.26.0';
+    const APP_VERSION = '1.29.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -4336,7 +4342,40 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       applyScroll(true);
     }
     function markLines() {}
-    function loadScript() { const raw = sanitizeLyrics(scriptInput.value); scriptInput.value = raw; const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean); state.lines = parts.length ? parts : ['Cole a letra da música no painel.']; state.lineWords = state.lines.map(splitWords); state.lineWordStarts = []; let runningWordIndex = 0; state.flatWords = []; state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; }); state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0; renderScript(); persistCurrentDraft(); }
+    function loadScript() {
+      let raw = sanitizeLyrics(scriptInput.value);
+      const approvedTutorial = [
+        'Abra o repertório pelo ícone musical.',
+        'Cadastre uma música manualmente ou toque em “Sugestões” para escolher músicas do nosso catálogo.',
+        'Crie suas próprias listas de repertório para diferentes apresentações e momentos.',
+        'Deslize uma música para a esquerda para acessar as ações disponíveis, como editar ou excluir.',
+        'Toque em uma música para iniciar a leitura.',
+        'Na tela principal, deslize para navegar entre músicas ou estrofes. Você pode escolher o comportamento do deslize em “Ajustes”.',
+        'Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajustes”.'
+      ].join('\n\n');
+      const oldTutorial = [
+        'Abra o repertório pelo ícone musical.',
+        'Deslize uma música para a esquerda para revelar as ações.',
+        'Use Editar para alterar uma música e abra a música para iniciar a leitura.',
+        'Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.'
+      ].join('\n\n');
+      if (!state.currentSongId && !songTitleInput.value.trim() && !artistInput.value.trim() && (!raw || raw === oldTutorial || raw === 'Cole a letra da música no painel.')) {
+        raw = approvedTutorial;
+        scriptInput.value = raw;
+      } else {
+        scriptInput.value = raw;
+      }
+      const parts = (raw || 'Cole a letra da música no painel.').split(/\n{2,}/).map(v => v.trim()).filter(Boolean);
+      state.lines = parts.length ? parts : ['Cole a letra da música no painel.'];
+      state.lineWords = state.lines.map(splitWords);
+      state.lineWordStarts = [];
+      let runningWordIndex = 0;
+      state.flatWords = [];
+      state.lineWords.forEach(words => { state.lineWordStarts.push(runningWordIndex); state.flatWords.push(...words); runningWordIndex += words.length; });
+      state.currentLine = 0; state.speechCursor = 0; state.scrollOffset = 0;
+      renderScript();
+      persistCurrentDraft();
+    }
     function applyScroll(immediate = false) { if (immediate) scriptInner.style.transition = 'none'; scriptInner.style.setProperty('--scroll-offset', `${state.scrollOffset}px`); if (immediate) requestAnimationFrame(() => { scriptInner.style.transition = 'transform 0.1s linear'; }); }
     function placeActiveLineAtStart() {}
     function placeActiveLineAtTop() {}
