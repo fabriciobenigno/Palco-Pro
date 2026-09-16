@@ -2557,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.20.0';
+    const APP_VERSION = '1.21.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5826,17 +5826,16 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     async function requestInternetJson(url, options) {
       const opts = options || {};
       let lastError = null;
+      try { return await requestUniversalJson(url, opts.timeoutMs || 8000); } catch (error) { lastError = error; }
       if (typeof fetch === 'function') {
         try {
-          const response = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store', headers: { Accept: 'application/json' } });
-          if (!response.ok) throw new Error('HTTP ' + response.status);
+          const response = await fetch(url,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'}});
+          if(!response.ok) throw new Error('HTTP '+response.status);
           return await response.json();
-        } catch (error) { lastError = error; }
+        } catch(error){ lastError=error; }
       }
-      try { return await requestJsonViaXhr(url, opts.timeoutMs || 6500); } catch (error) { lastError = error; }
-      if (opts.jsonp) {
-        try { return await requestJsonViaJsonp(url, opts.jsonp); } catch (error) { lastError = error; }
-      }
+      try { return await requestJsonViaXhr(url, opts.timeoutMs || 6500); } catch(error){ lastError=error; }
+      if(opts.jsonp){ try { return await requestJsonViaJsonp(url,opts.jsonp); } catch(error){ lastError=error; } }
       throw lastError || new Error('Não foi possível consultar a internet.');
     }
     async function requestFastCrossBrowserJson(url, jsonpParam, timeoutMs) {
@@ -5932,6 +5931,55 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         };
       }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
     }
+    // Camada única de acesso à internet: PC e iPhone consultam os mesmos gateways
+    // antes de tentar acesso direto. Isso elimina a diferença causada por CORS/Safari.
+    function requestUniversalText(targetUrl, timeoutMs) {
+      const url = String(targetUrl || '').trim();
+      const limit = timeoutMs || 8000;
+      if (!url) return Promise.reject(new Error('URL de consulta vazia.'));
+      const gateways = [
+        'https://r.jina.ai/http://' + url.replace(/^https?:\/\//i, ''),
+        'https://r.jina.ai/https://' + url.replace(/^https?:\/\//i, ''),
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
+      ];
+      return new Promise(function(resolve, reject) {
+        let finished = false, pending = gateways.length, errors = [];
+        const finish = function(ok, value) {
+          if (finished) return;
+          if (ok && String(value || '').trim()) { finished = true; resolve(String(value)); return; }
+          errors.push(value instanceof Error ? value : new Error('Resposta vazia.'));
+          pending -= 1;
+          if (pending <= 0) { finished = true; reject(errors[0] || new Error('Não foi possível consultar a internet.')); }
+        };
+        gateways.forEach(function(gateway) {
+          let done = false;
+          const localFail = function(err) { if(done) return; done=true; finish(false,err); };
+          const localOk = function(value) { if(done) return; done=true; finish(true,value); };
+          const timer = setTimeout(function(){ localFail(new Error('Tempo limite.')); }, limit);
+          const ok = function(v){ clearTimeout(timer); localOk(v); };
+          const fail = function(e){ clearTimeout(timer); localFail(e); };
+          if (typeof fetch === 'function') {
+            fetch(gateway,{method:'GET',cache:'no-store',headers:{Accept:'text/plain,application/json,*/*'}})
+              .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+              .then(ok).catch(fail);
+          } else if (typeof XMLHttpRequest !== 'undefined') {
+            try {
+              const x=new XMLHttpRequest(); x.open('GET',gateway,true);
+              x.onreadystatechange=function(){ if(x.readyState!==4)return; if(x.status>=200&&x.status<300)ok(x.responseText||''); else fail(new Error('HTTP '+x.status)); };
+              x.onerror=function(){ fail(new Error('Falha de rede.')); }; x.send();
+            } catch(e){ fail(e); }
+          } else fail(new Error('Nenhum método de consulta disponível.'));
+        });
+      });
+    }
+    async function requestUniversalJson(targetUrl, timeoutMs) {
+      const raw = await requestUniversalText(targetUrl, timeoutMs || 8000);
+      const text = String(raw || '').trim();
+      try { return JSON.parse(text); } catch (_) {}
+      const fenced = text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+      try { return JSON.parse(fenced); } catch (_) {}
+      throw new Error('Resposta JSON inválida.');
+    }
     function requestJsonViaAllOrigins(url, timeoutMs) {
       const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
       return new Promise(function(resolve, reject) {
@@ -5967,32 +6015,12 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     }
 
     async function searchItunesSourceRobust(query) {
-      const q = normalizeExternalMusicText(query);
-      if (!q) return [];
-      const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&media=music&entity=song&limit=50&country=BR';
-      // A mesma busca rápida do ADM, mas com estratégias concorrentes.
-      // No iPhone, se JSONP/fetch direto forem bloqueados, AllOrigins fornece
-      // a mesma resposta do iTunes sem depender do CORS da página do app.
-      const attempts = [];
-      attempts.push(requestJsonViaJsonp(url, 'callback'));
-      attempts.push(requestJsonViaAllOrigins(url, 6200));
-      if (typeof fetch === 'function') attempts.push(fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}}).then(function(response){ if(!response.ok) throw new Error('HTTP '+response.status); return response.json(); }));
-      if (typeof XMLHttpRequest !== 'undefined') attempts.push(requestJsonViaXhr(url, 6200));
-      return await new Promise(function(resolve){
-        let pending = attempts.length, done = false;
-        if (!pending) { resolve([]); return; }
-        attempts.forEach(function(promise){
-          Promise.resolve(promise).then(function(data){
-            if(done) return;
-            const rows = mapItunesSearchResults(data);
-            if(rows.length){ done=true; resolve(rows); return; }
-            pending -= 1; if(pending<=0){ done=true; resolve([]); }
-          }).catch(function(){
-            if(done) return;
-            pending -= 1; if(pending<=0){ done=true; resolve([]); }
-          });
-        });
-      });
+      const q=normalizeExternalMusicText(query);
+      if(!q) return [];
+      const url='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&media=music&entity=song&limit=50&country=BR';
+      try { const data=await requestUniversalJson(url,8000); const rows=mapItunesSearchResults(data); if(rows.length)return rows; } catch(_){}
+      try { const data=await requestFastCrossBrowserJson(url,'callback',5000); const rows=mapItunesSearchResults(data); if(rows.length)return rows; } catch(_){}
+      return [];
     }
     async function searchItunesSource(titleQuery) {
       return searchItunesSourceRobust(titleQuery);
@@ -6057,8 +6085,9 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const q = normalizeExternalMusicText(query);
       if (!q) return [];
       const queries = [
-        q + ' letra música',
-        q + ' cifra letra'
+        'site:cifraclub.com.br ' + q + ' letra',
+        'site:ouvirmusica.com.br ' + q + ' letra',
+        q + ' letra música'
       ];
       const out = [], seen = {};
       const add = function(item){
@@ -6066,46 +6095,35 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         if(!key || seen[key] || out.length>=30) return;
         seen[key]=true; out.push(item);
       };
-      const decodeEntities = function(value){
-        return String(value||'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+      const decode = function(v){
+        return String(v||'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\\\//g,'/');
       };
-      const fetchSearch = function(endpoint){
-        return new Promise(function(resolve,reject){
-          let settled=false;
-          const finish=function(ok,v){if(settled)return;settled=true;ok?resolve(v):reject(v);};
-          const timer=setTimeout(function(){finish(false,new Error('timeout'));},4500);
-          if(typeof fetch==='function'){
-            fetch(endpoint,{method:'GET',cache:'no-store',headers:{Accept:'text/plain,application/json,*/*'}}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(t){clearTimeout(timer);finish(true,t);}).catch(function(e){clearTimeout(timer);finish(false,e);});
-          } else if(typeof XMLHttpRequest!=='undefined'){
-            try{const x=new XMLHttpRequest();x.open('GET',endpoint,true);x.onreadystatechange=function(){if(x.readyState!==4)return;clearTimeout(timer);if(x.status>=200&&x.status<300)finish(true,x.responseText||'');else finish(false,new Error('HTTP '+x.status));};x.onerror=function(){clearTimeout(timer);finish(false,new Error('network'));};x.send();}catch(e){clearTimeout(timer);finish(false,e);}
-          } else {clearTimeout(timer);finish(false,new Error('no transport'));}
-        });
+      const parseSearchText = function(text){
+        const raw=String(text||'');
+        const markdown=/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+        let m;
+        while((m=markdown.exec(raw)) && out.length<30){
+          const label=decode(m[1]).replace(/\s+/g,' ').trim();
+          const href=m[2].replace(/[?#].*$/,'');
+          if(!label) continue;
+          if(!/^https?:\/\/(?:www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br|e-chords\.com|ukecifras\.com\.br)\//i.test(href)) continue;
+          const parts=href.replace(/^https?:\/\/(?:www\.)?/i,'').split('/').slice(1).filter(Boolean);
+          if(parts.length<2) continue;
+          let artist='',song='';
+          try { artist=decodeURIComponent(parts[0]).replace(/-/g,' '); song=decodeURIComponent(parts.slice(1).join(' ')).replace(/-/g,' '); } catch(_) { artist=parts[0].replace(/-/g,' '); song=parts.slice(1).join(' ').replace(/-/g,' '); }
+          song=song.replace(/\s+(?:\||·|•|—|-).*$/,'').trim();
+          if(song.length<2) song=label;
+          add({trackName:song,artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:href,trackViewUrl:href,previewUrl:'',source:/cifraclub\.com\.br/i.test(href)?'Cifra Club':'Ouvir Música',lyricsSource:href});
+        }
       };
-      const jobs=queries.map(function(searchQ){
-        return fetchSearch('https://s.jina.ai/'+encodeURIComponent(searchQ)).then(function(text){
-          const raw=String(text||'');
-          const lines=raw.split(/\r?\n/);
-          for(let i=0;i<lines.length&&out.length<30;i++){
-            let line=lines[i].trim(); if(!line)continue;
-            const m=line.match(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/);
-            if(!m)continue;
-            const label=decodeEntities(m[1]).replace(/\s+/g,' ').trim();
-            const href=m[2];
-            if(!/^https?:\/\/(?:www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br|e-chords\.com|ukecifras\.com\.br)\//i.test(href))continue;
-            const host=/^https?:\/\/(?:www\.)?([^\/]+)/i.exec(href); const domain=host?host[1].toLowerCase():'';
-            const path=href.replace(/^https?:\/\/(?:www\.)?/i,'').split('/').slice(1).filter(Boolean);
-            let artist='',song='';
-            if(/cifraclub\.com\.br/i.test(domain)&&path.length>=2){artist=decodeURIComponent(path[0]).replace(/-/g,' ');song=decodeURIComponent(path.slice(1).join(' ')).replace(/-/g,' ');}
-            else if(/ouvirmusica\.com\.br/i.test(domain)&&path.length>=2){artist=decodeURIComponent(path[0]).replace(/-/g,' ');song=decodeURIComponent(path.slice(1).join(' ')).replace(/-/g,' ');}
-            else if(path.length>=2){artist=decodeURIComponent(path[0]).replace(/-/g,' ');song=decodeURIComponent(path.slice(1).join(' ')).replace(/-/g,' ');}
-            if(!song) song=label;
-            song=song.replace(/\s+(\||·|•|—|-).*/,'').trim();
-            if(song.length>1)add({trackName:song,artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:href,trackViewUrl:href,previewUrl:'',source:'Busca na web'});
-          }
-          return out;
-        }).catch(function(){return out;});
+      const jobs=[];
+      queries.forEach(function(searchQ){
+        jobs.push(requestUniversalText('https://www.google.com/search?q='+encodeURIComponent(searchQ)+'&num=15',8000).then(parseSearchText).catch(function(){}));
+        jobs.push(requestUniversalText('https://www.bing.com/search?q='+encodeURIComponent(searchQ)+'&count=15',8000).then(parseSearchText).catch(function(){}));
+        jobs.push(requestUniversalText('https://r.jina.ai/http://www.google.com/search?q='+encodeURIComponent(searchQ)+'&num=15',8000).then(parseSearchText).catch(function(){}));
       });
-      return Promise.all(jobs).then(function(){return out;});
+      await Promise.all(jobs);
+      return out;
     }
 
     function buildMusicSearchVariants(rawQuery) {
