@@ -2557,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.17.0';
+    const APP_VERSION = '1.18.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5932,50 +5932,56 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         };
       }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
     }
-    function requestItunesSearchFast(titleQuery) {
-      const variants = [
-        'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=50&country=BR',
-        'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=50'
-      ];
-      const runVariant = function(url) {
-        return new Promise(function(resolve, reject) {
-          let settled = false, pending = 0, empty = 0, errors = [];
-          const finish = function(kind, value) {
-            if (settled) return;
-            if (kind === 'success' && Array.isArray(value) && value.length) { settled = true; resolve(value); return; }
-            if (kind === 'empty') empty += 1;
-            else errors.push(value);
-            pending -= 1;
-            if (pending <= 0) {
-              settled = true;
-              if (empty > 0) resolve([]);
-              else reject(errors[0] || new Error('Não foi possível consultar a internet.'));
-            }
-          };
-          const launch = function(promise) {
-            pending += 1;
-            Promise.resolve(promise).then(function(v){ finish((Array.isArray(v) && v.length) ? 'success' : 'empty', v); }, function(e){ finish('error', e); });
-          };
-          if (typeof fetch === 'function') {
-            launch(fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}}).then(function(response){
-              if (!response.ok) throw new Error('HTTP ' + response.status);
-              return response.json();
-            }).then(mapItunesSearchResults));
+    async function searchItunesSourceRobust(query) {
+      const q = normalizeExternalMusicText(query);
+      if (!q) return [];
+      const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&media=music&entity=song&limit=50&country=BR';
+      // O iTunes continua sendo a fonte principal, mas usamos JSONP como primeira
+      // estratégia porque ele não depende de CORS e funciona também quando o app
+      // está instalado como PWA/aberto em origem restrita. Fetch/XHR entram como
+      // fallback caso JSONP seja bloqueado pelo navegador/rede.
+      try {
+        const data = await requestJsonViaJsonp(url, 'callback');
+        const rows = mapItunesSearchResults(data);
+        if (rows.length) return rows;
+      } catch (_) {}
+      try {
+        const data = await requestJsonViaXhr(url, 4500);
+        const rows = mapItunesSearchResults(data);
+        if (rows.length) return rows;
+      } catch (_) {}
+      if (typeof fetch === 'function') {
+        try {
+          const response = await fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}});
+          if (response.ok) {
+            const rows = mapItunesSearchResults(await response.json());
+            if (rows.length) return rows;
           }
-          if (typeof XMLHttpRequest !== 'undefined') launch(requestJsonViaXhr(url, 4200).then(mapItunesSearchResults));
-          launch(requestJsonViaJsonp(url, 'callback').then(mapItunesSearchResults));
-          if (!pending) { settled = true; reject(new Error('Nenhum método de consulta disponível.')); }
-        });
-      };
-      return runVariant(variants[0]).catch(function(){ return runVariant(variants[1]); });
+        } catch (_) {}
+      }
+      return [];
+    }
+    async function searchItunesSource(titleQuery) {
+      return searchItunesSourceRobust(titleQuery);
     }
     async function searchLrcLibSource(titleQuery) {
-      const url = 'https://lrclib.net/api/search?track_name=' + encodeURIComponent(titleQuery);
-      const data = await requestInternetJson(url, {timeoutMs:3200});
-      const rows = Array.isArray(data) ? data : [];
-      return rows.map(function(item) {
-        return { trackName:item.trackName || item.name || '', artistName:item.artistName || item.artist || '', primaryGenreName:'', collectionName:item.albumName || '', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'LRCLIB' };
-      }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+      const q = normalizeExternalMusicText(titleQuery);
+      if (!q) return [];
+      const urls = [
+        'https://lrclib.net/api/search?q=' + encodeURIComponent(q),
+        'https://lrclib.net/api/search?track_name=' + encodeURIComponent(q)
+      ];
+      for (let i = 0; i < urls.length; i += 1) {
+        try {
+          const data = await requestInternetJson(urls[i], {timeoutMs:3200});
+          const rows = Array.isArray(data) ? data : [];
+          const mapped = rows.map(function(item) {
+            return { trackName:item.trackName || item.name || '', artistName:item.artistName || item.artist || '', primaryGenreName:'', collectionName:item.albumName || '', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'LRCLIB', plainLyrics:item.plainLyrics || '', syncedLyrics:item.syncedLyrics || '' };
+          }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+          if (mapped.length) return mapped;
+        } catch (_) {}
+      }
+      return [];
     }
     function buildMusicSearchVariants(rawQuery) {
       const raw = normalizeExternalMusicText(rawQuery);
@@ -6001,51 +6007,54 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       state.musicSearchResults = [];
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet... os resultados aparecerão conforme forem encontrados.';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = '🔎 Pesquisando na internet... os resultados vão aparecer assim que cada fonte responder.';
 
-      const variants = buildMusicSearchVariants(rawQuery);
       const maxResults = 30;
+      const variants = buildMusicSearchVariants(rawQuery);
       const mergeRowsLive = function(rows, hint) {
-        if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return false;
+        if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return;
         mergeExternalMusicSearchResults(rows, hint || rawQuery, '');
-        if (musicOnlineSearchStatus && requestId === state.musicSearchRequestId) {
-          if (state.musicSearchResults.length >= maxResults) {
-            musicOnlineSearchStatus.textContent = maxResults + ' resultados encontrados. Selecione a música correta.';
-          } else {
-            musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '… buscando mais.';
-          }
+        if (state.musicSearchResults.length >= maxResults) {
+          state.musicSearchResults = state.musicSearchResults.slice(0, maxResults);
+          renderExternalMusicResults();
         }
-        return state.musicSearchResults.length > 0;
+        if (musicOnlineSearchStatus && requestId === state.musicSearchRequestId) {
+          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '… buscando em outras fontes.';
+        }
       };
 
-      const jobs = [];
-      // Fonte principal do ADM: rápida, por nome da música/consulta livre.
-      // Disparamos as variantes em paralelo e cada resposta é incorporada
-      // imediatamente na lista, sem esperar todas as fontes.
-      for (let i = 0; i < variants.length; i += 1) {
-        const q = variants[i];
-        jobs.push(requestItunesSearchFast(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
+      // 1) Fonte principal do ADM. A primeira chamada é JSONP, igual para PC e
+      // celular. Como não depende de CORS, evita a diferença que estava ocorrendo
+      // entre Safari/iPhone e navegadores de desktop.
+      const primaryJobs = variants.map(function(q) {
+        return searchItunesSourceRobust(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; });
+      });
+
+      // 2) Fontes complementares em paralelo. LRCLIB usa "q" para também localizar
+      // trechos de letra; MusicBrainz ajuda em títulos/artistas; Deezer amplia o
+      // catálogo de gravações. Nada precisa terminar para a lista aparecer.
+      const complementaryJobs = [];
+      if (variants[0]) {
+        complementaryJobs.push(searchDeezerSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
+        complementaryJobs.push(searchMusicBrainzSource(variants[0], '').then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
+        complementaryJobs.push(searchLrcLibSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
       }
-      // Complementos: entram em paralelo e alimentam a mesma lista conforme
-      // cada serviço responde. Se já houver 30, as novas linhas são ignoradas
-      // pelo limite do merge.
-      for (let i = 0; i < variants.length; i += 1) {
-        const q = variants[i];
-        jobs.push(searchDeezerSource(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
-        jobs.push(searchMusicBrainzSource(q, '').then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
-        jobs.push(searchLrcLibSource(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
+      // Quando a primeira tentativa for uma frase longa de letra, uma versão curta
+      // adicional ajuda a encontrar a música sem explodir o número de requisições.
+      if (variants.length > 1) {
+        complementaryJobs.push(searchLrcLibSource(variants[1]).then(function(rows){ mergeRowsLive(rows, variants[1]); return rows; }).catch(function(){ return []; }));
       }
 
-      Promise.all(jobs).then(function(){
+      Promise.all(primaryJobs.concat(complementaryJobs)).then(function(){
         if (requestId !== state.musicSearchRequestId) return;
         if (!state.musicSearchResults.length) {
-          musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro trecho, o nome da música ou acrescente o artista.';
+          musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada nas fontes consultadas. Tente apenas parte do nome ou um trecho menor da letra.';
           musicOnlineSearchStatus.className = 'sync-status-note status-error';
         } else if (state.musicSearchResults.length >= maxResults) {
           musicOnlineSearchStatus.textContent = maxResults + ' resultados carregados. Selecione a música correta.';
           musicOnlineSearchStatus.className = 'sync-status-note';
         } else {
-          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Não há mais correspondências nas fontes consultadas.';
+          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Todas as fontes disponíveis terminaram.';
           musicOnlineSearchStatus.className = 'sync-status-note';
         }
       }).finally(function(){
@@ -6276,7 +6285,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       closePdfViewer();
       songTitleInput.value = title;
       artistInput.value = artist;
-      const immediateStyle = mapExternalGenreToRhythm(item.primaryGenreName || item.style || '') || normalizeExternalMusicText(item.primaryGenreName || item.style || '');
+      const immediateStyle = mapExternalGenreToRhythm(item.primaryGenreName || item.style || item.genre || '') || mapExternalGenreToRhythm((item.tags || []).map(function(v){ return v && v.name || v; }).join(' ')) || normalizeExternalMusicText(item.primaryGenreName || item.style || item.genre || '');
       styleInput.value = immediateStyle;
       scriptInput.value = '';
       state.editingPdfData = '';
