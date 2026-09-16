@@ -2542,7 +2542,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.7.0';
+    const APP_VERSION = '1.8.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5859,44 +5859,80 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         return { trackName: item.title || '', artistName: artist, primaryGenreName: '', collectionName: '', releaseDate: '', trackId: item.id || '', trackViewUrl: '', previewUrl: '', source: 'MusicBrainz', tags: (item.tags || []).concat(item.genres || []) };
       }).filter(function(item) { return normalizeExternalMusicText(item.trackName); });
     }
-    async function searchMusicOnlineFromMain() {
-      const titleQuery = normalizeExternalMusicText(musicSearchTitleInput && musicSearchTitleInput.value);
-      const artistQuery = normalizeExternalMusicText(musicSearchArtistInput && musicSearchArtistInput.value);
-      if (!titleQuery) { if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar na internet.'; if (musicSearchTitleInput) musicSearchTitleInput.focus(); return; }
-      const requestId = ++state.musicSearchRequestId;
-      state.musicSearchBusy = true;
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
-      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
-      const sources = [searchItunesSource, searchDeezerSource, searchMusicBrainzSource];
-      const all = [];
-      let successes = 0;
-      for (let i = 0; i < sources.length; i += 1) {
-        if (requestId !== state.musicSearchRequestId) return;
-        try {
-          const rows = i === 2 ? await sources[i](titleQuery, artistQuery) : await sources[i](titleQuery);
-          if (rows && rows.length) { successes += 1; all.push.apply(all, rows); }
-        } catch (error) { console.warn('Fonte de música indisponível:', error); }
-      }
-      if (requestId !== state.musicSearchRequestId) return;
+    function mergeExternalMusicSearchResults(rows, titleQuery, artistQuery) {
+      const incoming = Array.isArray(rows) ? rows : [];
+      const combined = (state.musicSearchResults || []).concat(incoming);
       const unique = {};
-      for (let i = 0; i < all.length; i += 1) {
-        const item = all[i];
+      for (let i = 0; i < combined.length; i += 1) {
+        const item = combined[i];
         const key = normalizeExternalMusicSearch((item.trackName || '') + '|' + (item.artistName || ''));
         if (!key) continue;
         if (!unique[key]) unique[key] = item;
       }
       const ranked = Object.keys(unique).map(function(key) { return unique[key]; }).sort(function(a,b) {
-        const sa = scoreExternalMusicResult(a,titleQuery,artistQuery), sb = scoreExternalMusicResult(b,titleQuery,artistQuery);
-        if (sa !== sb) return sb-sa;
-        return String(a.trackName||'').localeCompare(String(b.trackName||''),'pt-BR',{sensitivity:'base'});
+        const sa = scoreExternalMusicResult(a, titleQuery, artistQuery), sb = scoreExternalMusicResult(b, titleQuery, artistQuery);
+        if (sa !== sb) return sb - sa;
+        return String(a.trackName || '').localeCompare(String(b.trackName || ''), 'pt-BR', { sensitivity:'base' });
       });
       state.musicSearchResults = ranked.slice(0, 15);
-      if (!state.musicSearchResults.length) {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = successes ? 'Nenhuma correspondência encontrada. Tente outro nome ou informe o artista.' : 'Não foi possível consultar as fontes de música agora. Verifique a conexão e tente novamente.';
-      } else {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
-        renderExternalMusicResults();
+      renderExternalMusicResults();
+      if (musicOnlineSearchStatus && state.musicSearchResults.length) {
+        musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
+      }
+    }
+    async function searchMusicOnlineFromMain() {
+      const titleQuery = normalizeExternalMusicText(musicSearchTitleInput && musicSearchTitleInput.value);
+      const artistQuery = normalizeExternalMusicText(musicSearchArtistInput && musicSearchArtistInput.value);
+      if (!titleQuery) {
+        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar na internet.';
+        if (musicSearchTitleInput) musicSearchTitleInput.focus();
+        return;
+      }
+      const requestId = ++state.musicSearchRequestId;
+      state.musicSearchBusy = true;
+      state.musicSearchResults = [];
+      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
+      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
+
+      // Mantém o mesmo mecanismo principal do Index ADM: iTunes, com o nome da música
+      // como termo principal e o artista usado apenas para priorização. O resultado
+      // aparece assim que a primeira fonte responde; as fontes alternativas entram
+      // depois em segundo plano, sem deixar o usuário esperando por todas.
+      let primaryRows = [];
+      try {
+        primaryRows = await searchItunesSource(titleQuery);
+      } catch (error) {
+        primaryRows = [];
+      }
+      if (requestId !== state.musicSearchRequestId) return;
+      if (primaryRows.length) {
+        mergeExternalMusicSearchResults(primaryRows, titleQuery, artistQuery);
+      }
+
+      // Não bloqueia a interface aguardando fontes adicionais. Elas entram em segundo plano.
+      const fallbackSources = [
+        function(){ return searchDeezerSource(titleQuery); },
+        function(){ return searchMusicBrainzSource(titleQuery, artistQuery); }
+      ];
+      fallbackSources.forEach(function(loader) {
+        Promise.resolve().then(loader).then(function(rows) {
+          if (requestId !== state.musicSearchRequestId) return;
+          if (rows && rows.length) mergeExternalMusicSearchResults(rows, titleQuery, artistQuery);
+        }).catch(function(error) { console.warn('Fonte alternativa de música indisponível:', error); });
+      });
+
+      if (!primaryRows.length) {
+        // Aguarda somente uma pequena janela pela primeira alternativa. Se algo chegar,
+        // o resultado aparece; não impõe a soma dos tempos de todas as fontes.
+        const fallbackDeadline = Date.now() + 6500;
+        while (requestId === state.musicSearchRequestId && Date.now() < fallbackDeadline && !(state.musicSearchResults || []).length) {
+          await new Promise(function(resolve){ setTimeout(resolve, 120); });
+        }
+      }
+      if (requestId !== state.musicSearchRequestId) return;
+      if (!(state.musicSearchResults || []).length) {
+        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome ou informe o artista.';
       }
       state.musicSearchBusy = false;
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
