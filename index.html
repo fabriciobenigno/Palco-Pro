@@ -451,6 +451,10 @@
     .side-panel.open {
       display: flex;
     }
+    /* Ajustes continua utilizável quando o visualizador de PDF está aberto. */
+    .side-panel.pdf-overlay-open {
+      z-index: 10120;
+    }
 
     .side-panel .panel-title {
       width: 100%;
@@ -5060,7 +5064,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       app.classList.remove('detail-mode');
       $('detailPanel').classList.remove('open');
     }
-    function openPanel() { libraryPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
+    function openPanel() { libraryPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); sidePanel.classList.toggle('pdf-overlay-open', pdfViewerScreen.classList.contains('open')); }
     function resetUserAdjustments() {
       const wasOpen = moreOptionsWrap?.classList.contains('open');
       if (fontSize) fontSize.value = '30';
@@ -5086,7 +5090,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       showToast('Ajustes voltaram ao padrão', 1500);
       if (wasOpen) moreOptionsWrap?.classList.add('open');
     }
-    function hidePanel() { sidePanel.classList.remove('open'); }
+    function hidePanel() { sidePanel.classList.remove('open'); sidePanel.classList.remove('pdf-overlay-open'); }
     function toggleMoreOptions() { if (moreOptionsWrap) moreOptionsWrap.classList.toggle('open'); }
     function toggleThemes() { if (themesWrap) themesWrap.classList.toggle('open'); }
     function selectTheme(themeName) {
