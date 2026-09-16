@@ -1502,6 +1502,12 @@
     .music-search-submit-btn{
       width:100%;
       min-height:48px;
+      position:relative;
+      z-index:5;
+      pointer-events:auto !important;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
+      cursor:pointer;
     }
     .music-online-search-results{
       display:grid;
@@ -2423,7 +2429,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
             <input id="musicSearchArtistInput" type="text" placeholder="Ex.: Ivete Sangalo" autocomplete="off" />
           </div>
 
-          <button class="ghost-btn music-search-submit-btn" id="searchMusicOnlineSubmitBtn" type="button">🔎 Pesquisar</button>
+          <button class="ghost-btn music-search-submit-btn" id="searchMusicOnlineSubmitBtn" type="button" onclick="return window.palcoProSearchMusic && window.palcoProSearchMusic(event);">🔎 Pesquisar</button>
 
           <div class="sync-status-note" id="musicOnlineSearchStatus">Digite o nome da música para pesquisar.</div>
           <div class="music-online-search-results" id="musicOnlineSearchResults"></div>
@@ -2458,7 +2464,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
   <script>
     const $ = (id) => document.getElementById(id);
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
-    const APP_VERSION = '1.0.0';
+    const APP_VERSION = '1.0.1';
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
@@ -6240,6 +6246,18 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
 
     // Ligação direta dos controles da busca: mantém o toque/clique funcional em iPhone, Android e PC,
     // independentemente de qualquer outro listener do aplicativo.
+    // Entrada global da pesquisa: o botão também chama esta função diretamente pelo
+    // atributo onclick do próprio HTML. Isso evita depender da ordem de inicialização
+    // dos demais módulos do app e é compatível com Safari/iPhone, Android e desktop.
+    window.palcoProSearchMusic = function(event) {
+      try { if (event) event.preventDefault(); } catch (_) {}
+      Promise.resolve(searchMusicOnlineForMainEditor()).catch(function(error) {
+        console.error('Falha na pesquisa de música:', error);
+        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Não foi possível iniciar a pesquisa. Verifique a conexão e tente novamente.';
+      });
+      return false;
+    };
+
     function bindMusicSearchControls() {
       if (searchMusicOnlineBtn) {
         searchMusicOnlineBtn.onclick = function(event) {
@@ -6404,6 +6422,21 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         }
       });
     }
+    // Captura pointer/touch em fase de captura para garantir o acionamento mesmo
+    // quando algum elemento sobreposto do PWA interceptar o clique convencional.
+    window.addEventListener('pointerup', function(event) {
+      const btn = event.target && event.target.closest ? event.target.closest('#searchMusicOnlineSubmitBtn') : null;
+      if (!btn) return;
+      event.preventDefault();
+      window.palcoProSearchMusic(event);
+    }, true);
+    window.addEventListener('touchend', function(event) {
+      const btn = event.target && event.target.closest ? event.target.closest('#searchMusicOnlineSubmitBtn') : null;
+      if (!btn) return;
+      event.preventDefault();
+      window.palcoProSearchMusic(event);
+    }, { capture: true, passive: false });
+
     // Registra os controles da busca ANTES da inicialização geral.
     // Assim, se alguma rotina secundária da inicialização falhar em um navegador móvel,
     // o botão de pesquisa continua funcional.
