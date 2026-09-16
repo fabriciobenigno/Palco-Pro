@@ -5495,54 +5495,108 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar.';
     }
 
+    function requestItunesSearchCompat(titleQuery) {
+      const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR';
+      // Primeiro tenta Fetch (navegadores modernos). Se o ambiente bloquear CORS,
+      // usa JSONP, que também funciona em navegadores móveis mais antigos.
+      if (window.fetch) {
+        return fetch(url, { cache: 'no-store' })
+          .then(function(response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+          })
+          .catch(function() { return requestItunesJsonpCompat(url); });
+      }
+      return requestItunesJsonpCompat(url);
+    }
+
+    function requestItunesJsonpCompat(url) {
+      return new Promise(function(resolve, reject) {
+        var callbackName = '__palcoProItunes_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        var script = document.createElement('script');
+        var finished = false;
+        var timer = setTimeout(function() {
+          finish(new Error('Tempo esgotado ao consultar o catálogo musical.'));
+        }, 15000);
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+        function finish(error, data) {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          if (error) reject(error); else resolve(data);
+        }
+        window[callbackName] = function(data) { finish(null, data || {}); };
+        script.onerror = function() { finish(new Error('Não foi possível acessar o catálogo musical.')); };
+        script.src = url + '&callback=' + encodeURIComponent(callbackName);
+        script.async = true;
+        (document.head || document.documentElement).appendChild(script);
+      });
+    }
+
     async function searchMusicOnlineForMainEditor() {
       const titleQuery = normalize(musicSearchTitleInput?.value || '');
       const artistQuery = normalize(musicSearchArtistInput?.value || '');
       if (!titleQuery) {
         showToast('Digite o nome da música para pesquisar.', 1500);
-        musicSearchTitleInput?.focus();
+        if (musicSearchTitleInput) musicSearchTitleInput.focus();
         return;
       }
-      if (state.musicSearchController) { try { state.musicSearchController.abort(); } catch (_) {} }
-      const controller = new AbortController();
-      state.musicSearchController = controller;
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Buscando...'; }
+
+      // Um identificador simples torna a busca compatível com navegadores que não
+      // possuem AbortController, sem permitir que uma busca antiga sobrescreva a nova.
+      state.musicSearchRequestId = (state.musicSearchRequestId || 0) + 1;
+      const requestId = state.musicSearchRequestId;
+      if (searchMusicOnlineSubmitBtn) {
+        searchMusicOnlineSubmitBtn.disabled = true;
+        searchMusicOnlineSubmitBtn.textContent = 'Buscando...';
+      }
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Consultando catálogo musical...';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
+
       try {
-        const response = await fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR', { mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
-        if (!response.ok) throw new Error('A fonte de pesquisa respondeu com HTTP ' + response.status + '.');
-        const data = await response.json();
-        const results = (Array.isArray(data?.results) ? data.results : [])
-          .filter(item => normalize(item.trackName))
-          .map(item => ({
-            trackName: item.trackName || '',
-            artistName: item.artistName || '',
-            primaryGenreName: item.primaryGenreName || '',
-            collectionName: item.collectionName || '',
-            releaseDate: item.releaseDate || '',
-            trackId: item.trackId || '',
-            trackViewUrl: item.trackViewUrl || ''
-          }))
-          .sort((a, b) => {
+        const data = await requestItunesSearchCompat(titleQuery);
+        if (requestId !== state.musicSearchRequestId) return;
+        const results = (Array.isArray(data && data.results) ? data.results : [])
+          .filter(function(item) { return normalize(item && item.trackName); })
+          .map(function(item) {
+            return {
+              trackName: item.trackName || '',
+              artistName: item.artistName || '',
+              primaryGenreName: item.primaryGenreName || '',
+              collectionName: item.collectionName || '',
+              releaseDate: item.releaseDate || '',
+              trackId: item.trackId || '',
+              trackViewUrl: item.trackViewUrl || ''
+            };
+          })
+          .sort(function(a, b) {
             const sa = rankMusicSearchResultForMain(a, titleQuery, artistQuery);
             const sb = rankMusicSearchResultForMain(b, titleQuery, artistQuery);
             if (sa !== sb) return sb - sa;
-            return (a.trackName || '').localeCompare(b.trackName || '', 'pt-BR', { sensitivity: 'base' });
+            return (a.trackName || '').localeCompare((b.trackName || ''), 'pt-BR', { sensitivity: 'base' });
           });
+
         state.musicSearchResults = results.slice(0, 8);
         if (!state.musicSearchResults.length) {
           if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome.';
           renderMusicOnlineSearchResults();
           return;
         }
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = `${state.musicSearchResults.length} resultado${state.musicSearchResults.length === 1 ? '' : 's'} encontrado${state.musicSearchResults.length === 1 ? '' : 's'}. Selecione a música correta.`;
+        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
         renderMusicOnlineSearchResults();
       } catch (error) {
-        if (error?.name !== 'AbortError' && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Não foi possível consultar a internet agora: ' + (error?.message || 'erro desconhecido') + '.';
+        if (requestId === state.musicSearchRequestId && musicOnlineSearchStatus) {
+          musicOnlineSearchStatus.textContent = 'Não foi possível consultar a internet agora. Verifique a conexão e tente novamente.';
+        }
       } finally {
-        if (state.musicSearchController === controller) state.musicSearchController = null;
-        if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
+        if (requestId === state.musicSearchRequestId && searchMusicOnlineSubmitBtn) {
+          searchMusicOnlineSubmitBtn.disabled = false;
+          searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar';
+        }
       }
     }
 
