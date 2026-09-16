@@ -451,10 +451,6 @@
     .side-panel.open {
       display: flex;
     }
-    /* Ajustes continua utilizável quando o visualizador de PDF está aberto. */
-    .side-panel.pdf-overlay-open {
-      z-index: 10120;
-    }
 
     .side-panel .panel-title {
       width: 100%;
@@ -702,14 +698,6 @@
       padding: var(--safe-top) 0 var(--safe-bottom);
     }
     .pdf-viewer-screen.open { display: flex; align-items: center; justify-content: center; }
-    /* Os controles principais continuam disponíveis sobre o PDF, como na tela de letra. */
-    .pdf-viewer-screen.open ~ .controls-bar {
-      z-index: 10100;
-      pointer-events: auto;
-    }
-    .pdf-viewer-screen.open ~ .library-screen.open {
-      z-index: 10080;
-    }
     .pdf-viewer-close-btn { position:fixed; top:calc(var(--safe-top) + 12px); right:14px; z-index:10090; width:46px; height:46px; border:0; border-radius:50%; background:#d71920; color:#fff; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900; line-height:1; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 6px 20px rgba(0,0,0,.28); }
     .pdf-viewer-close-btn:active { transform:scale(.95); }
     .pdf-viewer-page-wrap {
@@ -2573,7 +2561,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.31.0';
+    const APP_VERSION = '1.33.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5064,7 +5052,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       app.classList.remove('detail-mode');
       $('detailPanel').classList.remove('open');
     }
-    function openPanel() { libraryPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); sidePanel.classList.toggle('pdf-overlay-open', pdfViewerScreen.classList.contains('open')); }
+    function openPanel() { libraryPanel.classList.remove('open'); songEditorPanel.classList.remove('open'); hideSuggestionsPanel(); sidePanel.classList.add('open'); }
     function resetUserAdjustments() {
       const wasOpen = moreOptionsWrap?.classList.contains('open');
       if (fontSize) fontSize.value = '30';
@@ -5090,7 +5078,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       showToast('Ajustes voltaram ao padrão', 1500);
       if (wasOpen) moreOptionsWrap?.classList.add('open');
     }
-    function hidePanel() { sidePanel.classList.remove('open'); sidePanel.classList.remove('pdf-overlay-open'); }
+    function hidePanel() { sidePanel.classList.remove('open'); }
     function toggleMoreOptions() { if (moreOptionsWrap) moreOptionsWrap.classList.toggle('open'); }
     function toggleThemes() { if (themesWrap) themesWrap.classList.toggle('open'); }
     function selectTheme(themeName) {
