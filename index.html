@@ -705,6 +705,19 @@
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       overflow: hidden; background: rgba(0,0,0,0.12);
     }
+    .pdf-search-all-pages {
+      position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; gap: 16px;
+      overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      touch-action: pan-y; padding: 74px 8px 86px; box-sizing: border-box;
+      background: rgba(0,0,0,0.12);
+    }
+    .pdf-search-all-pages.active { display: flex; }
+    .pdf-search-all-pages canvas {
+      display: block; width: min(100%, 595px); height: auto; max-width: 100%; flex: 0 0 auto;
+      background: #fff; box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+    }
+    .pdf-search-preview-active .pdf-viewer-canvas,
+    .pdf-search-preview-active .page-swipe-preview { display: none !important; }
     .pdf-viewer-canvas {
       position: relative; z-index: 2;
       display: block; background: #fff; max-width: 100%; max-height: 100%;
@@ -2547,7 +2560,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.13.0';
+    const APP_VERSION = '1.15.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -3964,6 +3977,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     }
 
     function closePdfViewer() {
+      clearSearchPdfAllPages();
       document.documentElement.style.setProperty('--page-swipe-x', '0px');
       app?.classList.remove('page-swipe-active');
       state.pdfRenderToken += 1; state.pdfDoc = null; state.pdfPage = 1; state.pdfPageCount = 0; state.pdfSongId = '';
@@ -5912,6 +5926,61 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
       }
     }
+    function mapItunesSearchResults(data) {
+      const results = Array.isArray(data && data.results) ? data.results : [];
+      return results.map(function(item) {
+        return {
+          trackName: item.trackName || '', artistName: item.artistName || '', primaryGenreName: item.primaryGenreName || '',
+          collectionName: item.collectionName || '', releaseDate: item.releaseDate || '', trackId: item.trackId || '',
+          trackViewUrl: item.trackViewUrl || '', previewUrl: item.previewUrl || '', source: 'iTunes'
+        };
+      }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+    }
+    function requestItunesSearchFast(titleQuery) {
+      const variants = [
+        'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=50&country=BR',
+        'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=50'
+      ];
+      const runVariant = function(url) {
+        return new Promise(function(resolve, reject) {
+          let settled = false, pending = 0, empty = 0, errors = [];
+          const finish = function(kind, value) {
+            if (settled) return;
+            if (kind === 'success' && Array.isArray(value) && value.length) { settled = true; resolve(value); return; }
+            if (kind === 'empty') empty += 1;
+            else errors.push(value);
+            pending -= 1;
+            if (pending <= 0) {
+              settled = true;
+              if (empty > 0) resolve([]);
+              else reject(errors[0] || new Error('Não foi possível consultar a internet.'));
+            }
+          };
+          const launch = function(promise) {
+            pending += 1;
+            Promise.resolve(promise).then(function(v){ finish((Array.isArray(v) && v.length) ? 'success' : 'empty', v); }, function(e){ finish('error', e); });
+          };
+          if (typeof fetch === 'function') {
+            launch(fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}}).then(function(response){
+              if (!response.ok) throw new Error('HTTP ' + response.status);
+              return response.json();
+            }).then(mapItunesSearchResults));
+          }
+          if (typeof XMLHttpRequest !== 'undefined') launch(requestJsonViaXhr(url, 4200).then(mapItunesSearchResults));
+          launch(requestJsonViaJsonp(url, 'callback').then(mapItunesSearchResults));
+          if (!pending) { settled = true; reject(new Error('Nenhum método de consulta disponível.')); }
+        });
+      };
+      return runVariant(variants[0]).catch(function(){ return runVariant(variants[1]); });
+    }
+    async function searchLrcLibSource(titleQuery) {
+      const url = 'https://lrclib.net/api/search?track_name=' + encodeURIComponent(titleQuery);
+      const data = await requestInternetJson(url, {timeoutMs:3200});
+      const rows = Array.isArray(data) ? data : [];
+      return rows.map(function(item) {
+        return { trackName:item.trackName || item.name || '', artistName:item.artistName || item.artist || '', primaryGenreName:'', collectionName:item.albumName || '', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'LRCLIB' };
+      }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+    }
     async function searchMusicOnlineFromMain() {
       if (state.musicSearchBusy) return;
       const titleQuery = normalizeExternalMusicText(musicSearchTitleInput && musicSearchTitleInput.value);
@@ -5921,50 +5990,60 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         musicSearchTitleInput?.focus();
         return;
       }
-
       const requestId = ++state.musicSearchRequestId;
       state.musicSearchBusy = true;
       state.musicSearchResults = [];
-      musicOnlineSearchResults && (musicOnlineSearchResults.innerHTML = '');
+      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando primeiro pelo nome da música...';
 
       const addResults = function(rows) {
-        if (requestId !== state.musicSearchRequestId) return false;
-        if (!Array.isArray(rows) || !rows.length) return false;
+        if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return false;
         mergeExternalMusicSearchResults(rows, titleQuery, artistQuery);
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Resultados encontrados. Selecione a música correta.';
         return true;
       };
+      try {
+        // Fonte primária: exatamente o mesmo catálogo/endpoint do ADM aprovado.
+        const primaryRows = await requestItunesSearchFast(titleQuery);
+        if (requestId !== state.musicSearchRequestId) return;
+        const gotPrimary = addResults(primaryRows);
+        if (gotPrimary && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Resultados encontrados. Selecione a gravação correta.';
 
-      const primary = function() {
-        const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR';
-        return requestInternetJson(url, { timeoutMs: 3500, jsonp: 'callback' }).then(function(data) {
-          return (Array.isArray(data && data.results) ? data.results : []).map(function(item) {
-            return { trackName:item.trackName||'', artistName:item.artistName||'', primaryGenreName:item.primaryGenreName||'', collectionName:item.collectionName||'', releaseDate:item.releaseDate||'', trackId:item.trackId||'', trackViewUrl:item.trackViewUrl||'', previewUrl:item.previewUrl||'', source:'iTunes' };
-          }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+        // Complementos em segundo plano. Não bloqueiam a exibição dos resultados principais.
+        const complements = [];
+        complements.push(searchDeezerSource(titleQuery).catch(function(){ return []; }));
+        complements.push(searchMusicBrainzSource(titleQuery, artistQuery).catch(function(){ return []; }));
+        complements.push(searchLrcLibSource(titleQuery).catch(function(){ return []; }));
+        Promise.all(complements).then(function(extra) {
+          if (requestId !== state.musicSearchRequestId) return;
+          for (let i = 0; i < extra.length; i += 1) addResults(extra[i]);
         });
-      };
-      const backupPrimary = function() {
-        const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25';
-        return requestInternetJson(url, { timeoutMs: 3500, jsonp: 'callback' }).then(function(data) {
-          return (Array.isArray(data && data.results) ? data.results : []).map(function(item) {
-            return { trackName:item.trackName||'', artistName:item.artistName||'', primaryGenreName:item.primaryGenreName||'', collectionName:item.collectionName||'', releaseDate:item.releaseDate||'', trackId:item.trackId||'', trackViewUrl:item.trackViewUrl||'', previewUrl:item.previewUrl||'', source:'iTunes' };
-          }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
-        });
-      };
-
-      let firstSuccess = false;
-      const attempts = [primary(), backupPrimary(), searchDeezerSource(titleQuery), searchMusicBrainzSource(titleQuery, artistQuery)];
-      await Promise.all(attempts.map(function(p){
-        return Promise.resolve(p).then(function(rows){ if (!firstSuccess && addResults(rows)) firstSuccess = true; else if (Array.isArray(rows) && rows.length) addResults(rows); }).catch(function(err){ console.warn('Fonte de pesquisa indisponível:', err); });
-      }));
-
-      if (requestId === state.musicSearchRequestId && !(state.musicSearchResults || []).length) {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Nenhuma música encontrada. Tente novamente usando apenas o nome da música ou acrescente o artista.';
+        if (!gotPrimary && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Buscando correspondências adicionais na internet...';
+      } catch (error) {
+        if (requestId !== state.musicSearchRequestId) return;
+        console.warn('iTunes indisponível, usando fontes complementares:', error);
+        try {
+          const [deezer, mb, lrclib] = await Promise.all([
+            searchDeezerSource(titleQuery).catch(function(){ return []; }),
+            searchMusicBrainzSource(titleQuery, artistQuery).catch(function(){ return []; }),
+            searchLrcLibSource(titleQuery).catch(function(){ return []; })
+          ]);
+          if (requestId !== state.musicSearchRequestId) return;
+          const got = addResults(deezer) || addResults(mb) || addResults(lrclib);
+          if (!got) {
+            musicOnlineSearchStatus.textContent = 'A internet não retornou resultados agora. Tente novamente em alguns segundos ou use o nome da música sem o artista.';
+            musicOnlineSearchStatus.className = 'sync-status-note status-error';
+          }
+        } catch (_) {
+          if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'A pesquisa não recebeu uma resposta da internet. Tente novamente.';
+          if (musicOnlineSearchStatus) musicOnlineSearchStatus.className = 'sync-status-note status-error';
+        }
+      } finally {
+        if (requestId === state.musicSearchRequestId) {
+          state.musicSearchBusy = false;
+          if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
+        }
       }
-      state.musicSearchBusy = false;
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
     }
     function openMusicSearchPanel() {
       hidePanel();
@@ -6010,22 +6089,41 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         return synced ? sanitizeLyrics(synced.split('\n').map(function(line){ return line.replace(/^\s*\[[^\]]+\]\s*/, '').trim(); }).filter(Boolean).join('\n')) : '';
       } catch (_) { return ''; }
     }
+    function mapExternalGenreToRhythm(value) {
+      const text = normalizeExternalMusicSearch(value || '');
+      const map = [
+        ['samba-enredo','Samba-enredo'],['samba','Samba'],['pagode','Pagode'],['axé','Axé'],['axe','Axé'],['forró','Forró'],['forro','Forró'],['arrocha','Arrocha'],['brega','Brega'],['frevo','Frevo'],['maracatu','Maracatu'],['coco','Coco'],['carimbó','Carimbó'],['carimbo','Carimbó'],['sertanejo','Sertanejo'],['modão','Modão'],['modao','Modão'],['reggae','Reggae'],['ska','Ska'],['rock','Rock'],['pop','Pop'],['funk','Funk'],['rap','Rap'],['hip hop','Hip Hop'],['trap','Trap'],['r&b','R&B'],['soul','Soul'],['blues','Blues'],['jazz','Jazz'],['bossa nova','Bossa Nova'],['bolero','Bolero'],['salsa','Salsa'],['merengue','Merengue'],['bachata','Bachata'],['cumbia','Cumbia'],['gospel','Gospel'],['house','House'],['techno','Techno'],['eletrônica','Eletrônica'],['electronica','Eletrônica'],['mpb','MPB'],['brazilian music','Brasileira'],['brasileira','Brasileira'],['brazilian','Brasileira']
+      ];
+      for(let i=0;i<map.length;i++) if(text===normalizeExternalMusicSearch(map[i][0]) || text.indexOf(normalizeExternalMusicSearch(map[i][0]))>=0) return map[i][1];
+      return '';
+    }
     async function fetchExternalRhythm(item,title,artist) {
-      const fallback = normalizeExternalMusicText(item && (item.primaryGenreName || item.style) || '');
-      const map = [ ['axé','Axé'],['axe','Axé'],['samba-enredo','Samba-enredo'],['samba','Samba'],['pagode','Pagode'],['forró','Forró'],['forro','Forró'],['arrocha','Arrocha'],['brega','Brega'],['frevo','Frevo'],['maracatu','Maracatu'],['coco','Coco'],['carimbó','Carimbó'],['carimbo','Carimbó'],['sertanejo','Sertanejo'],['modão','Modão'],['modao','Modão'],['reggae','Reggae'],['ska','Ska'],['rock','Rock'],['pop','Pop'],['funk','Funk'],['rap','Rap'],['hip hop','Hip Hop'],['trap','Trap'],['r&b','R&B'],['soul','Soul'],['blues','Blues'],['jazz','Jazz'],['bossa nova','Bossa Nova'],['bolero','Bolero'],['salsa','Salsa'],['merengue','Merengue'],['bachata','Bachata'],['cumbia','Cumbia'],['gospel','Gospel'],['house','House'],['techno','Techno'],['eletrônica','Eletrônica'],['electronica','Eletrônica'],['mpb','MPB'],['brasileira','Brasileira'],['brazilian','Brasileira'] ];
-      const pick = function(values){ const names=(values||[]).map(function(v){ return normalizeExternalMusicSearch(v && v.name || v); }).filter(Boolean); for(let i=0;i<map.length;i++){ const needle=normalizeExternalMusicSearch(map[i][0]); for(let j=0;j<names.length;j++){ if(names[j]===needle || names[j].indexOf(needle)>=0) return map[i][1]; } } return ''; };
-      const direct = pick([fallback].concat(item && item.tags || []));
-      if (direct) return direct;
+      const rawFallback = normalizeExternalMusicText(item && (item.primaryGenreName || item.style) || '');
+      const fallback = mapExternalGenreToRhythm(rawFallback) || rawFallback;
+      const tagValues = [].concat(item && item.tags || []).map(function(v){ return v && v.name || v; });
+      for(let i=0;i<tagValues.length;i++){ const mapped=mapExternalGenreToRhythm(tagValues[i]); if(mapped) return mapped; }
       if (fallback) return fallback;
+      const cleanTitle = normalizeExternalMusicText(title).replace(/"/g,'');
+      const cleanArtist = normalizeExternalMusicText(artist).replace(/"/g,'');
+      if (!cleanTitle) return '';
       try {
-        const cleanTitle=normalizeExternalMusicText(title).replace(/"/g,'');
-        const cleanArtist=normalizeExternalMusicText(artist).replace(/"/g,'');
-        const query=cleanArtist ? 'recording:"'+cleanTitle+'" AND artist:"'+cleanArtist+'"' : 'recording:"'+cleanTitle+'"';
-        const data=await requestInternetJson('https://musicbrainz.org/ws/2/recording/?query='+encodeURIComponent(query)+'&fmt=json&limit=5',{timeoutMs:3500,jsonp:'callback'});
-        const best=Array.isArray(data&&data.recordings)?data.recordings[0]:null;
-        const found=pick([].concat(best&&best.tags||[],best&&best.genres||[]));
-        if(found)return found;
-      }catch(_){ }
+        const query = cleanArtist ? 'recording:"'+cleanTitle+'" AND artist:"'+cleanArtist+'"' : 'recording:"'+cleanTitle+'"';
+        const searchUrl = 'https://musicbrainz.org/ws/2/recording/?query='+encodeURIComponent(query)+'&fmt=json&limit=5';
+        const data = await requestInternetJson(searchUrl, {timeoutMs:3200});
+        const recordings = Array.isArray(data && data.recordings) ? data.recordings : [];
+        const top = recordings.slice(0,3);
+        const lookupPromises = top.map(function(rec){
+          if(!rec || !rec.id) return Promise.resolve(null);
+          const url='https://musicbrainz.org/ws/2/recording/'+encodeURIComponent(rec.id)+'?fmt=json&inc=tags+genres';
+          return requestInternetJson(url,{timeoutMs:3000}).catch(function(){ return null; });
+        });
+        const details = await Promise.all(lookupPromises);
+        for(let i=0;i<details.length;i++){
+          const rec=details[i]; if(!rec) continue;
+          const values=[].concat(rec.genres || [], rec.tags || []);
+          for(let j=0;j<values.length;j++){ const mapped=mapExternalGenreToRhythm(values[j] && values[j].name || values[j]); if(mapped) return mapped; }
+        }
+      } catch (_) {}
       return fallback;
     }
     function mainSafeSearchPdfText(value) { return String(value || '').replace(/\r/g,'').replace(/\u00a0/g,' ').replace(/[“”]/g,'"').replace(/[‘’]/g,"'").replace(/[–—]/g,'-').replace(/…/g,'...').replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/[^\x00-\xFF]/g,'?'); }
@@ -6062,6 +6160,11 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (!window.pdfjsLib || typeof window.pdfjsLib.getDocument !== 'function') throw new Error('O leitor de PDF não pôde ser carregado neste navegador.');
       return window.pdfjsLib;
     }
+    function clearSearchPdfAllPages() {
+      const wrap = document.getElementById('pdfSearchAllPages');
+      if (wrap) { wrap.innerHTML = ''; wrap.classList.remove('active'); }
+      pdfViewerPageWrap?.classList.remove('pdf-search-preview-active');
+    }
     async function openGeneratedSearchPdfPreview(dataUrl) {
       if (!dataUrl || !String(dataUrl).startsWith('data:application/pdf')) {
         showToast('O PDF ainda não foi criado. Aguarde a letra e tente novamente.', 2000);
@@ -6069,7 +6172,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       }
       try {
         const lib = await ensureMainPdfJsReady();
-        lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        if (lib.GlobalWorkerOptions) lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         const base64 = String(dataUrl).split(',')[1] || '';
         if (!base64) throw new Error('Dados do PDF inválidos.');
         const binary = atob(base64);
@@ -6080,24 +6183,59 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         state.pdfSongId = '__search_preview__';
         state.pdfUrl = '';
         state.pdfPage = 1;
+        state.currentSongId = null;
         state.pdfDoc = await lib.getDocument({ data: bytes }).promise;
         state.pdfPageCount = state.pdfDoc.numPages || 1;
-        state.currentSongId = null;
+
+        let allPages = document.getElementById('pdfSearchAllPages');
+        if (!allPages) {
+          allPages = document.createElement('div');
+          allPages.id = 'pdfSearchAllPages';
+          allPages.className = 'pdf-search-all-pages';
+          pdfViewerPageWrap?.appendChild(allPages);
+        }
+        allPages.innerHTML = '';
+        pdfViewerPageWrap?.classList.add('pdf-search-preview-active');
+        allPages.classList.add('active');
 
         if (pdfViewerNote) {
-          pdfViewerNote.textContent = 'Pré-visualização — ainda não salva no repertório';
+          pdfViewerNote.textContent = 'Pré-visualização — ' + state.pdfPageCount + ' página' + (state.pdfPageCount === 1 ? '' : 's') + ' — ainda não salva no repertório';
           pdfViewerNote.classList.remove('hidden');
           pdfViewerNote.setAttribute('aria-hidden', 'false');
+        }
+        if (pdfViewerPageIndicator) {
+          pdfViewerPageIndicator.textContent = state.pdfPageCount + ' página' + (state.pdfPageCount === 1 ? '' : 's');
+          pdfViewerPageIndicator.classList.remove('hidden');
         }
         pdfViewerScreen?.classList.add('open');
         pdfViewerScreen?.setAttribute('aria-hidden', 'false');
         await new Promise(function(resolve){ requestAnimationFrame(resolve); });
-        await renderPdfPage(1, true);
+
+        for (let pageNo = 1; pageNo <= state.pdfPageCount; pageNo += 1) {
+          const page = await state.pdfDoc.getPage(pageNo);
+          const base = page.getViewport({ scale: 1 });
+          const availableW = Math.max(260, Math.min(595, (pdfViewerPageWrap?.clientWidth || window.innerWidth || 390) - 16));
+          const scale = Math.max(0.1, availableW / base.width);
+          const viewport = page.getViewport({ scale: scale });
+          const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+          const canvas = document.createElement('canvas');
+          canvas.setAttribute('aria-label', 'Página ' + pageNo + ' do PDF');
+          canvas.width = Math.ceil(viewport.width * dpr);
+          canvas.height = Math.ceil(viewport.height * dpr);
+          canvas.style.width = Math.ceil(viewport.width) + 'px';
+          canvas.style.height = Math.ceil(viewport.height) + 'px';
+          const ctx = canvas.getContext('2d', { alpha: false });
+          if (!ctx) continue;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, viewport.width, viewport.height);
+          allPages.appendChild(canvas);
+          await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        }
       } catch (error) {
         console.error('Prévia PDF automático:', error);
+        clearSearchPdfAllPages();
         closePdfViewer();
-        // Último recurso: o próprio navegador abre o PDF em uma visualização
-        // nativa, útil principalmente no Safari/iPhone.
         try {
           const binary = atob(String(dataUrl).split(',')[1] || '');
           const bytes = new Uint8Array(binary.length);
@@ -6129,7 +6267,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       closePdfViewer();
       songTitleInput.value = title;
       artistInput.value = artist;
-      const immediateStyle = normalizeExternalMusicText(item.primaryGenreName || item.style || '');
+      const immediateStyle = mapExternalGenreToRhythm(item.primaryGenreName || item.style || '') || normalizeExternalMusicText(item.primaryGenreName || item.style || '');
       styleInput.value = immediateStyle;
       scriptInput.value = '';
       state.editingPdfData = '';
