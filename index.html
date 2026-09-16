@@ -2178,7 +2178,7 @@
 
         <div class="sync-status-note" id="syncStatusNote">Repertório salvo neste dispositivo.</div>
 
-        <div class="panel-note" style="text-align:center; padding:8px 0 2px;">Versão <strong id="appVersionDisplay">1.0.0</strong></div>
+        <div class="panel-note" style="text-align:center; padding:8px 0 2px;">Versão <strong id="appVersionDisplay">1.1.2</strong></div>
 
         <div class="user-name-wrap">
           <div class="field">
@@ -2429,7 +2429,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
             <input id="musicSearchArtistInput" type="text" placeholder="Ex.: Ivete Sangalo" autocomplete="off" />
           </div>
 
-          <button class="ghost-btn music-search-submit-btn" id="searchMusicOnlineSubmitBtn" type="button" onclick="return window.__palcoProDirectSearch ? window.__palcoProDirectSearch(event) : false;">🔎 Pesquisar</button>
+          <button class="ghost-btn music-search-submit-btn" id="searchMusicOnlineSubmitBtn" type="button">🔎 Pesquisar</button>
 
           <div class="sync-status-note" id="musicOnlineSearchStatus">Digite o nome da música para pesquisar.</div>
           <div class="music-online-search-results" id="musicOnlineSearchResults"></div>
@@ -2464,7 +2464,9 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
   <script>
     const $ = (id) => document.getElementById(id);
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
-    const APP_VERSION = '1.1.1';
+    const APP_VERSION = '1.1.2';
+    const appVersionDisplay = $('appVersionDisplay');
+    if (appVersionDisplay) appVersionDisplay.textContent = APP_VERSION;
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
@@ -5505,46 +5507,16 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar.';
     }
 
-    function requestItunesSearchCompat(titleQuery) {
+    async function requestItunesSearchCompat(titleQuery) {
       const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR';
-      // Primeiro tenta Fetch (navegadores modernos). Se o ambiente bloquear CORS,
-      // usa JSONP, que também funciona em navegadores móveis mais antigos.
-      if (window.fetch) {
-        return fetch(url, { cache: 'no-store' })
-          .then(function(response) {
-            if (!response.ok) throw new Error('HTTP ' + response.status);
-            return response.json();
-          })
-          .catch(function() { return requestItunesJsonpCompat(url); });
-      }
-      return requestItunesJsonpCompat(url);
-    }
-
-    function requestItunesJsonpCompat(url) {
-      return new Promise(function(resolve, reject) {
-        var callbackName = '__palcoProItunes_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        var script = document.createElement('script');
-        var finished = false;
-        var timer = setTimeout(function() {
-          finish(new Error('Tempo esgotado ao consultar o catálogo musical.'));
-        }, 15000);
-        function cleanup() {
-          clearTimeout(timer);
-          try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
-          if (script.parentNode) script.parentNode.removeChild(script);
-        }
-        function finish(error, data) {
-          if (finished) return;
-          finished = true;
-          cleanup();
-          if (error) reject(error); else resolve(data);
-        }
-        window[callbackName] = function(data) { finish(null, data || {}); };
-        script.onerror = function() { finish(new Error('Não foi possível acessar o catálogo musical.')); };
-        script.src = url + '&callback=' + encodeURIComponent(callbackName);
-        script.async = true;
-        (document.head || document.documentElement).appendChild(script);
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
       });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return await response.json();
     }
 
     async function searchMusicOnlineForMainEditor() {
@@ -5564,7 +5536,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         searchMusicOnlineSubmitBtn.disabled = true;
         searchMusicOnlineSubmitBtn.textContent = 'Buscando...';
       }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Consultando catálogo musical...';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
 
       try {
@@ -6445,145 +6417,5 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); updateFirstAccessTutorialGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
     init();
   </script>
-<script>
-/* Palco Pro — busca de músicas baseada na implementação aprovada do Index ADM.
-   Somente a interface foi adaptada para o Palco Pro; a consulta usa o iTunes,
-   com o título como busca principal e o artista apenas para priorização. */
-(function(){
-  'use strict';
-  function el(id){ return document.getElementById(id); }
-  function norm(v){
-    return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
-      .replace(/\b(part|feat|ft)\.?\b/gi,'').replace(/[()\[\],.;:!?_\-–—/\\]+/g,' ')
-      .replace(/\s+/g,' ').trim();
-  }
-  function esc(v){
-    return String(v||'').replace(/[&<>"']/g,function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-  function rank(item,title,artist){
-    var t=norm(item.trackName), q=norm(title), a=norm(item.artistName), wa=norm(artist), score=0;
-    if(t===q) score+=1000;
-    else if(t.includes(q)||q.includes(t)) score+=700;
-    else {
-      var qw=q.split(' ').filter(Boolean), hits=qw.filter(function(w){return t.includes(w)}).length;
-      score+=Math.round(hits/Math.max(1,qw.length)*500);
-    }
-    if(wa){
-      if(a===wa) score+=900;
-      else if(a.includes(wa)||wa.includes(a)) score+=600;
-      else {
-        var aw=wa.split(' ').filter(Boolean), ah=aw.filter(function(w){return a.includes(w)}).length;
-        score+=Math.round(ah/Math.max(1,aw.length)*350);
-      }
-    }
-    return score;
-  }
-  function jsonp(url){
-    return new Promise(function(resolve,reject){
-      var cb='__palcoProItunes_'+Date.now()+'_'+Math.floor(Math.random()*100000);
-      var script=document.createElement('script'), done=false;
-      var timer=setTimeout(function(){finish(new Error('Tempo esgotado ao consultar o catálogo musical.'));},15000);
-      function finish(err,data){
-        if(done)return; done=true; clearTimeout(timer);
-        try{delete window[cb];}catch(_){window[cb]=undefined;}
-        if(script.parentNode)script.parentNode.removeChild(script);
-        err?reject(err):resolve(data);
-      }
-      window[cb]=function(data){finish(null,data||{});};
-      script.onerror=function(){finish(new Error('Não foi possível acessar o catálogo musical.'));};
-      script.async=true;
-      script.src=url+'&callback='+encodeURIComponent(cb);
-      (document.head||document.documentElement).appendChild(script);
-    });
-  }
-  function fetchItunes(url){
-    if(typeof window.fetch==='function'){
-      return fetch(url,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'}})
-        .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-        .catch(function(){return jsonp(url);});
-    }
-    return jsonp(url);
-  }
-  function renderResults(arr){
-    var box=el('musicOnlineSearchResults');
-    if(!box)return;
-    box.innerHTML='';
-    arr.forEach(function(item,i){
-      var b=document.createElement('button');
-      b.type='button'; b.className='music-online-search-result';
-      b.dataset.musicOnlineIndex=String(i);
-      b.innerHTML='<span class="music-online-search-title">🎵 '+esc(item.trackName)+'</span>'+
-        '<span class="music-online-search-artist">👤 '+esc(item.artistName)+'</span>'+
-        '<span class="music-online-search-meta">'+esc(item.primaryGenreName||'')+'</span>';
-      box.appendChild(b);
-    });
-  }
-  async function search(){
-    var titleEl=el('musicSearchTitleInput'), artistEl=el('musicSearchArtistInput');
-    var status=el('musicOnlineSearchStatus'), box=el('musicOnlineSearchResults'), btn=el('searchMusicOnlineSubmitBtn');
-    var title=titleEl?titleEl.value.trim():'', artist=artistEl?artistEl.value.trim():'';
-    if(!title){
-      if(status)status.textContent='Digite o nome da música para pesquisar.';
-      if(titleEl)titleEl.focus();
-      return false;
-    }
-    if(btn){btn.disabled=true;btn.textContent='Buscando...';}
-    if(status)status.textContent='Consultando catálogo musical...';
-    if(box)box.innerHTML='';
-    var url='https://itunes.apple.com/search?term='+encodeURIComponent(title)+'&media=music&entity=song&limit=25&country=BR';
-    try{
-      var data=await fetchItunes(url);
-      var arr=(Array.isArray(data&&data.results)?data.results:[])
-        .filter(function(x){return norm(x&&x.trackName);})
-        .map(function(x){return {
-          trackName:x.trackName||'', artistName:x.artistName||'', primaryGenreName:x.primaryGenreName||'',
-          collectionName:x.collectionName||'', releaseDate:x.releaseDate||'', trackId:x.trackId||'',
-          collectionId:x.collectionId||'', trackViewUrl:x.trackViewUrl||'', previewUrl:x.previewUrl||''
-        };})
-        .sort(function(a,b){
-          var sa=rank(a,title,artist), sb=rank(b,title,artist);
-          if(sa!==sb)return sb-sa;
-          return String(a.trackName).localeCompare(String(b.trackName),'pt-BR',{sensitivity:'base'});
-        }).slice(0,8);
-      window.__palcoProDirectResults=arr;
-      if(!arr.length){
-        if(status)status.textContent='Nenhuma correspondência encontrada. Tente outro nome.';
-        return false;
-      }
-      if(status)status.textContent=arr.length+' resultado'+(arr.length===1?'':'s')+' encontrado'+(arr.length===1?'':'s')+'. Selecione a música correta.';
-      renderResults(arr);
-    }catch(error){
-      console.error('Palco Pro: falha na pesquisa de música',error);
-      if(status)status.textContent='Não foi possível consultar o catálogo musical agora. Verifique a conexão e tente novamente.';
-      return false;
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent='🔎 Pesquisar';}
-    }
-    return false;
-  }
-  window.__palcoProDirectSearch=function(e){
-    try{if(e)e.preventDefault();}catch(_){ }
-    search();
-    return false;
-  };
-  document.addEventListener('click',function(e){
-    var b=e.target&&e.target.closest?e.target.closest('#searchMusicOnlineSubmitBtn'):null;
-    if(b){e.preventDefault();window.__palcoProDirectSearch(e);return;}
-    var r=e.target&&e.target.closest?e.target.closest('#musicOnlineSearchResults [data-music-online-index]'):null;
-    if(r){
-      e.preventDefault();
-      var item=(window.__palcoProDirectResults||[])[Number(r.dataset.musicOnlineIndex)];
-      if(item&&typeof window.__palcoProSelectMusic==='function')window.__palcoProSelectMusic(item);
-    }
-  },true);
-  document.addEventListener('keydown',function(e){
-    if(e.key==='Enter'&&e.target&&(e.target.id==='musicSearchTitleInput'||e.target.id==='musicSearchArtistInput')){
-      e.preventDefault();window.__palcoProDirectSearch(e);
-    }
-  },true);
-})();
-</script>
 </body>
 </html>
