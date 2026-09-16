@@ -2557,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.18.0';
+    const APP_VERSION = '1.19.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5932,34 +5932,67 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         };
       }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
     }
+    function requestJsonViaAllOrigins(url, timeoutMs) {
+      const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+      return new Promise(function(resolve, reject) {
+        let settled = false;
+        const finish = function(fn, value) { if (settled) return; settled = true; clearTimeout(timer); fn(value); };
+        const timer = setTimeout(function(){ finish(reject, new Error('Tempo limite da consulta alternativa.')); }, timeoutMs || 6500);
+        if (typeof fetch === 'function') {
+          fetch(proxied, {method:'GET', cache:'no-store', headers:{Accept:'application/json,text/plain,*/*'}})
+            .then(function(response){ if(!response.ok) throw new Error('HTTP '+response.status); return response.text(); })
+            .then(function(text){
+              const raw = String(text || '').trim();
+              try { finish(resolve, JSON.parse(raw)); return; } catch (_) {}
+              if (raw) finish(resolve, raw); else finish(reject, new Error('Resposta vazia.'));
+            })
+            .catch(function(error){ finish(reject, error); });
+          return;
+        }
+        try {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', proxied, true);
+          xhr.onreadystatechange = function(){
+            if(xhr.readyState!==4) return;
+            if(xhr.status>=200 && xhr.status<300){
+              const raw=String(xhr.responseText||'').trim();
+              try{ finish(resolve, JSON.parse(raw)); return; }catch(_){}
+              if(raw) finish(resolve, raw); else finish(reject,new Error('Resposta vazia.'));
+            } else finish(reject,new Error('HTTP '+xhr.status));
+          };
+          xhr.onerror=function(){ finish(reject,new Error('Falha de rede.')); };
+          xhr.send();
+        }catch(error){ finish(reject,error); }
+      });
+    }
+
     async function searchItunesSourceRobust(query) {
       const q = normalizeExternalMusicText(query);
       if (!q) return [];
       const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&media=music&entity=song&limit=50&country=BR';
-      // O iTunes continua sendo a fonte principal, mas usamos JSONP como primeira
-      // estratégia porque ele não depende de CORS e funciona também quando o app
-      // está instalado como PWA/aberto em origem restrita. Fetch/XHR entram como
-      // fallback caso JSONP seja bloqueado pelo navegador/rede.
-      try {
-        const data = await requestJsonViaJsonp(url, 'callback');
-        const rows = mapItunesSearchResults(data);
-        if (rows.length) return rows;
-      } catch (_) {}
-      try {
-        const data = await requestJsonViaXhr(url, 4500);
-        const rows = mapItunesSearchResults(data);
-        if (rows.length) return rows;
-      } catch (_) {}
-      if (typeof fetch === 'function') {
-        try {
-          const response = await fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}});
-          if (response.ok) {
-            const rows = mapItunesSearchResults(await response.json());
-            if (rows.length) return rows;
-          }
-        } catch (_) {}
-      }
-      return [];
+      // A mesma busca rápida do ADM, mas com estratégias concorrentes.
+      // No iPhone, se JSONP/fetch direto forem bloqueados, AllOrigins fornece
+      // a mesma resposta do iTunes sem depender do CORS da página do app.
+      const attempts = [];
+      attempts.push(requestJsonViaJsonp(url, 'callback'));
+      attempts.push(requestJsonViaAllOrigins(url, 6200));
+      if (typeof fetch === 'function') attempts.push(fetch(url, {method:'GET', mode:'cors', cache:'no-store', headers:{Accept:'application/json'}}).then(function(response){ if(!response.ok) throw new Error('HTTP '+response.status); return response.json(); }));
+      if (typeof XMLHttpRequest !== 'undefined') attempts.push(requestJsonViaXhr(url, 6200));
+      return await new Promise(function(resolve){
+        let pending = attempts.length, done = false;
+        if (!pending) { resolve([]); return; }
+        attempts.forEach(function(promise){
+          Promise.resolve(promise).then(function(data){
+            if(done) return;
+            const rows = mapItunesSearchResults(data);
+            if(rows.length){ done=true; resolve(rows); return; }
+            pending -= 1; if(pending<=0){ done=true; resolve([]); }
+          }).catch(function(){
+            if(done) return;
+            pending -= 1; if(pending<=0){ done=true; resolve([]); }
+          });
+        });
+      });
     }
     async function searchItunesSource(titleQuery) {
       return searchItunesSourceRobust(titleQuery);
@@ -5983,6 +6016,43 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       }
       return [];
     }
+    async function searchOpenWebLyricsSource(query) {
+      const q = normalizeExternalMusicText(query);
+      if(!q) return [];
+      const targets = [
+        'site:cifraclub.com.br "' + q.replace(/"/g,'') + '"',
+        'site:ouvirmusica.com.br "' + q.replace(/"/g,'') + '"'
+      ];
+      const out=[];
+      for(let i=0;i<targets.length && out.length<12;i++){
+        try{
+          const searchUrl='https://www.google.com/search?q='+encodeURIComponent(targets[i])+'&num=10';
+          const html=await requestJsonViaAllOrigins(searchUrl,6500);
+          const text=String(html && html.contents || html || '');
+          const links=[];
+          const re=/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+          let m;
+          while((m=re.exec(text)) && links.length<12){
+            let href=m[1]||'', label=m[2]||'';
+            label=label.replace(/<[^>]*>/g,' ').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+            if(!/^https?:\/\/(www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br)\//i.test(href)) continue;
+            if(!label) continue;
+            links.push({href:href,label:label});
+          }
+          for(let j=0;j<links.length && out.length<12;j++){
+            const link=links[j];
+            const bits=link.href.replace(/https?:\/\/(www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br)\//i,'').replace(/[#?].*$/,'').split('/').filter(Boolean);
+            if(bits.length<2) continue;
+            const artist=decodeURIComponent(bits[0]).replace(/-/g,' ');
+            const song=decodeURIComponent(bits.slice(1).join(' ')).replace(/-/g,' ');
+            if(!song) continue;
+            out.push({trackName:song,artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:link.href,trackViewUrl:link.href,previewUrl:'',source:(/cifraclub\.com\.br/i.test(link.href)?'Cifra Club':'Ouvir Música')});
+          }
+        }catch(_){}
+      }
+      return out;
+    }
+
     function buildMusicSearchVariants(rawQuery) {
       const raw = normalizeExternalMusicText(rawQuery);
       if (!raw) return [];
@@ -6038,6 +6108,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         complementaryJobs.push(searchDeezerSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
         complementaryJobs.push(searchMusicBrainzSource(variants[0], '').then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
         complementaryJobs.push(searchLrcLibSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
+        complementaryJobs.push(searchOpenWebLyricsSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
       }
       // Quando a primeira tentativa for uma frase longa de letra, uma versão curta
       // adicional ajuda a encontrar a música sem explodir o número de requisições.
