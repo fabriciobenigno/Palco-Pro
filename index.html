@@ -2270,6 +2270,7 @@
 
           <div class="field" style="margin-top: 2px;">
             <button class="ghost-btn" id="attachSongPdfBtn" type="button">Anexar PDF</button>
+            <button class="ghost-btn" id="generateSongPdfBtn" type="button">Gerar PDF</button>
             <input id="songPdfInput" class="hidden" type="file" accept="application/pdf,.pdf" />
             <div class="small-row">
               <button class="ghost-btn hidden" id="removeSongPdfBtn" type="button">Remover PDF</button>
@@ -2488,6 +2489,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const styleInput = $('styleInput');
     const noteInput = $('noteInput');
     const attachSongPdfBtn = $('attachSongPdfBtn');
+    const generateSongPdfBtn = $('generateSongPdfBtn');
     const songPdfInput = $('songPdfInput');
     const removeSongPdfBtn = $('removeSongPdfBtn');
     const songPdfStatus = $('songPdfStatus');
@@ -2557,7 +2559,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.23.0';
+    const APP_VERSION = '1.24.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -6477,6 +6479,32 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (toggleLibrarySelectionBtn) toggleLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(true));
       if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(false));
       if (deleteSelectedSongsBtn) deleteSelectedSongsBtn.addEventListener('click', deleteSelectedLibrarySongs);
+      generateSongPdfBtn?.addEventListener('click', async function(event){
+        event.preventDefault();
+        event.stopPropagation();
+        const title = String(songTitleInput?.value || '').trim();
+        const artist = String(artistInput?.value || '').trim();
+        const lyrics = String(scriptInput?.value || '').trim();
+        if (!title) { showToast('Digite o título da música antes de gerar o PDF.', 2200); songTitleInput?.focus(); return; }
+        if (!artist) { showToast('Digite o cantor / artista antes de gerar o PDF.', 2200); artistInput?.focus(); return; }
+        if (!lyrics) { showToast('Digite ou cole a letra antes de gerar o PDF.', 2200); scriptInput?.focus(); return; }
+        if (state.autoPdfGenerating || state.pdfProcessing) return;
+        state.autoPdfGenerating = true;
+        if (generateSongPdfBtn) { generateSongPdfBtn.disabled = true; generateSongPdfBtn.textContent = 'Gerando PDF...'; }
+        try {
+          const pdfData = await generateSearchPdf(title, artist, lyrics);
+          state.editingPdfData = pdfData;
+          updateSongPdfEditorUi();
+          persistCurrentDraft();
+          showToast('✅ PDF gerado. Use 👁 Ver PDF para visualizar antes de salvar.', 2800);
+        } catch (error) {
+          console.error('Falha ao gerar PDF manual:', error);
+          showToast('Não foi possível gerar o PDF agora. Tente novamente.', 2600);
+        } finally {
+          state.autoPdfGenerating = false;
+          if (generateSongPdfBtn) { generateSongPdfBtn.disabled = false; generateSongPdfBtn.textContent = 'Gerar PDF'; }
+        }
+      });
       attachSongPdfBtn?.addEventListener('click', () => songPdfInput?.click());
       songPdfInput?.addEventListener('change', (event) => handleSongPdfFile(event.target.files?.[0]));
       removeSongPdfBtn?.addEventListener('click', () => { setEditingSongPdf(''); showToast('PDF removido', 1200); });
