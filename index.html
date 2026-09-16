@@ -1491,6 +1491,48 @@
       min-width: 132px;
     }
 
+    .music-search-panel{
+      z-index:61;
+      pointer-events:auto;
+    }
+    .music-search-card{
+      gap:14px;
+      overflow:auto;
+    }
+    .music-search-submit-btn{
+      width:100%;
+      min-height:48px;
+    }
+    .music-online-search-results{
+      display:grid;
+      gap:8px;
+      min-height:0;
+      overflow:auto;
+      padding-bottom:2px;
+    }
+    .music-online-search-result{
+      width:100%;
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:16px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018)),rgba(10,16,27,0.74);
+      color:#fff;
+      text-align:left;
+      padding:12px 14px;
+      cursor:pointer;
+      display:grid;
+      gap:4px;
+      transition:transform .15s ease,border-color .15s ease,background .15s ease;
+    }
+    .music-online-search-result:hover,.music-online-search-result:focus-visible{
+      transform:translateY(-1px);
+      background:rgba(116,200,255,0.07);
+      border-color:rgba(133,208,255,0.25);
+      outline:none;
+    }
+    .music-online-search-title{font-size:14px;font-weight:800;line-height:1.3;}
+    .music-online-search-artist{font-size:12px;color:var(--soft-text);line-height:1.4;}
+    .music-online-search-meta{font-size:11px;color:var(--note-text);line-height:1.4;}
+
     /* O salvar fica sempre depois da caixa da letra, sem sobreposição. */
     .song-editor-panel .song-lyrics-field {
       flex: 0 0 auto !important;
@@ -2241,11 +2283,6 @@
             <button class="ghost-btn" id="searchMusicOnlineBtn" type="button">🔎 Buscar música</button>
           </div>
 
-          <div class="music-online-search-box hidden" id="musicOnlineSearchBox">
-            <div class="panel-note" id="musicOnlineSearchStatus">Digite o nome da música e, se quiser, o artista acima para pesquisar.</div>
-            <div class="music-online-search-results" id="musicOnlineSearchResults"></div>
-          </div>
-
           <div class="field">
             <label for="songTitleInput">Título da música</label>
             <input id="songTitleInput" type="text" placeholder="Ex.: Trem Bala" required />
@@ -2269,11 +2306,11 @@
           <div class="field" style="margin-top: 2px;">
             <div class="small-row">
               <button class="ghost-btn" id="attachSongPdfBtn" type="button">Anexar PDF</button>
-              <button class="ghost-btn hidden" id="viewEditingPdfBtn" type="button">👁 Ver PDF</button>
             </div>
             <input id="songPdfInput" class="hidden" type="file" accept="application/pdf,.pdf" />
             <div class="small-row">
               <button class="ghost-btn hidden" id="removeSongPdfBtn" type="button">Remover PDF</button>
+              <button class="ghost-btn hidden" id="viewSongPdfBtn" type="button">👁 Ver PDF</button>
             </div>
             <div class="panel-note" id="songPdfStatus">Sem PDF anexado. A letra cadastrada será usada na leitura.</div>
           </div>
@@ -2363,6 +2400,35 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       </div>
     </div>
 
+    <div class="fullscreen-screen music-search-panel" id="musicSearchPanel">
+      <div class="fullscreen-shell">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Buscar música</h2>
+            <p class="fullscreen-subtitle">Pesquise pelo nome da música e, se quiser, informe também o artista para encontrar a gravação correta.</p>
+          </div>
+          <button class="mini-btn close-icon-btn" id="hideMusicSearchPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
+        </div>
+
+        <div class="fullscreen-card music-search-card">
+          <div class="field">
+            <label for="musicSearchTitleInput">Nome da música</label>
+            <input id="musicSearchTitleInput" type="text" placeholder="Ex.: Não Precisa Mudar" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="musicSearchArtistInput">Artista <span class="panel-note" style="font-size:11px;">(opcional)</span></label>
+            <input id="musicSearchArtistInput" type="text" placeholder="Ex.: Ivete Sangalo" autocomplete="off" />
+          </div>
+
+          <button class="ghost-btn music-search-submit-btn" id="searchMusicOnlineSubmitBtn" type="button">🔎 Pesquisar</button>
+
+          <div class="sync-status-note" id="musicOnlineSearchStatus">Digite o nome da música para pesquisar.</div>
+          <div class="music-online-search-results" id="musicOnlineSearchResults"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="controls-bar">
       <button class="mini-btn" id="openPanelDockBtn" aria-label="Ajustes">⚙</button>
       <button class="mini-btn" id="backSongBtn" aria-label="Voltar música">↞</button>
@@ -2443,13 +2509,17 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const styleInput = $('styleInput');
     const noteInput = $('noteInput');
     const searchMusicOnlineBtn = $('searchMusicOnlineBtn');
-    const musicOnlineSearchBox = $('musicOnlineSearchBox');
+    const musicSearchPanel = $('musicSearchPanel');
+    const hideMusicSearchPanelBtn = $('hideMusicSearchPanelBtn');
+    const musicSearchTitleInput = $('musicSearchTitleInput');
+    const musicSearchArtistInput = $('musicSearchArtistInput');
+    const searchMusicOnlineSubmitBtn = $('searchMusicOnlineSubmitBtn');
     const musicOnlineSearchStatus = $('musicOnlineSearchStatus');
     const musicOnlineSearchResults = $('musicOnlineSearchResults');
     const attachSongPdfBtn = $('attachSongPdfBtn');
-    const viewEditingPdfBtn = $('viewEditingPdfBtn');
     const songPdfInput = $('songPdfInput');
     const removeSongPdfBtn = $('removeSongPdfBtn');
+    const viewSongPdfBtn = $('viewSongPdfBtn');
     const songPdfStatus = $('songPdfStatus');
     const pdfViewerScreen = $('pdfViewerScreen');
     const pdfViewerCanvas = $('pdfViewerCanvas');
@@ -3349,11 +3419,42 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     function updateSongPdfEditorUi() {
       const hasPdf = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf');
       removeSongPdfBtn?.classList.toggle('hidden', !hasPdf);
-      viewEditingPdfBtn?.classList.toggle('hidden', !hasPdf);
+      viewSongPdfBtn?.classList.toggle('hidden', !hasPdf);
       if (songPdfStatus) songPdfStatus.textContent = hasPdf ? (state.autoPdfGenerating ? 'PDF automático sendo gerado...' : 'PDF disponível. Ele terá prioridade sobre a letra durante a leitura.') : 'Sem PDF anexado. A letra cadastrada será usada na leitura.';
       if (songPdfInput) songPdfInput.value = '';
     }
     function setEditingSongPdf(dataUrl = '') { state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : ''; updateSongPdfEditorUi(); persistCurrentDraft(); }
+    async function openEditingPdfPreview() {
+      const dataUrl = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf') ? state.editingPdfData : '';
+      if (!dataUrl) { showToast('Nenhum PDF disponível para visualização.', 1600); return; }
+      if (!window.pdfjsLib) { showToast('O leitor de PDF ainda não está disponível.', 1800); return; }
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const base64 = dataUrl.split(',')[1] || '';
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        closePdfViewer();
+        state.pdfSongId = '__editing_pdf_preview__';
+        state.pdfDoc = await pdfjsLib.getDocument({ data: bytes }).promise;
+        state.pdfPage = 1;
+        state.pdfPageCount = state.pdfDoc.numPages || 1;
+        if (pdfViewerNote) {
+          pdfViewerNote.textContent = 'Pré-visualização do PDF';
+          pdfViewerNote.classList.remove('hidden');
+          pdfViewerNote.setAttribute('aria-hidden', 'false');
+          clearTimeout(openEditingPdfPreview.noteTimer);
+          openEditingPdfPreview.noteTimer = setTimeout(() => { pdfViewerNote?.classList.add('hidden'); }, 2200);
+        }
+        pdfViewerScreen?.classList.add('open');
+        pdfViewerScreen?.setAttribute('aria-hidden', 'false');
+        await renderPdfPage(1);
+      } catch (error) {
+        console.error('Falha ao visualizar PDF do cadastro:', error);
+        closePdfViewer();
+        showToast(error?.message || 'Não foi possível visualizar o PDF.', 1800);
+      }
+    }
     function loadExternalScriptOnce(src, globalName) {
       return new Promise((resolve, reject) => {
         if (globalName && window[globalName]) { resolve(window[globalName]); return; }
@@ -3969,30 +4070,6 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       return value;
     }
 
-    async function openEditingPdfPreview() {
-      const dataUrl = typeof state.editingPdfData === 'string' ? state.editingPdfData : '';
-      if (!dataUrl.startsWith('data:application/pdf')) { showToast('Nenhum PDF disponível para visualização.', 1500); return; }
-      if (!window.pdfjsLib) { showToast('O leitor de PDF ainda não está disponível.', 1500); return; }
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        closePdfViewer();
-        const binary = atob(dataUrl.split(',')[1] || '');
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        state.pdfSongId = '__editing_pdf_preview__';
-        state.pdfPage = 1;
-        state.pdfDoc = await pdfjsLib.getDocument({ data: bytes }).promise;
-        state.pdfPageCount = state.pdfDoc.numPages || 1;
-        if (pdfViewerNote) { pdfViewerNote.textContent = noteInput?.value ? `Tom: ${noteInput.value.trim()}` : ''; pdfViewerNote.classList.toggle('hidden', !noteInput?.value?.trim()); }
-        pdfViewerScreen?.classList.add('open');
-        pdfViewerScreen?.setAttribute('aria-hidden', 'false');
-        await renderPdfPage(1);
-      } catch (error) {
-        console.error('Falha ao abrir prévia do PDF em edição:', error);
-        closePdfViewer();
-        showToast('Não foi possível abrir a prévia do PDF.', 1800);
-      }
-    }
 
     async function openPdfForSong(song) {
       closePdfViewer();
@@ -4025,6 +4102,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       } catch (error) { console.error('Falha ao abrir PDF:', error); closePdfViewer(); showToast('Não foi possível abrir o PDF.', 1800); }
     }
     function openSongEditor() {
+      musicSearchPanel?.classList.remove('open');
       hidePanel();
       
       
@@ -5398,45 +5476,73 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       return new File([bytes], `${safeTitle.replace(/[\\/:*?"<>|]/g, '-') } - ${safeArtist.replace(/[\\/:*?"<>|]/g, '-') } (Palco Pro).pdf`.slice(0,180), { type: 'application/pdf', lastModified: Date.now() });
     }
 
+    function openMusicSearchPanel() {
+      musicSearchPanel?.classList.add('open');
+      musicSearchTitleInput?.focus();
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar.';
+      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
+    }
+
+    function hideMusicSearchPanel() {
+      if (state.musicSearchController) { try { state.musicSearchController.abort(); } catch (_) {} }
+      musicSearchPanel?.classList.remove('open');
+      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
+    }
+
     function resetMusicOnlineSearchUi() {
       state.musicSearchResults = [];
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
-      musicOnlineSearchBox?.classList.add('hidden');
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música e, se quiser, o artista acima para pesquisar.';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar.';
     }
 
     async function searchMusicOnlineForMainEditor() {
-      const titleQuery = normalize(songTitleInput.value);
-      const artistQuery = normalize(artistInput.value);
-      if (!titleQuery) { showToast('Digite o nome da música para pesquisar.', 1500); songTitleInput.focus(); return; }
+      const titleQuery = normalize(musicSearchTitleInput?.value || '');
+      const artistQuery = normalize(musicSearchArtistInput?.value || '');
+      if (!titleQuery) {
+        showToast('Digite o nome da música para pesquisar.', 1500);
+        musicSearchTitleInput?.focus();
+        return;
+      }
       if (state.musicSearchController) { try { state.musicSearchController.abort(); } catch (_) {} }
-      const controller = new AbortController(); state.musicSearchController = controller;
-      if (searchMusicOnlineBtn) { searchMusicOnlineBtn.disabled = true; searchMusicOnlineBtn.textContent = 'Buscando...'; }
-      musicOnlineSearchBox?.classList.remove('hidden');
+      const controller = new AbortController();
+      state.musicSearchController = controller;
+      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Buscando...'; }
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Consultando catálogo musical...';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       try {
-        const query = titleQuery;
-        const response = await fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(query) + '&media=music&entity=song&limit=25&country=BR', { mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+        const response = await fetch('https://itunes.apple.com/search?term=' + encodeURIComponent(titleQuery) + '&media=music&entity=song&limit=25&country=BR', { mode: 'cors', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error('A fonte de pesquisa respondeu com HTTP ' + response.status + '.');
         const data = await response.json();
-        const results = (Array.isArray(data?.results) ? data.results : []).filter(item => normalize(item.trackName)).map(item => ({
-          trackName: item.trackName || '', artistName: item.artistName || '', primaryGenreName: item.primaryGenreName || '',
-          collectionName: item.collectionName || '', releaseDate: item.releaseDate || '', trackId: item.trackId || '', trackViewUrl: item.trackViewUrl || ''
-        })).sort((a, b) => {
-          const sa = rankMusicSearchResultForMain(a, titleQuery, artistQuery), sb = rankMusicSearchResultForMain(b, titleQuery, artistQuery);
-          if (sa !== sb) return sb - sa;
-          return (a.trackName || '').localeCompare(b.trackName || '', 'pt-BR', { sensitivity: 'base' });
-        });
+        const results = (Array.isArray(data?.results) ? data.results : [])
+          .filter(item => normalize(item.trackName))
+          .map(item => ({
+            trackName: item.trackName || '',
+            artistName: item.artistName || '',
+            primaryGenreName: item.primaryGenreName || '',
+            collectionName: item.collectionName || '',
+            releaseDate: item.releaseDate || '',
+            trackId: item.trackId || '',
+            trackViewUrl: item.trackViewUrl || ''
+          }))
+          .sort((a, b) => {
+            const sa = rankMusicSearchResultForMain(a, titleQuery, artistQuery);
+            const sb = rankMusicSearchResultForMain(b, titleQuery, artistQuery);
+            if (sa !== sb) return sb - sa;
+            return (a.trackName || '').localeCompare(b.trackName || '', 'pt-BR', { sensitivity: 'base' });
+          });
         state.musicSearchResults = results.slice(0, 8);
-        if (!state.musicSearchResults.length) { if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome.'; renderMusicOnlineSearchResults(); return; }
+        if (!state.musicSearchResults.length) {
+          if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome.';
+          renderMusicOnlineSearchResults();
+          return;
+        }
         if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = `${state.musicSearchResults.length} resultado${state.musicSearchResults.length === 1 ? '' : 's'} encontrado${state.musicSearchResults.length === 1 ? '' : 's'}. Selecione a música correta.`;
         renderMusicOnlineSearchResults();
       } catch (error) {
         if (error?.name !== 'AbortError' && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Não foi possível consultar a internet agora: ' + (error?.message || 'erro desconhecido') + '.';
       } finally {
         if (state.musicSearchController === controller) state.musicSearchController = null;
-        if (searchMusicOnlineBtn) { searchMusicOnlineBtn.disabled = false; searchMusicOnlineBtn.textContent = '🔎 Buscar música'; }
+        if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
       }
     }
 
@@ -5446,28 +5552,45 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const title = normalize(item.trackName), artist = normalize(item.artistName);
       songTitleInput.value = title;
       artistInput.value = artist;
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Identificando o ritmo...';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Identificando o ritmo da música...';
       const style = await fetchMainRhythm(item, title, artist).catch(() => normalize(item.primaryGenreName));
       styleInput.value = style || '';
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Buscando a letra da música selecionada...';
       try {
         const lyrics = await fetchMainLyrics(title, artist);
-        if (!lyrics) { scriptInput.value = ''; if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Dados encontrados, mas a letra não foi encontrada automaticamente.'; return; }
+        if (!lyrics) {
+          scriptInput.value = '';
+          persistCurrentDraft();
+          hideMusicSearchPanel();
+          openSongEditor();
+          showToast('Música e estilo preenchidos. A letra não foi encontrada automaticamente.', 2200);
+          return;
+        }
         scriptInput.value = lyrics;
         persistCurrentDraft();
         if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Letra encontrada. Gerando o PDF automaticamente...';
         state.autoPdfGenerating = true;
         try {
           const generatedPdf = await generateMainAutomaticLyricsPdf(title, artist, lyrics);
-          state.editingPdfData = await fileToDataUrl(generatedPdf);
+          const generatedBytes = new Uint8Array(await generatedPdf.arrayBuffer());
+          state.editingPdfData = uint8ArrayToPdfDataUrl(generatedBytes);
           updateSongPdfEditorUi();
           persistCurrentDraft();
-          if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = '✅ Nome, artista, ritmo, letra e PDF preenchidos automaticamente.';
-        } finally { state.autoPdfGenerating = false; }
+          showToast('Música, ritmo, letra e PDF preenchidos automaticamente.', 1800);
+        } catch (pdfError) {
+          updateSongPdfEditorUi();
+          showToast('Música, ritmo e letra preenchidos. O PDF automático não pôde ser gerado.', 2200);
+        } finally {
+          state.autoPdfGenerating = false;
+          updateSongPdfEditorUi();
+          persistCurrentDraft();
+        }
       } catch (error) {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = '✅ Dados da música preenchidos. Falha ao buscar letra/PDF: ' + (error?.message || 'erro desconhecido') + '.';
+        persistCurrentDraft();
+        showToast('Dados da música preenchidos, mas não foi possível buscar a letra automaticamente.', 2200);
       }
-      musicOnlineSearchBox?.classList.add('hidden');
+      hideMusicSearchPanel();
+      openSongEditor();
     }
 
     async function saveCurrentSong() {
@@ -6028,12 +6151,12 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       attachSongPdfBtn?.addEventListener('click', () => songPdfInput?.click());
       songPdfInput?.addEventListener('change', (event) => handleSongPdfFile(event.target.files?.[0]));
       removeSongPdfBtn?.addEventListener('click', () => { setEditingSongPdf(''); showToast('PDF removido', 1200); });
-      viewEditingPdfBtn?.addEventListener('click', openEditingPdfPreview);
+      viewSongPdfBtn?.addEventListener('click', openEditingPdfPreview);
       saveFirstAccessNameBtn?.addEventListener('click', submitFirstAccessName);
       closeFirstAccessTutorialBtn?.addEventListener('click', closeFirstAccessTutorial);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); if (searchMusicOnlineBtn) searchMusicOnlineBtn.addEventListener('click', searchMusicOnlineForMainEditor); if (musicOnlineSearchResults) musicOnlineSearchResults.addEventListener('click', (event) => { const result = event.target.closest('[data-music-online-index]'); if (!result) return; selectMusicOnlineForMainEditor(Number(result.dataset.musicOnlineIndex)); }); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); if (searchMusicOnlineBtn) searchMusicOnlineBtn.addEventListener('click', openMusicSearchPanel); if (hideMusicSearchPanelBtn) hideMusicSearchPanelBtn.addEventListener('click', hideMusicSearchPanel); if (searchMusicOnlineSubmitBtn) searchMusicOnlineSubmitBtn.addEventListener('click', searchMusicOnlineForMainEditor); if (musicSearchTitleInput) musicSearchTitleInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); searchMusicOnlineForMainEditor(); } }); if (musicSearchArtistInput) musicSearchArtistInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); searchMusicOnlineForMainEditor(); } }); if (musicOnlineSearchResults) musicOnlineSearchResults.addEventListener('click', (event) => { const result = event.target.closest('[data-music-online-index]'); if (!result) return; selectMusicOnlineForMainEditor(Number(result.dataset.musicOnlineIndex)); }); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); }); if (selectAllSuggestionsBtn) selectAllSuggestionsBtn.addEventListener('click', selectAllSuggestions); if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', renderSuggestionList); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
       librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); } }); if (swipeSongRadio) swipeSongRadio.addEventListener('change', () => { if (swipeSongRadio.checked) setSwipeNavigationPreference('song'); }); if (swipeStanzaRadio) swipeStanzaRadio.addEventListener('change', () => { if (swipeStanzaRadio.checked) setSwipeNavigationPreference('stanza'); }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
