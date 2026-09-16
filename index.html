@@ -2172,6 +2172,8 @@
 
         <div class="sync-status-note" id="syncStatusNote">Repertório salvo neste dispositivo.</div>
 
+        <div class="panel-note" style="text-align:center; padding:8px 0 2px;">Versão <strong id="appVersionDisplay">1.0.0</strong></div>
+
         <div class="user-name-wrap">
           <div class="field">
             <label>Identificação</label>
@@ -2456,6 +2458,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
   <script>
     const $ = (id) => document.getElementById(id);
     const STORAGE_KEY = 'palco-pro-repertoire-v1';
+    const APP_VERSION = '1.0.0';
     const SETTINGS_KEY = 'palco-pro-settings-v1';
     const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
@@ -5104,6 +5107,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         pdfWatermarkBySong: previous.pdfWatermarkBySong && typeof previous.pdfWatermarkBySong === 'object' ? previous.pdfWatermarkBySong : {}
       }));
     }
+    function renderAppVersion() { const el = $('appVersionDisplay'); if (el) el.textContent = APP_VERSION; }
     function renderUserName() {
       if (!userNameDisplay) return;
       userNameDisplay.textContent = userName || 'Seu nome';
@@ -6151,7 +6155,8 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       state.lists = lists.map(normalizeList); saveLists();
       if (data.settings && typeof data.settings === 'object') localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings));
       if (data.currentDraft && typeof data.currentDraft === 'object') localStorage.setItem(CURRENT_KEY, JSON.stringify(data.currentDraft));
-      loadSettings(); loadCurrentDraft(); renderRepertoire(); renderLibraryList(librarySearchInput?.value || ''); updateValueLabels(); applyStyles(); loadScript(); refreshOfflinePdfIds();
+      loadSettings();
+      renderAppVersion(); loadCurrentDraft(); renderRepertoire(); renderLibraryList(librarySearchInput?.value || ''); updateValueLabels(); applyStyles(); loadScript(); refreshOfflinePdfIds();
       showToast('Backup restaurado', 1600);
     }
     function importBackupFile(file) {
