@@ -693,7 +693,7 @@
       pointer-events: auto;
     }
     .pdf-viewer-screen {
-      position: fixed; inset: 0; z-index: 30; display: none;
+      position: fixed; inset: 0; z-index: 10070; display: none;
       background: var(--screen-bg); overflow: hidden;
       padding: var(--safe-top) 0 var(--safe-bottom);
     }
@@ -2543,7 +2543,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.11.0';
+    const APP_VERSION = '1.12.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5917,57 +5917,68 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         if (musicSearchTitleInput) musicSearchTitleInput.focus();
         return;
       }
+
       const requestId = ++state.musicSearchRequestId;
       state.musicSearchBusy = true;
       state.musicSearchResults = [];
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
+      if (searchMusicOnlineSubmitBtn) {
+        searchMusicOnlineSubmitBtn.disabled = true;
+        searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...';
+      }
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Consultando a internet...';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
 
-      try {
-        // Fonte principal idêntica à estratégia aprovada do ADM: iTunes,
-        // nome da música como busca principal e artista apenas para priorização.
-        const primaryRows = await searchItunesSource(titleQuery);
-        if (requestId !== state.musicSearchRequestId) return;
-        if (primaryRows.length) mergeExternalMusicSearchResults(primaryRows, titleQuery, artistQuery);
+      let firstResponseShown = false;
+      let completed = 0;
+      let firstError = null;
+      const totalSources = 3;
 
-        // Fontes complementares ficam em paralelo e não bloqueiam a primeira lista.
-        [
-          function(){ return searchDeezerSource(titleQuery); },
-          function(){ return searchMusicBrainzSource(titleQuery, artistQuery); }
-        ].forEach(function(loader) {
-          Promise.resolve().then(loader).then(function(rows) {
-            if (requestId !== state.musicSearchRequestId) return;
-            if (rows && rows.length) mergeExternalMusicSearchResults(rows, titleQuery, artistQuery);
-          }).catch(function(error) { console.warn('Fonte alternativa de música indisponível:', error); });
-        });
-
-        if (!primaryRows.length && musicOnlineSearchStatus) {
-          musicOnlineSearchStatus.textContent = 'Buscando correspondências adicionais...';
-          setTimeout(function(){
-            if (requestId === state.musicSearchRequestId && !(state.musicSearchResults || []).length) {
-              musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome ou informe o artista.';
-            }
-          }, 4200);
-        }
-      } catch (error) {
+      const acceptRows = function(rows, sourceName) {
         if (requestId !== state.musicSearchRequestId) return;
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'A primeira fonte não respondeu. Tentando outra consulta na internet...';
-        try {
-          const fallback = await searchMusicBrainzSource(titleQuery, artistQuery);
-          if (requestId === state.musicSearchRequestId && fallback.length) {
-            mergeExternalMusicSearchResults(fallback, titleQuery, artistQuery);
-          } else if (musicOnlineSearchStatus) {
-            musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro nome ou informe o artista.';
+        const list = Array.isArray(rows) ? rows : [];
+        if (list.length) {
+          mergeExternalMusicSearchResults(list, titleQuery, artistQuery);
+          if (!firstResponseShown) {
+            firstResponseShown = true;
+            if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Resultados encontrados. Selecione a música correta.';
           }
-        } catch (_) {
-          if (requestId === state.musicSearchRequestId && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Não foi possível consultar a internet agora. Verifique a conexão e tente novamente.';
         }
-      } finally {
-        if (requestId === state.musicSearchRequestId) {
-          state.musicSearchBusy = false;
-          if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
+        completed += 1;
+        if (completed === totalSources && !(state.musicSearchResults || []).length && musicOnlineSearchStatus) {
+          musicOnlineSearchStatus.textContent = firstError
+            ? 'Nenhuma música foi encontrada agora. Verifique a conexão e tente novamente.'
+            : 'Nenhuma correspondência encontrada. Tente outro nome ou informe o artista.';
+          musicOnlineSearchStatus.className = 'sync-status-note';
         }
+      };
+
+      // As três consultas começam juntas. A pesquisa principal continua sendo
+      // a mesma do ADM (iTunes), mas as outras fontes não bloqueiam o usuário.
+      const sources = [
+        ['iTunes', function(){ return searchItunesSource(titleQuery); }],
+        ['Deezer', function(){ return searchDeezerSource(titleQuery); }],
+        ['MusicBrainz', function(){ return searchMusicBrainzSource(titleQuery, artistQuery); }]
+      ];
+
+      sources.forEach(function(pair) {
+        Promise.resolve().then(pair[1]).then(function(rows) {
+          acceptRows(rows, pair[0]);
+        }).catch(function(error) {
+          completed += 1;
+          firstError = firstError || error;
+          console.warn('Fonte de pesquisa indisponível:', pair[0], error);
+          if (completed === totalSources && !(state.musicSearchResults || []).length && musicOnlineSearchStatus) {
+            musicOnlineSearchStatus.textContent = 'Não foi possível consultar a internet agora. Verifique a conexão e tente novamente.';
+          }
+        });
+      });
+
+      // O botão é liberado assim que as requisições foram disparadas. Isso evita
+      // que uma fonte lenta deixe a tela "travada" por vários segundos.
+      state.musicSearchBusy = false;
+      if (searchMusicOnlineSubmitBtn) {
+        searchMusicOnlineSubmitBtn.disabled = false;
+        searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar';
       }
     }
     function openMusicSearchPanel() {
@@ -6064,32 +6075,51 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       return window.pdfjsLib;
     }
     async function openGeneratedSearchPdfPreview(dataUrl) {
+      if (!dataUrl || !String(dataUrl).startsWith('data:application/pdf')) {
+        showToast('O PDF ainda não foi criado. Aguarde a letra e tente novamente.', 2000);
+        return;
+      }
       try {
-        if (!dataUrl || !String(dataUrl).startsWith('data:application/pdf')) {
-          showToast('PDF ainda não foi gerado. Aguarde o preenchimento automático.',1900);
-          return;
-        }
         const lib = await ensureMainPdfJsReady();
-        lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        const base64=String(dataUrl).split(',')[1]||'';
+        lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const base64 = String(dataUrl).split(',')[1] || '';
         if (!base64) throw new Error('Dados do PDF inválidos.');
-        const binary=atob(base64);
-        const bytes=new Uint8Array(binary.length);
-        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+
         closePdfViewer();
-        state.pdfSongId='__search_preview__';
-        state.pdfUrl='';
-        state.pdfPage=1;
-        state.pdfDoc=await lib.getDocument({data:bytes}).promise;
-        state.pdfPageCount=state.pdfDoc.numPages||1;
+        state.pdfSongId = '__search_preview__';
+        state.pdfUrl = '';
+        state.pdfPage = 1;
+        state.pdfDoc = await lib.getDocument({ data: bytes }).promise;
+        state.pdfPageCount = state.pdfDoc.numPages || 1;
+        state.currentSongId = null;
+
+        if (pdfViewerNote) {
+          pdfViewerNote.textContent = 'Pré-visualização — ainda não salva no repertório';
+          pdfViewerNote.classList.remove('hidden');
+          pdfViewerNote.setAttribute('aria-hidden', 'false');
+        }
         pdfViewerScreen?.classList.add('open');
-        pdfViewerScreen?.setAttribute('aria-hidden','false');
-        if(pdfViewerPageIndicator){pdfViewerPageIndicator.textContent=`Folha 1 de ${state.pdfPageCount}`;pdfViewerPageIndicator.classList.remove('hidden');}
-        await renderPdfPage(1,true);
+        pdfViewerScreen?.setAttribute('aria-hidden', 'false');
+        await new Promise(function(resolve){ requestAnimationFrame(resolve); });
+        await renderPdfPage(1, true);
       } catch (error) {
-        console.error('Prévia PDF automático:',error);
+        console.error('Prévia PDF automático:', error);
         closePdfViewer();
-        showToast(error?.message||'Não foi possível abrir o PDF. Tente novamente.',2200);
+        // Último recurso: o próprio navegador abre o PDF em uma visualização
+        // nativa, útil principalmente no Safari/iPhone.
+        try {
+          const binary = atob(String(dataUrl).split(',')[1] || '');
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+          const blobUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+          const opened = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+          setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 60000);
+          if (opened) return;
+        } catch (_) {}
+        showToast(error?.message || 'Não foi possível abrir o PDF. Tente novamente.', 2400);
       }
     }
     async function selectExternalMusicResult(index) {
@@ -6100,51 +6130,58 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const artist = normalizeExternalMusicText(item.artistName || item.artist);
       if (!title) return;
 
+      // Esta música ainda é somente um rascunho. Ela não é adicionada ao
+      // repertório e não é enviada ao Apps Script até o usuário tocar em
+      // "Salvar música".
+      state.currentSongId = null;
+      if (repertoireSelect) repertoireSelect.value = '';
+      try { localStorage.removeItem(CURRENT_KEY); } catch (_) {}
+
       hideMusicSearchPanel();
+      closePdfViewer();
       songTitleInput.value = title;
       artistInput.value = artist;
-      // O gênero vindo da consulta principal aparece imediatamente no campo.
-      // Depois, o MusicBrainz pode refiná-lo para um ritmo mais específico.
       const immediateStyle = normalizeExternalMusicText(item.primaryGenreName || item.style || '');
       styleInput.value = immediateStyle;
       scriptInput.value = '';
       state.editingPdfData = '';
       updateSongPdfEditorUi();
       openSongEditor();
-      try { persistCurrentDraft(); } catch (_) {}
 
       state.autoPdfGenerating = true;
-      showToast(immediateStyle ? 'Música selecionada. Estilo preenchido; buscando letra...' : 'Música selecionada. Identificando estilo e buscando letra...', 1800);
+      showToast(immediateStyle ? 'Música selecionada. Buscando letra e refinando o estilo...' : 'Música selecionada. Identificando estilo e buscando letra...', 1800);
+
       try {
-        const stylePromise = fetchExternalRhythm(item,title,artist).catch(function(){ return immediateStyle; });
-        const lyricsPromise = fetchInternetLyrics(title,artist).catch(function(){ return ''; });
-        const result = await Promise.all([stylePromise,lyricsPromise]);
+        // O estilo e a letra são independentes; buscar ambos em paralelo reduz
+        // o tempo total sem alterar o fluxo do ADM.
+        const stylePromise = fetchExternalRhythm(item, title, artist).catch(function(){ return immediateStyle; });
+        const lyricsPromise = fetchInternetLyrics(title, artist).catch(function(){ return ''; });
+        const result = await Promise.all([stylePromise, lyricsPromise]);
         const detectedStyle = normalizeExternalMusicText(result[0] || immediateStyle);
         const lyrics = sanitizeLyrics(result[1] || '');
+
         if (detectedStyle) styleInput.value = detectedStyle;
+
         if (lyrics) {
           scriptInput.value = lyrics;
-          const pdfData = await generateSearchPdf(title,artist,lyrics);
+          const pdfData = await generateSearchPdf(title, artist, lyrics);
           state.editingPdfData = pdfData;
           updateSongPdfEditorUi();
-          // O botão Ver PDF funciona antes de qualquer salvamento no repertório.
-          try { persistCurrentDraft(); } catch (_) {}
-          showToast('✅ Música, estilo, letra e PDF preenchidos. Confira em 👁 Ver PDF e depois toque em Salvar música.', 3000);
+          showToast('✅ Música, estilo, letra e PDF preenchidos. Confira em 👁 Ver PDF e depois toque em Salvar música.', 3200);
         } else {
           updateSongPdfEditorUi();
-          try { persistCurrentDraft(); } catch (_) {}
-          showToast(detectedStyle ? '✅ Música e estilo preenchidos. A letra não foi encontrada automaticamente.' : '✅ Música preenchida. O estilo precisa ser informado.', 2600);
+          showToast(detectedStyle
+            ? '✅ Música e estilo preenchidos. A letra não foi encontrada automaticamente.'
+            : '✅ Música preenchida. O estilo precisa ser informado.', 2800);
         }
       } catch (error) {
-        console.error('Falha ao completar cadastro automático:',error);
+        console.error('Falha ao completar cadastro automático:', error);
         updateSongPdfEditorUi();
-        try { persistCurrentDraft(); } catch (_) {}
-        showToast('Dados da música preenchidos. Uma etapa automática não respondeu.',2400);
+        showToast('Dados da música preenchidos. Uma etapa automática não respondeu.', 2500);
       } finally {
         state.autoPdfGenerating = false;
       }
     }
-
     function bindEvents() { exportBackupBtn.addEventListener('click', exportBackup); importBackupBtn.addEventListener('click', () => backupFileInput.click()); updateAppBtn?.addEventListener('click', updateAppNow); backupFileInput.addEventListener('change', (e) => importBackupFile(e.target.files?.[0])); $('newSongBtn').addEventListener('click', prepareNewSong); $('newListBtn').addEventListener('click', () => openListEditor());
       if (toggleLibrarySelectionBtn) toggleLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(true));
       if (cancelLibrarySelectionBtn) cancelLibrarySelectionBtn.addEventListener('click', () => setLibrarySelectionMode(false));
@@ -6322,7 +6359,16 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
           selectExternalMusicResult(btn.getAttribute('data-external-music-index'));
         });
       }
-      if (viewSongPdfBtn) viewSongPdfBtn.addEventListener('click', function(){ openGeneratedSearchPdfPreview(state.editingPdfData); });
+      if (viewSongPdfBtn) viewSongPdfBtn.addEventListener('click', async function(event){
+        event.preventDefault();
+        event.stopPropagation();
+        const dataUrl = state.editingPdfData;
+        if (!dataUrl || !String(dataUrl).startsWith('data:application/pdf')) {
+          showToast('O PDF ainda não foi criado. Aguarde a letra e tente novamente.', 2000);
+          return;
+        }
+        await openGeneratedSearchPdfPreview(dataUrl);
+      });
       if (appVersionValue) appVersionValue.textContent = 'v' + APP_VERSION;
     }
 
