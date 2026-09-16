@@ -2557,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.21.0';
+    const APP_VERSION = '1.22.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5933,306 +5933,240 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     }
     // Camada única de acesso à internet: PC e iPhone consultam os mesmos gateways
     // antes de tentar acesso direto. Isso elimina a diferença causada por CORS/Safari.
-    function requestUniversalText(targetUrl, timeoutMs) {
-      const url = String(targetUrl || '').trim();
-      const limit = timeoutMs || 8000;
-      if (!url) return Promise.reject(new Error('URL de consulta vazia.'));
-      const gateways = [
-        'https://r.jina.ai/http://' + url.replace(/^https?:\/\//i, ''),
-        'https://r.jina.ai/https://' + url.replace(/^https?:\/\//i, ''),
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
-      ];
+    // ===== PESQUISA WEB UNIFICADA / RETROCOMPATÍVEL =====
+    if (typeof Promise.any !== 'function') { Promise.any = function(promises){ return new Promise(function(resolve,reject){ var pending=promises.length, errors=[]; if(!pending){ reject(new AggregateError([], 'All promises were rejected')); return; } promises.forEach(function(p,i){ Promise.resolve(p).then(resolve).catch(function(e){ errors[i]=e; pending--; if(pending<=0) reject(new AggregateError(errors, 'All promises were rejected')); }); }); }); }; }
+    // PC e iPhone usam a mesma cascata. A primeira resposta válida vence.
+    // Não dependemos de um único provedor: iTunes, proxies CORS/JSONP,
+    // Google/Bing e fontes de letras entram como camadas complementares.
+    function requestJsonViaJsonpWithTimeout(url, callbackParam, timeoutMs) {
       return new Promise(function(resolve, reject) {
-        let finished = false, pending = gateways.length, errors = [];
-        const finish = function(ok, value) {
-          if (finished) return;
-          if (ok && String(value || '').trim()) { finished = true; resolve(String(value)); return; }
-          errors.push(value instanceof Error ? value : new Error('Resposta vazia.'));
-          pending -= 1;
-          if (pending <= 0) { finished = true; reject(errors[0] || new Error('Não foi possível consultar a internet.')); }
+        const cbName = '__palcoProUniversalJsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const script = document.createElement('script');
+        let done = false;
+        const timer = setTimeout(function(){
+          if(done) return;
+          done = true;
+          try { delete window[cbName]; } catch(_) { window[cbName] = undefined; }
+          if(script.parentNode) script.parentNode.removeChild(script);
+          reject(new Error('Tempo limite da consulta.'));
+        }, timeoutMs || 7000);
+        const cleanup = function(){
+          clearTimeout(timer);
+          try { delete window[cbName]; } catch(_) { window[cbName] = undefined; }
+          if(script.parentNode) script.parentNode.removeChild(script);
         };
-        gateways.forEach(function(gateway) {
+        window[cbName] = function(data){
+          if(done) return;
+          done = true;
+          cleanup();
+          resolve(data);
+        };
+        script.onerror = function(){
+          if(done) return;
+          done = true;
+          cleanup();
+          reject(new Error('Falha de rede.'));
+        };
+        script.async = true;
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + encodeURIComponent(callbackParam || 'callback') + '=' + encodeURIComponent(cbName);
+        document.head.appendChild(script);
+      });
+    }
+    function requestProxyJson(url, timeoutMs) {
+      const target = encodeURIComponent(url);
+      const candidates = [
+        'https://api.allorigins.win/raw?url=' + target,
+        'https://api.codetabs.com/v1/proxy?quest=' + target,
+        'https://corsproxy.io/?url=' + target
+      ];
+      return new Promise(function(resolve, reject){
+        let settled = false, pending = candidates.length, errors = [];
+        const finish = function(ok, value){
+          if(settled) return;
+          if(ok){ settled = true; resolve(value); return; }
+          errors.push(value instanceof Error ? value : new Error('Falha de proxy.'));
+          pending -= 1;
+          if(pending <= 0){ settled = true; reject(errors[0] || new Error('Nenhum proxy respondeu.')); }
+        };
+        candidates.forEach(function(proxyUrl){
           let done = false;
-          const localFail = function(err) { if(done) return; done=true; finish(false,err); };
-          const localOk = function(value) { if(done) return; done=true; finish(true,value); };
-          const timer = setTimeout(function(){ localFail(new Error('Tempo limite.')); }, limit);
-          const ok = function(v){ clearTimeout(timer); localOk(v); };
-          const fail = function(e){ clearTimeout(timer); localFail(e); };
-          if (typeof fetch === 'function') {
-            fetch(gateway,{method:'GET',cache:'no-store',headers:{Accept:'text/plain,application/json,*/*'}})
+          const timer = setTimeout(function(){ if(done)return; done=true; finish(false,new Error('Tempo limite do proxy.')); }, timeoutMs || 7000);
+          const ok=function(v){ if(done)return; done=true; clearTimeout(timer); finish(true,v); };
+          const fail=function(e){ if(done)return; done=true; clearTimeout(timer); finish(false,e); };
+          if(typeof fetch === 'function'){
+            fetch(proxyUrl,{method:'GET',cache:'no-store',headers:{Accept:'application/json,text/plain,*/*'}})
               .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
               .then(ok).catch(fail);
-          } else if (typeof XMLHttpRequest !== 'undefined') {
-            try {
-              const x=new XMLHttpRequest(); x.open('GET',gateway,true);
-              x.onreadystatechange=function(){ if(x.readyState!==4)return; if(x.status>=200&&x.status<300)ok(x.responseText||''); else fail(new Error('HTTP '+x.status)); };
-              x.onerror=function(){ fail(new Error('Falha de rede.')); }; x.send();
-            } catch(e){ fail(e); }
-          } else fail(new Error('Nenhum método de consulta disponível.'));
+          }else if(typeof XMLHttpRequest !== 'undefined'){
+            try{
+              const x=new XMLHttpRequest();
+              x.open('GET',proxyUrl,true);
+              x.onreadystatechange=function(){
+                if(x.readyState!==4)return;
+                if(x.status>=200&&x.status<300) ok(x.responseText||''); else fail(new Error('HTTP '+x.status));
+              };
+              x.onerror=function(){fail(new Error('Falha de rede.'));};
+              x.send();
+            }catch(e){fail(e);}
+          }else fail(new Error('Nenhum método de consulta disponível.'));
         });
       });
     }
+    function parseMaybeJson(value){
+      if(value && typeof value === 'object') return value;
+      const text=String(value||'').trim();
+      try{return JSON.parse(text);}catch(_){ }
+      const fenced=text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+      try{return JSON.parse(fenced);}catch(_){ }
+      return null;
+    }
     async function requestUniversalJson(targetUrl, timeoutMs) {
-      const raw = await requestUniversalText(targetUrl, timeoutMs || 8000);
-      const text = String(raw || '').trim();
-      try { return JSON.parse(text); } catch (_) {}
-      const fenced = text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
-      try { return JSON.parse(fenced); } catch (_) {}
-      throw new Error('Resposta JSON inválida.');
+      const url=String(targetUrl||'').trim();
+      if(!url) throw new Error('URL de consulta vazia.');
+      const jobs=[];
+      // JSONP direto: especialmente importante no Safari/iPhone, pois não depende de CORS.
+      if(/itunes\.apple\.com/i.test(url)) jobs.push(requestJsonViaJsonpWithTimeout(url,'callback',timeoutMs||5500));
+      // Proxies comuns, todos apontando para a MESMA URL de origem.
+      jobs.push(requestProxyJson(url,timeoutMs||7000).then(parseMaybeJson).then(function(v){ if(!v) throw new Error('JSON inválido.'); return v; }));
+      // Acesso direto como fallback/atalho em navegadores desktop.
+      if(typeof fetch==='function') jobs.push(fetch(url,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'}}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}));
+      if(typeof XMLHttpRequest!=='undefined') jobs.push(requestJsonViaXhr(url,timeoutMs||6500));
+      return await Promise.any(jobs);
+    }
+    async function requestUniversalText(targetUrl, timeoutMs) {
+      const url=String(targetUrl||'').trim();
+      if(!url) throw new Error('URL de consulta vazia.');
+      const target=encodeURIComponent(url);
+      const jobs=[
+        requestProxyJson(url,timeoutMs||7000),
+        (typeof fetch==='function' ? fetch('https://r.jina.ai/http://'+url.replace(/^https?:\/\//i,''),{method:'GET',cache:'no-store',headers:{Accept:'text/plain'}}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}) : Promise.reject(new Error('fetch indisponível')))
+      ];
+      return await Promise.any(jobs);
     }
     function requestJsonViaAllOrigins(url, timeoutMs) {
-      const proxied = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-      return new Promise(function(resolve, reject) {
-        let settled = false;
-        const finish = function(fn, value) { if (settled) return; settled = true; clearTimeout(timer); fn(value); };
-        const timer = setTimeout(function(){ finish(reject, new Error('Tempo limite da consulta alternativa.')); }, timeoutMs || 6500);
-        if (typeof fetch === 'function') {
-          fetch(proxied, {method:'GET', cache:'no-store', headers:{Accept:'application/json,text/plain,*/*'}})
-            .then(function(response){ if(!response.ok) throw new Error('HTTP '+response.status); return response.text(); })
-            .then(function(text){
-              const raw = String(text || '').trim();
-              try { finish(resolve, JSON.parse(raw)); return; } catch (_) {}
-              if (raw) finish(resolve, raw); else finish(reject, new Error('Resposta vazia.'));
-            })
-            .catch(function(error){ finish(reject, error); });
-          return;
-        }
-        try {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', proxied, true);
-          xhr.onreadystatechange = function(){
-            if(xhr.readyState!==4) return;
-            if(xhr.status>=200 && xhr.status<300){
-              const raw=String(xhr.responseText||'').trim();
-              try{ finish(resolve, JSON.parse(raw)); return; }catch(_){}
-              if(raw) finish(resolve, raw); else finish(reject,new Error('Resposta vazia.'));
-            } else finish(reject,new Error('HTTP '+xhr.status));
-          };
-          xhr.onerror=function(){ finish(reject,new Error('Falha de rede.')); };
-          xhr.send();
-        }catch(error){ finish(reject,error); }
+      return requestProxyJson(url,timeoutMs||6500).then(function(raw){
+        const parsed=parseMaybeJson(raw);
+        return parsed || raw;
       });
     }
-
+    function mapItunesSearchResults(data) {
+      const results = Array.isArray(data && data.results) ? data.results : [];
+      return results.map(function(item) {
+        return {
+          trackName: item.trackName || '', artistName: item.artistName || '', primaryGenreName: item.primaryGenreName || '',
+          collectionName: item.collectionName || '', releaseDate: item.releaseDate || '', trackId: item.trackId || '',
+          trackViewUrl: item.trackViewUrl || '', previewUrl: item.previewUrl || '', source: 'iTunes'
+        };
+      }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+    }
     async function searchItunesSourceRobust(query) {
       const q=normalizeExternalMusicText(query);
       if(!q) return [];
       const url='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&media=music&entity=song&limit=50&country=BR';
-      try { const data=await requestUniversalJson(url,8000); const rows=mapItunesSearchResults(data); if(rows.length)return rows; } catch(_){}
-      try { const data=await requestFastCrossBrowserJson(url,'callback',5000); const rows=mapItunesSearchResults(data); if(rows.length)return rows; } catch(_){}
-      return [];
+      // O MESMO endpoint é tentado por JSONP, proxy, fetch e XHR.
+      try {
+        const data=await requestUniversalJson(url,6500);
+        return mapItunesSearchResults(data);
+      } catch(_) { return []; }
     }
-    async function searchItunesSource(titleQuery) {
-      return searchItunesSourceRobust(titleQuery);
+    async function searchItunesSource(titleQuery) { return searchItunesSourceRobust(titleQuery); }
+    async function searchDeezerSource(titleQuery) {
+      const url='https://api.deezer.com/search?q='+encodeURIComponent(titleQuery)+'&limit=50';
+      try{
+        const data=await requestUniversalJson(url,7000);
+        const rows=Array.isArray(data&&data.data)?data.data:[];
+        return rows.map(function(item){return {trackName:item.title||'',artistName:item.artist&&item.artist.name||'',primaryGenreName:'',collectionName:item.album&&item.album.title||'',releaseDate:'',trackId:item.id||'',trackViewUrl:item.link||'',previewUrl:item.preview||'',source:'Deezer'};}).filter(function(item){return normalizeExternalMusicText(item.trackName);});
+      }catch(_){return [];}
+    }
+    async function searchMusicBrainzSource(titleQuery, artistQuery) {
+      const cleanTitle=normalizeExternalMusicText(titleQuery).replace(/"/g,'');
+      const cleanArtist=normalizeExternalMusicText(artistQuery).replace(/"/g,'');
+      const query=cleanArtist?'recording:"'+cleanTitle+'" AND artist:"'+cleanArtist+'"':'recording:"'+cleanTitle+'"';
+      const url='https://musicbrainz.org/ws/2/recording/?query='+encodeURIComponent(query)+'&fmt=json&limit=50';
+      try{
+        const data=await requestUniversalJson(url,7000);
+        const rows=Array.isArray(data&&data.recordings)?data.recordings:[];
+        return rows.map(function(item){
+          const credits=Array.isArray(item&&item['artist-credit'])?item['artist-credit']:[];
+          const artist=credits.map(function(ac){return ac&&ac.name||ac&&ac.artist&&ac.artist.name||'';}).filter(Boolean).join(', ');
+          return {trackName:item.title||'',artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:item.id||'',trackViewUrl:'',previewUrl:'',source:'MusicBrainz',tags:(item.tags||[]).concat(item.genres||[])};
+        }).filter(function(item){return normalizeExternalMusicText(item.trackName);});
+      }catch(_){return [];}
     }
     async function searchLrcLibSource(titleQuery) {
-      const q = normalizeExternalMusicText(titleQuery);
-      if (!q) return [];
-      const urls = [
-        'https://lrclib.net/api/search?q=' + encodeURIComponent(q),
-        'https://lrclib.net/api/search?track_name=' + encodeURIComponent(q)
-      ];
-      for (let i = 0; i < urls.length; i += 1) {
-        try {
-          const data = await requestInternetJson(urls[i], {timeoutMs:3200});
-          const rows = Array.isArray(data) ? data : [];
-          const mapped = rows.map(function(item) {
-            return { trackName:item.trackName || item.name || '', artistName:item.artistName || item.artist || '', primaryGenreName:'', collectionName:item.albumName || '', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'LRCLIB', plainLyrics:item.plainLyrics || '', syncedLyrics:item.syncedLyrics || '' };
-          }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
-          if (mapped.length) return mapped;
-        } catch (_) {}
+      const q=normalizeExternalMusicText(titleQuery); if(!q)return [];
+      const urls=['https://lrclib.net/api/search?q='+encodeURIComponent(q),'https://lrclib.net/api/search?track_name='+encodeURIComponent(q)];
+      for(let i=0;i<urls.length;i++){
+        try{
+          const data=await requestUniversalJson(urls[i],6000);
+          const rows=Array.isArray(data)?data:[];
+          const mapped=rows.map(function(item){return {trackName:item.trackName||item.name||'',artistName:item.artistName||item.artist||'',primaryGenreName:'',collectionName:item.albumName||'',releaseDate:'',trackId:item.id||'',trackViewUrl:'',previewUrl:'',source:'LRCLIB',plainLyrics:item.plainLyrics||'',syncedLyrics:item.syncedLyrics||''};}).filter(function(item){return normalizeExternalMusicText(item.trackName);});
+          if(mapped.length)return mapped;
+        }catch(_){ }
       }
       return [];
-    }
-    async function searchOpenWebLyricsSource(query) {
-      const q = normalizeExternalMusicText(query);
-      if(!q) return [];
-      const targets = [
-        'site:cifraclub.com.br "' + q.replace(/"/g,'') + '"',
-        'site:ouvirmusica.com.br "' + q.replace(/"/g,'') + '"'
-      ];
-      const out=[];
-      for(let i=0;i<targets.length && out.length<12;i++){
-        try{
-          const searchUrl='https://www.google.com/search?q='+encodeURIComponent(targets[i])+'&num=10';
-          const html=await requestJsonViaAllOrigins(searchUrl,6500);
-          const text=String(html && html.contents || html || '');
-          const links=[];
-          const re=/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-          let m;
-          while((m=re.exec(text)) && links.length<12){
-            let href=m[1]||'', label=m[2]||'';
-            label=label.replace(/<[^>]*>/g,' ').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
-            if(!/^https?:\/\/(www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br)\//i.test(href)) continue;
-            if(!label) continue;
-            links.push({href:href,label:label});
-          }
-          for(let j=0;j<links.length && out.length<12;j++){
-            const link=links[j];
-            const bits=link.href.replace(/https?:\/\/(www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br)\//i,'').replace(/[#?].*$/,'').split('/').filter(Boolean);
-            if(bits.length<2) continue;
-            const artist=decodeURIComponent(bits[0]).replace(/-/g,' ');
-            const song=decodeURIComponent(bits.slice(1).join(' ')).replace(/-/g,' ');
-            if(!song) continue;
-            out.push({trackName:song,artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:link.href,trackViewUrl:link.href,previewUrl:'',source:(/cifraclub\.com\.br/i.test(link.href)?'Cifra Club':'Ouvir Música')});
-          }
-        }catch(_){}
-      }
-      return out;
     }
 
     async function searchUniversalWebSource(query) {
-      const q = normalizeExternalMusicText(query);
-      if (!q) return [];
-      const queries = [
-        'site:cifraclub.com.br ' + q + ' letra',
-        'site:ouvirmusica.com.br ' + q + ' letra',
-        q + ' letra música'
+      const q=normalizeExternalMusicText(query); if(!q)return [];
+      const queries=[
+        'site:cifraclub.com.br '+q+' letra',
+        'site:ouvirmusica.com.br '+q+' letra',
+        'site:musicas.mus.br '+q+' letra',
+        'site:spotify.com '+q+' musica',
+        q+' letra musica artista'
       ];
-      const out = [], seen = {};
-      const add = function(item){
-        const key = normalizeExternalMusicSearch((item.trackName||'')+'|'+(item.artistName||''));
-        if(!key || seen[key] || out.length>=30) return;
-        seen[key]=true; out.push(item);
-      };
-      const decode = function(v){
-        return String(v||'').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\\\//g,'/');
-      };
-      const parseSearchText = function(text){
+      const out=[],seen={};
+      const add=function(item){const key=normalizeExternalMusicSearch((item.trackName||'')+'|'+(item.artistName||''));if(!key||seen[key]||out.length>=30)return;seen[key]=1;out.push(item);};
+      const parse=function(text){
         const raw=String(text||'');
-        const markdown=/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
-        let m;
-        while((m=markdown.exec(raw)) && out.length<30){
-          const label=decode(m[1]).replace(/\s+/g,' ').trim();
-          const href=m[2].replace(/[?#].*$/,'');
-          if(!label) continue;
-          if(!/^https?:\/\/(?:www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br|e-chords\.com|ukecifras\.com\.br)\//i.test(href)) continue;
-          const parts=href.replace(/^https?:\/\/(?:www\.)?/i,'').split('/').slice(1).filter(Boolean);
-          if(parts.length<2) continue;
+        const re=/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g; let m;
+        while((m=re.exec(raw))&&out.length<30){
+          const href=m[2].replace(/[?#].*$/,''); const label=m[1].replace(/\s+/g,' ').trim();
+          if(!/^https?:\/\/(?:www\.)?(cifraclub\.com\.br|ouvirmusica\.com\.br|musicas\.mus\.br|spotify\.com)\//i.test(href))continue;
+          const clean=href.replace(/^https?:\/\/(?:www\.)?/i,'').split('/').slice(1).filter(Boolean);
           let artist='',song='';
-          try { artist=decodeURIComponent(parts[0]).replace(/-/g,' '); song=decodeURIComponent(parts.slice(1).join(' ')).replace(/-/g,' '); } catch(_) { artist=parts[0].replace(/-/g,' '); song=parts.slice(1).join(' ').replace(/-/g,' '); }
-          song=song.replace(/\s+(?:\||·|•|—|-).*$/,'').trim();
-          if(song.length<2) song=label;
-          add({trackName:song,artistName:artist,primaryGenreName:'',collectionName:'',releaseDate:'',trackId:href,trackViewUrl:href,previewUrl:'',source:/cifraclub\.com\.br/i.test(href)?'Cifra Club':'Ouvir Música',lyricsSource:href});
+          try{artist=decodeURIComponent(clean[0]||'').replace(/[-_]+/g,' ');song=decodeURIComponent(clean.slice(1).join(' ')).replace(/[-_]+/g,' ');}catch(_){artist=clean[0]||'';song=clean.slice(1).join(' ');}
+          song=song.replace(/\s+(?:\||·|•|—|-).*$/,'').trim(); if(song.length<2)song=label;
+          add({trackName:song,artistName:artist,primaryGenreName:/spotify\.com/i.test(href)?'':'',collectionName:'',releaseDate:'',trackId:href,trackViewUrl:href,previewUrl:'',source:/cifraclub\.com\.br/i.test(href)?'Cifra Club':/ouvirmusica\.com\.br/i.test(href)?'Ouvir Música':/musicas\.mus\.br/i.test(href)?'Músicas.mus':'Spotify',lyricsSource:/cifraclub|ouvirmusica|musicas\.mus/i.test(href)?href:''});
         }
       };
       const jobs=[];
-      queries.forEach(function(searchQ){
-        jobs.push(requestUniversalText('https://www.google.com/search?q='+encodeURIComponent(searchQ)+'&num=15',8000).then(parseSearchText).catch(function(){}));
-        jobs.push(requestUniversalText('https://www.bing.com/search?q='+encodeURIComponent(searchQ)+'&count=15',8000).then(parseSearchText).catch(function(){}));
-        jobs.push(requestUniversalText('https://r.jina.ai/http://www.google.com/search?q='+encodeURIComponent(searchQ)+'&num=15',8000).then(parseSearchText).catch(function(){}));
+      queries.forEach(function(sq){
+        const google='https://www.google.com/search?q='+encodeURIComponent(sq)+'&num=15';
+        const bing='https://www.bing.com/search?q='+encodeURIComponent(sq)+'&count=15';
+        jobs.push(requestUniversalText(google,7500).then(parse).catch(function(){}));
+        jobs.push(requestUniversalText(bing,7500).then(parse).catch(function(){}));
       });
       await Promise.all(jobs);
       return out;
     }
 
-    function buildMusicSearchVariants(rawQuery) {
-      const raw = normalizeExternalMusicText(rawQuery);
-      if (!raw) return [];
-      const parts = raw.split(/\s+/).filter(Boolean);
-      const variants = [raw];
-      if (parts.length > 1) {
-        variants.push(parts.slice(0, Math.min(3, parts.length)).join(' '));
-      }
-      if (parts.length > 4) {
-        variants.push(parts.slice(0,4).join(' '));
-        variants.push(parts.slice(0,6).join(' '));
-      }
-      return variants.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+    function mapExternalGenreToRhythm(value) {
+      const text=normalizeExternalMusicSearch(value||'');
+      const map=[
+        ['christian gospel','Gospel'],['christian & gospel','Gospel'],['christian','Gospel'],['gospel','Gospel'],
+        ['samba-enredo','Samba-enredo'],['samba','Samba'],['pagode','Pagode'],['axe','Axé'],['forro','Forró'],['arrocha','Arrocha'],['brega','Brega'],['frevo','Frevo'],['maracatu','Maracatu'],['coco','Coco'],['carimbo','Carimbó'],['sertanejo','Sertanejo'],['modao','Modão'],['reggae','Reggae'],['ska','Ska'],['rock','Rock'],['pop','Pop'],['funk','Funk'],['rap','Rap'],['hip hop','Hip Hop'],['trap','Trap'],['r&b','R&B'],['soul','Soul'],['blues','Blues'],['jazz','Jazz'],['bossa nova','Bossa Nova'],['bolero','Bolero'],['salsa','Salsa'],['merengue','Merengue'],['bachata','Bachata'],['cumbia','Cumbia'],['house','House'],['techno','Techno'],['eletronica','Eletrônica'],['mpb','MPB'],['brazilian music','Brasileira'],['brasileira','Brasileira'],['brazilian','Brasileira']
+      ];
+      for(let i=0;i<map.length;i++)if(text===normalizeExternalMusicSearch(map[i][0])||text.indexOf(normalizeExternalMusicSearch(map[i][0]))>=0)return map[i][1];
+      return '';
     }
-    async function searchMusicOnlineFromMain() {
-      if (state.musicSearchBusy) return;
-      const rawQuery = normalizeExternalMusicText(musicSearchQueryInput && musicSearchQueryInput.value);
-      if (!rawQuery) {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música, artista ou um trecho da letra para pesquisar na internet.';
-        musicSearchQueryInput?.focus();
-        return;
-      }
-      const requestId = ++state.musicSearchRequestId;
-      state.musicSearchBusy = true;
-      state.musicSearchResults = [];
-      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = '🔎 Pesquisando em várias fontes da internet... os resultados vão aparecer conforme cada fonte responder.';
+    async function fetchExternalRhythm(item,title,artist) {
+      const rawFallback=normalizeExternalMusicText(item&&(item.primaryGenreName||item.style)||'');
+      const fallback=mapExternalGenreToRhythm(rawFallback)||rawFallback;
+      if(fallback)return fallback;
+      const cleanTitle=normalizeExternalMusicText(title).replace(/"/g,''); const cleanArtist=normalizeExternalMusicText(artist).replace(/"/g,'');
+      if(!cleanTitle)return '';
+      try{
+        const query=cleanArtist?'recording:"'+cleanTitle+'" AND artist:"'+cleanArtist+'"':'recording:"'+cleanTitle+'"';
+        const searchUrl='https://musicbrainz.org/ws/2/recording/?query='+encodeURIComponent(query)+'&fmt=json&limit=5';
+        const data=await requestUniversalJson(searchUrl,6000); const recs=Array.isArray(data&&data.recordings)?data.recordings.slice(0,3):[];
+        const details=await Promise.all(recs.map(function(rec){return rec&&rec.id?requestUniversalJson('https://musicbrainz.org/ws/2/recording/'+encodeURIComponent(rec.id)+'?fmt=json&inc=tags+genres',{timeoutMs:4000}).catch(function(){return null;}):Promise.resolve(null);}));
+        for(let i=0;i<details.length;i++){const rec=details[i];if(!rec)continue;const values=[].concat(rec.genres||[],rec.tags||[]);for(let j=0;j<values.length;j++){const mapped=mapExternalGenreToRhythm(values[j]&&values[j].name||values[j]);if(mapped)return mapped;}}
+      }catch(_){ }
+      return fallback;
+    }
 
-      const maxResults = 30;
-      const variants = buildMusicSearchVariants(rawQuery);
-      const mergeRowsLive = function(rows, hint) {
-        if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return;
-        mergeExternalMusicSearchResults(rows, hint || rawQuery, '');
-        if (state.musicSearchResults.length >= maxResults) {
-          state.musicSearchResults = state.musicSearchResults.slice(0, maxResults);
-          renderExternalMusicResults();
-        }
-        if (musicOnlineSearchStatus && requestId === state.musicSearchRequestId) {
-          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '… buscando em outras fontes.';
-        }
-      };
-
-      // 1) Fonte principal do ADM. A primeira chamada é JSONP, igual para PC e
-      // celular. Como não depende de CORS, evita a diferença que estava ocorrendo
-      // entre Safari/iPhone e navegadores de desktop.
-      const primaryJobs = variants.map(function(q) {
-        return searchItunesSourceRobust(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; });
-      });
-
-      // 2) Fontes complementares em paralelo. LRCLIB usa "q" para também localizar
-      // trechos de letra; MusicBrainz ajuda em títulos/artistas; Deezer amplia o
-      // catálogo de gravações. Nada precisa terminar para a lista aparecer.
-      const complementaryJobs = [];
-      if (variants[0]) {
-        complementaryJobs.push(searchDeezerSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
-        complementaryJobs.push(searchMusicBrainzSource(variants[0], '').then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
-        complementaryJobs.push(searchLrcLibSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
-        complementaryJobs.push(searchOpenWebLyricsSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
-        complementaryJobs.push(searchUniversalWebSource(variants[0]).then(function(rows){ mergeRowsLive(rows, variants[0]); return rows; }).catch(function(){ return []; }));
-      }
-      // Quando a primeira tentativa for uma frase longa de letra, uma versão curta
-      // adicional ajuda a encontrar a música sem explodir o número de requisições.
-      if (variants.length > 1) {
-        complementaryJobs.push(searchLrcLibSource(variants[1]).then(function(rows){ mergeRowsLive(rows, variants[1]); return rows; }).catch(function(){ return []; }));
-      }
-
-      Promise.all(primaryJobs.concat(complementaryJobs)).then(function(){
-        if (requestId !== state.musicSearchRequestId) return;
-        if (!state.musicSearchResults.length) {
-          musicOnlineSearchStatus.textContent = 'Nenhuma correspondência automática nas fontes consultadas. Você ainda pode repetir com um trecho menor ou usar a busca ampla na web.';
-          musicOnlineSearchStatus.className = 'sync-status-note status-error';
-        } else if (state.musicSearchResults.length >= maxResults) {
-          musicOnlineSearchStatus.textContent = maxResults + ' resultados carregados. Selecione a música correta.';
-          musicOnlineSearchStatus.className = 'sync-status-note';
-        } else {
-          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Todas as fontes disponíveis terminaram.';
-          musicOnlineSearchStatus.className = 'sync-status-note';
-        }
-      }).finally(function(){
-        if (requestId !== state.musicSearchRequestId) return;
-        state.musicSearchBusy = false;
-        if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
-      });
-    }
-    function openMusicSearchPanel() {
-      hidePanel();
-      hideSupportContactPanel();
-      hideSuggestionsPanel();
-      musicSearchPanel && musicSearchPanel.classList.add('open');
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música, artista ou um trecho da letra para pesquisar na internet.';
-      if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
-      state.musicSearchResults = [];
-    }
-    function hideMusicSearchPanel() {
-      state.musicSearchRequestId += 1;
-      state.musicSearchBusy = false;
-      if (musicSearchPanel) musicSearchPanel.classList.remove('open');
-      if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
-    }
-    function openSupportContactPanel() {
-      hidePanel();
-      hideMusicSearchPanel();
-      if (supportContactPanel) supportContactPanel.classList.add('open');
-      if (appVersionValue) appVersionValue.textContent = 'v' + APP_VERSION;
-    }
-    function hideSupportContactPanel() { if (supportContactPanel) supportContactPanel.classList.remove('open'); }
     async function fetchInternetLyrics(title, artist) {
       const cleanTitle = normalizeExternalMusicText(title), cleanArtist = normalizeExternalMusicText(artist);
       if (!cleanTitle || !cleanArtist) return '';
