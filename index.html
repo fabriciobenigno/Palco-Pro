@@ -693,13 +693,11 @@
       pointer-events: auto;
     }
     .pdf-viewer-screen {
-      position: fixed; inset: 0; z-index: 10070; display: none;
+      position: fixed; inset: 0; z-index: 30; display: none;
       background: var(--screen-bg); overflow: hidden;
       padding: var(--safe-top) 0 var(--safe-bottom);
     }
     .pdf-viewer-screen.open { display: flex; align-items: center; justify-content: center; }
-    .pdf-viewer-close-btn { position:fixed; top:calc(var(--safe-top) + 12px); right:14px; z-index:10090; width:46px; height:46px; border:0; border-radius:50%; background:#d71920; color:#fff; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900; line-height:1; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 6px 20px rgba(0,0,0,.28); }
-    .pdf-viewer-close-btn:active { transform:scale(.95); }
     .pdf-viewer-page-wrap {
       position: relative;
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
@@ -2014,7 +2012,6 @@
     </div>
 
     <div class="pdf-viewer-screen" id="pdfViewerScreen" aria-hidden="true">
-      <button class="pdf-viewer-close-btn" id="hidePdfViewerBtn" type="button" aria-label="Fechar PDF">×</button>
       <div class="page-swipe-edge left"></div>
       <div class="page-swipe-edge right"></div>
       <div class="pdf-viewer-note hidden" id="pdfViewerNote" aria-hidden="true"></div>
@@ -2500,7 +2497,6 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     const pdfViewerPageWrap = $('pdfViewerPageWrap');
     const pdfViewerPageIndicator = $('pdfViewerPageIndicator');
     const pdfViewerNote = $('pdfViewerNote');
-    const hidePdfViewerBtn = $('hidePdfViewerBtn');
     const pdfWatermarkLayer = $('pdfWatermarkLayer');
     const pdfWatermarkCover = $('pdfWatermarkCover');
     const pdfWatermarkLogo = $('pdfWatermarkLogo');
@@ -2561,7 +2557,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.33.0';
+    const APP_VERSION = '1.34.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -6806,7 +6802,6 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           selectExternalMusicResult(btn.getAttribute('data-external-music-index'));
         });
       }
-      hidePdfViewerBtn?.addEventListener('click', function(event){ event.preventDefault(); event.stopPropagation(); closePdfViewer(); });
       if (viewSongPdfBtn) viewSongPdfBtn.addEventListener('click', async function(event){
         event.preventDefault();
         event.stopPropagation();
