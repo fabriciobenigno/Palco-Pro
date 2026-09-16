@@ -5478,7 +5478,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
 
     function openMusicSearchPanel() {
       musicSearchPanel?.classList.add('open');
-      musicSearchTitleInput?.focus();
+      // Não abrir o teclado automaticamente no celular; o usuário toca no campo quando quiser.
       if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar.';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
     }
@@ -6233,6 +6233,50 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       }
     }, false);
 
+    // Ligação direta dos controles da busca: mantém o toque/clique funcional em iPhone, Android e PC,
+    // independentemente de qualquer outro listener do aplicativo.
+    function bindMusicSearchControls() {
+      if (searchMusicOnlineBtn) {
+        searchMusicOnlineBtn.onclick = function(event) {
+          if (event) event.preventDefault();
+          openMusicSearchPanel();
+          return false;
+        };
+      }
+      if (hideMusicSearchPanelBtn) {
+        hideMusicSearchPanelBtn.onclick = function(event) {
+          if (event) event.preventDefault();
+          hideMusicSearchPanel();
+          return false;
+        };
+      }
+      if (searchMusicOnlineSubmitBtn) {
+        searchMusicOnlineSubmitBtn.onclick = function(event) {
+          if (event) event.preventDefault();
+          searchMusicOnlineForMainEditor();
+          return false;
+        };
+      }
+      if (musicOnlineSearchResults) {
+        musicOnlineSearchResults.onclick = function(event) {
+          const target = event && event.target;
+          const result = target && target.closest ? target.closest('[data-music-online-index]') : null;
+          if (!result) return;
+          event.preventDefault();
+          selectMusicOnlineForMainEditor(Number(result.dataset.musicOnlineIndex));
+        };
+      }
+      [musicSearchTitleInput, musicSearchArtistInput].forEach(function(input) {
+        if (!input) return;
+        input.onkeydown = function(event) {
+          if (event.key === 'Enter' || event.keyCode === 13) {
+            event.preventDefault();
+            searchMusicOnlineForMainEditor();
+          }
+        };
+      });
+    }
+
     function registerServiceWorker() {
       if (!('serviceWorker' in navigator)) return;
       window.addEventListener('load', () => {
@@ -6356,6 +6400,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       });
     }
     async function init() { registerServiceWorker(); loadSettings(); setReadingPreference(getReadingPreference());  loadCurrentDraft(); loadSongs(); loadLists(); updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); state.voiceFollowSpeed = Number(voiceFollowSpeed.value) / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); applyStyles(); loadScript(); setupVoice(); bindEvents(); bindUserNameSwipe(); bindBluetoothControls(); bindTextDrag(); setupBrowserEntryGate(); updateFirstAccessNameGate(); updateFirstAccessTutorialGate(); app.classList.add('clean-mode'); $('detailPanel').classList.remove('open'); syncPlayPauseIcon(); voiceToggle.checked = false; enableVoice(false); await loadSuggestionSongs(); }
+    bindMusicSearchControls();
     init();
   </script>
 </body>
