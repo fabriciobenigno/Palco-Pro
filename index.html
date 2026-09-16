@@ -2314,7 +2314,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
           </a>
           <div class="support-version-card">
             <span>Versão do aplicativo</span>
-            <strong id="appVersionValue">v1.9.0</strong>
+            <strong id="appVersionValue">v1.16.0</strong>
           </div>
         </div>
       </div>
@@ -2325,21 +2325,18 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         <div class="fullscreen-header">
           <div class="fullscreen-title-wrap">
             <h2 class="fullscreen-title">Buscar música</h2>
-            <p class="fullscreen-subtitle">Pesquise na internet pelo nome da música e, se quiser, informe também o artista para encontrar a gravação correta.</p>
+            <p class="fullscreen-subtitle">Pesquise na internet por nome da música, artista, combinação dos dois ou por um trecho da letra.</p>
           </div>
           <button class="mini-btn close-icon-btn" id="hideMusicSearchPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
         </div>
         <div class="fullscreen-card main-music-search-card">
           <div class="field">
-            <label for="musicSearchTitleInput">Nome da música</label>
-            <input id="musicSearchTitleInput" type="text" placeholder="Ex.: Não Precisa Mudar" autocomplete="off" />
-          </div>
-          <div class="field">
-            <label for="musicSearchArtistInput">Artista <span class="panel-note" style="font-size:11px;">(opcional)</span></label>
-            <input id="musicSearchArtistInput" type="text" placeholder="Ex.: Ivete Sangalo" autocomplete="off" />
+            <label for="musicSearchQueryInput">Pesquisa</label>
+            <input id="musicSearchQueryInput" type="text" placeholder="Ex.: Oceano, Djavan ou um trecho da letra..." autocomplete="off" inputmode="search" />
+            <div class="panel-note" style="font-size:11px;margin-top:6px;">Você pode pesquisar pelo nome da música, nome + artista ou por um trecho da letra.</div>
           </div>
           <button class="ghost-btn main-music-search-submit" id="searchMusicOnlineSubmitBtn" type="button">🔎 Pesquisar</button>
-          <div class="sync-status-note" id="musicOnlineSearchStatus">Digite o nome da música para pesquisar na internet.</div>
+          <div class="sync-status-note" id="musicOnlineSearchStatus">Digite o nome da música, artista ou um trecho da letra para pesquisar na internet.</div>
           <div class="main-music-search-results" id="musicOnlineSearchResults"></div>
         </div>
       </div>
@@ -2560,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.15.0';
+    const APP_VERSION = '1.16.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -2568,8 +2565,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const musicSearchPanel = $('musicSearchPanel');
     const hideMusicSearchPanelBtn = $('hideMusicSearchPanelBtn');
     const openMusicSearchBtn = $('openMusicSearchBtn');
-    const musicSearchTitleInput = $('musicSearchTitleInput');
-    const musicSearchArtistInput = $('musicSearchArtistInput');
+    const musicSearchQueryInput = $('musicSearchQueryInput');
     const searchMusicOnlineSubmitBtn = $('searchMusicOnlineSubmitBtn');
     const musicOnlineSearchStatus = $('musicOnlineSearchStatus');
     const musicOnlineSearchResults = $('musicOnlineSearchResults');
@@ -5981,13 +5977,23 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         return { trackName:item.trackName || item.name || '', artistName:item.artistName || item.artist || '', primaryGenreName:'', collectionName:item.albumName || '', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'LRCLIB' };
       }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
     }
+    function buildMusicSearchVariants(rawQuery) {
+      const raw = normalizeExternalMusicText(rawQuery);
+      if (!raw) return [];
+      const parts = raw.split(/\s+/).filter(Boolean);
+      const variants = [raw];
+      if (parts.length > 4) {
+        variants.push(parts.slice(0,4).join(' '));
+        variants.push(parts.slice(0,6).join(' '));
+      }
+      return variants.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+    }
     async function searchMusicOnlineFromMain() {
       if (state.musicSearchBusy) return;
-      const titleQuery = normalizeExternalMusicText(musicSearchTitleInput && musicSearchTitleInput.value);
-      const artistQuery = normalizeExternalMusicText(musicSearchArtistInput && musicSearchArtistInput.value);
-      if (!titleQuery) {
-        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar na internet.';
-        musicSearchTitleInput?.focus();
+      const rawQuery = normalizeExternalMusicText(musicSearchQueryInput && musicSearchQueryInput.value);
+      if (!rawQuery) {
+        if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música, artista ou um trecho da letra para pesquisar na internet.';
+        musicSearchQueryInput?.focus();
         return;
       }
       const requestId = ++state.musicSearchRequestId;
@@ -5995,49 +6001,51 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       state.musicSearchResults = [];
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando primeiro pelo nome da música...';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
 
-      const addResults = function(rows) {
+      const variants = buildMusicSearchVariants(rawQuery);
+      const mergeRows = function(rows, hint) {
         if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return false;
-        mergeExternalMusicSearchResults(rows, titleQuery, artistQuery);
-        return true;
+        mergeExternalMusicSearchResults(rows, hint || rawQuery, '');
+        return state.musicSearchResults.length > 0;
       };
       try {
-        // Fonte primária: exatamente o mesmo catálogo/endpoint do ADM aprovado.
-        const primaryRows = await requestItunesSearchFast(titleQuery);
-        if (requestId !== state.musicSearchRequestId) return;
-        const gotPrimary = addResults(primaryRows);
-        if (gotPrimary && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Resultados encontrados. Selecione a gravação correta.';
+        // Busca rápida: até 15 resultados visíveis. As fontes são iniciadas em
+        // paralelo e a primeira resposta útil aparece sem esperar pelas outras.
+        let primaryFound = false;
+        for (let i = 0; i < variants.length && state.musicSearchResults.length < 15; i += 1) {
+          try {
+            const rows = await requestItunesSearchFast(variants[i]);
+            primaryFound = mergeRows(rows, variants[i]) || primaryFound;
+          } catch (_) {}
+        }
 
-        // Complementos em segundo plano. Não bloqueiam a exibição dos resultados principais.
         const complements = [];
-        complements.push(searchDeezerSource(titleQuery).catch(function(){ return []; }));
-        complements.push(searchMusicBrainzSource(titleQuery, artistQuery).catch(function(){ return []; }));
-        complements.push(searchLrcLibSource(titleQuery).catch(function(){ return []; }));
+        for (let i = 0; i < variants.length; i += 1) {
+          const q = variants[i];
+          complements.push(searchDeezerSource(q).catch(function(){ return []; }));
+          complements.push(searchMusicBrainzSource(q, '').catch(function(){ return []; }));
+          complements.push(searchLrcLibSource(q).catch(function(){ return []; }));
+        }
         Promise.all(complements).then(function(extra) {
           if (requestId !== state.musicSearchRequestId) return;
-          for (let i = 0; i < extra.length; i += 1) addResults(extra[i]);
-        });
-        if (!gotPrimary && musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Buscando correspondências adicionais na internet...';
-      } catch (error) {
-        if (requestId !== state.musicSearchRequestId) return;
-        console.warn('iTunes indisponível, usando fontes complementares:', error);
-        try {
-          const [deezer, mb, lrclib] = await Promise.all([
-            searchDeezerSource(titleQuery).catch(function(){ return []; }),
-            searchMusicBrainzSource(titleQuery, artistQuery).catch(function(){ return []; }),
-            searchLrcLibSource(titleQuery).catch(function(){ return []; })
-          ]);
-          if (requestId !== state.musicSearchRequestId) return;
-          const got = addResults(deezer) || addResults(mb) || addResults(lrclib);
-          if (!got) {
-            musicOnlineSearchStatus.textContent = 'A internet não retornou resultados agora. Tente novamente em alguns segundos ou use o nome da música sem o artista.';
+          let added = false;
+          for (let i = 0; i < extra.length; i += 1) added = mergeRows(extra[i], rawQuery) || added;
+          if (!state.musicSearchResults.length) {
+            musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente um trecho menor da letra ou acrescente o artista.';
             musicOnlineSearchStatus.className = 'sync-status-note status-error';
+          } else {
+            musicOnlineSearchStatus.className = 'sync-status-note';
           }
-        } catch (_) {
-          if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'A pesquisa não recebeu uma resposta da internet. Tente novamente.';
-          if (musicOnlineSearchStatus) musicOnlineSearchStatus.className = 'sync-status-note status-error';
+        });
+        if (primaryFound || state.musicSearchResults.length) {
+          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
+        } else {
+          musicOnlineSearchStatus.textContent = 'Buscando correspondências alternativas...';
         }
+      } catch (error) {
+        console.warn('Busca externa:', error);
+        musicOnlineSearchStatus.textContent = 'Tentando outras fontes da internet...';
       } finally {
         if (requestId === state.musicSearchRequestId) {
           state.musicSearchBusy = false;
@@ -6050,7 +6058,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       hideSupportContactPanel();
       hideSuggestionsPanel();
       musicSearchPanel && musicSearchPanel.classList.add('open');
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música para pesquisar na internet.';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Digite o nome da música, artista ou um trecho da letra para pesquisar na internet.';
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       state.musicSearchResults = [];
     }
@@ -6451,10 +6459,9 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       if (openMusicSearchBtn) openMusicSearchBtn.addEventListener('click', openMusicSearchPanel);
       if (hideMusicSearchPanelBtn) hideMusicSearchPanelBtn.addEventListener('click', hideMusicSearchPanel);
       if (searchMusicOnlineSubmitBtn) {
+      musicSearchQueryInput?.addEventListener('keydown', function(event){ if(event.key === 'Enter'){ event.preventDefault(); searchMusicOnlineFromMain(); } });
         searchMusicOnlineSubmitBtn.addEventListener('click', function(event){ event.preventDefault(); searchMusicOnlineFromMain(); });
       }
-      if (musicSearchTitleInput) musicSearchTitleInput.addEventListener('keydown', function(event){ if(event.key==='Enter'){event.preventDefault();searchMusicOnlineFromMain();} });
-      if (musicSearchArtistInput) musicSearchArtistInput.addEventListener('keydown', function(event){ if(event.key==='Enter'){event.preventDefault();searchMusicOnlineFromMain();} });
       if (musicOnlineSearchResults) {
         // No celular, um toque que começa em um resultado e termina depois de
         // deslizar a lista não pode ser interpretado como seleção. Usamos o
