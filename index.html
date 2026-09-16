@@ -698,6 +698,14 @@
       padding: var(--safe-top) 0 var(--safe-bottom);
     }
     .pdf-viewer-screen.open { display: flex; align-items: center; justify-content: center; }
+    /* Os controles principais continuam disponíveis sobre o PDF, como na tela de letra. */
+    .pdf-viewer-screen.open ~ .controls-bar {
+      z-index: 10100;
+      pointer-events: auto;
+    }
+    .pdf-viewer-screen.open ~ .library-screen.open {
+      z-index: 10080;
+    }
     .pdf-viewer-close-btn { position:fixed; top:calc(var(--safe-top) + 12px); right:14px; z-index:10090; width:46px; height:46px; border:0; border-radius:50%; background:#d71920; color:#fff; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900; line-height:1; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; box-shadow:0 6px 20px rgba(0,0,0,.28); }
     .pdf-viewer-close-btn:active { transform:scale(.95); }
     .pdf-viewer-page-wrap {
@@ -2561,7 +2569,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.29.0';
+    const APP_VERSION = '1.31.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -4474,9 +4482,12 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       return true;
     }
     function bindTextDrag() {
-      const SWIPE_MIN = 76;
-      const SWIPE_RATIO = 0.24;
-      const AXIS_SLOP = 1.15;
+      // Limite horizontal adaptativo: em tablets e telas grandes não exige um
+      // deslize proporcionalmente enorme à largura da tela.
+      const SWIPE_MIN = 64;
+      const SWIPE_MAX = 124;
+      const SWIPE_RATIO = 0.16;
+      const AXIS_SLOP = 1.08;
       let gesture = null;
       let pdfFadeBusy = false;
 
@@ -4695,7 +4706,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         if (g.axis === 'vertical') { endTextDrag(); return; }
         if (g.axis !== 'horizontal') { if (g.wasPlaying) startScroll(); clearVisual(); return; }
         const dx = g.x - g.startX; const width = Math.max(280, window.innerWidth || 390);
-        const passed = !cancelled && Math.abs(dx) >= Math.max(SWIPE_MIN, width * SWIPE_RATIO);
+        const swipeThreshold = Math.max(SWIPE_MIN, Math.min(SWIPE_MAX, width * SWIPE_RATIO));
+        const passed = !cancelled && Math.abs(dx) >= swipeThreshold;
         const direction = dx < 0 ? 'next' : 'previous';
         const travel = direction === 'next' ? -width : width;
 
@@ -4744,7 +4756,53 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         if (direction === 'next') await nextSong(); else await previousSong();
       };
 
-      const bind = (target) => { if (!target) return; target.addEventListener('pointerdown', (e) => start(target, e)); target.addEventListener('pointermove', (e) => { if (gesture) { const p = move(target, e); if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; }); }}); target.addEventListener('pointerup', (e) => settle(target, e)); target.addEventListener('pointercancel', (e) => settle(target, e, true)); };
+      const bind = (target) => {
+        if (!target) return;
+        if (typeof window.PointerEvent !== 'undefined') {
+          target.addEventListener('pointerdown', (e) => start(target, e));
+          target.addEventListener('pointermove', (e) => {
+            if (gesture) {
+              const p = move(target, e);
+              if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; });
+            }
+          });
+          target.addEventListener('pointerup', (e) => settle(target, e));
+          target.addEventListener('pointercancel', (e) => settle(target, e, true));
+          return;
+        }
+
+        // Fallback para navegadores/tablets antigos sem Pointer Events.
+        let touchId = null;
+        const makeTouchEvent = (touch) => ({
+          pointerId: touchId == null ? 1 : touchId,
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          preventDefault: () => {},
+          target
+        });
+        target.addEventListener('touchstart', (e) => {
+          if (!e.touches || !e.touches[0]) return;
+          touchId = 1;
+          start(target, makeTouchEvent(e.touches[0]));
+        }, { passive: true });
+        target.addEventListener('touchmove', (e) => {
+          if (!gesture || !e.touches || !e.touches[0]) return;
+          const p = move(target, makeTouchEvent(e.touches[0]));
+          if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; });
+        }, { passive: true });
+        target.addEventListener('touchend', (e) => {
+          if (!gesture) return;
+          const touch = e.changedTouches && e.changedTouches[0];
+          if (touch) settle(target, makeTouchEvent(touch));
+          touchId = null;
+        }, { passive: true });
+        target.addEventListener('touchcancel', (e) => {
+          if (!gesture) return;
+          const touch = e.changedTouches && e.changedTouches[0];
+          if (touch) settle(target, makeTouchEvent(touch), true);
+          touchId = null;
+        }, { passive: true });
+      };
       bind(promptContent); bind(pdfViewerScreen);
     }
     function updateTranscript(text) { transcriptPill.textContent = text; }
