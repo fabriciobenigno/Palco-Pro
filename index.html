@@ -2245,7 +2245,6 @@
         <div class="fullscreen-card">
           <div class="editor-actions-row">
             <button class="ghost-btn" id="openSuggestionsBtn">Sugestões</button>
-            <button class="ghost-btn" id="openMusicSearchBtn" type="button">🔎 Buscar música</button>
           </div>
 
           <div class="field">
@@ -2269,14 +2268,11 @@
           </div>
 
           <div class="field" style="margin-top: 2px;">
-            <button class="ghost-btn" id="attachSongPdfBtn" type="button">Anexar PDF</button>
             <button class="ghost-btn" id="generateSongPdfBtn" type="button">Gerar PDF</button>
-            <input id="songPdfInput" class="hidden" type="file" accept="application/pdf,.pdf" />
             <div class="small-row">
-              <button class="ghost-btn hidden" id="removeSongPdfBtn" type="button">Remover PDF</button>
               <button class="ghost-btn hidden" id="viewSongPdfBtn" type="button">👁 Ver PDF</button>
             </div>
-            <div class="panel-note" id="songPdfStatus">Sem PDF anexado. A letra cadastrada será usada na leitura.</div>
+            <div class="panel-note" id="songPdfStatus">O PDF será gerado ao clicar em “Gerar PDF” ou ao concluir o cadastro em “Salvar música”.</div>
           </div>
 
           <div class="field song-lyrics-field">
@@ -2559,7 +2555,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.25.0';
+    const APP_VERSION = '1.26.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -3404,10 +3400,8 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
 
     function updateSongPdfEditorUi() {
       const hasPdf = typeof state.editingPdfData === 'string' && state.editingPdfData.startsWith('data:application/pdf');
-      removeSongPdfBtn?.classList.toggle('hidden', !hasPdf);
-      if (songPdfStatus) songPdfStatus.textContent = hasPdf ? 'PDF anexado. Ele terá prioridade sobre a letra durante a leitura.' : 'Sem PDF anexado. A letra cadastrada será usada na leitura.';
+      if (songPdfStatus) songPdfStatus.textContent = hasPdf ? 'PDF gerado para este cadastro. Você pode visualizar antes de salvar.' : 'O PDF será gerado ao clicar em “Gerar PDF” ou ao concluir o cadastro em “Salvar música”.';
       viewSongPdfBtn?.classList.toggle('hidden', !hasPdf);
-      if (songPdfInput) songPdfInput.value = '';
     }
     function setEditingSongPdf(dataUrl = '') { state.editingPdfData = typeof dataUrl === 'string' && dataUrl.startsWith('data:application/pdf') ? dataUrl : ''; updateSongPdfEditorUi(); persistCurrentDraft(); }
     function loadExternalScriptOnce(src, globalName) {
@@ -5202,28 +5196,56 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const artist = artistInput.value.trim();
       const style = styleInput.value.trim();
       const note = noteInput.value.trim();
-      const pdfData = state.editingPdfData || '';
       scriptInput.value = lyrics;
       if (!title) { showToast('Informe o nome da música.', 1500); songTitleInput.focus(); return; }
       if (!artist) { showToast('Informe o artista.', 1500); artistInput.focus(); return; }
       if (!style) { showToast('Informe o estilo musical.', 1500); styleInput.focus(); return; }
-      if (!lyrics && !pdfData) { showToast('Adicione a letra ou anexe um PDF.', 1700); scriptInput.focus(); return; }
+      if (!lyrics) { showToast('Digite ou cole a letra da música.', 1800); scriptInput.focus(); return; }
       const existingIndex = state.songs.findIndex(song => song.id === state.currentSongId);
       const isNewManualRegistration = existingIndex < 0;
       if (isNewManualRegistration && !userName) { showToast('Informe seu nome de usuário antes de cadastrar uma música.', 1800); updateFirstAccessNameGate(); return; }
-      const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
-      const payloadId = existingIndex >= 0 && state.currentSongId ? String(state.currentSongId) : createSongId();
-      const payload = { id: payloadId, title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || '' };
-      const nextSongs = state.songs.map(song => ({ ...song }));
-      const targetIndex = nextSongs.findIndex(song => String(song?.id || '') === payloadId);
-      if (targetIndex >= 0) nextSongs[targetIndex] = { ...nextSongs[targetIndex], ...payload, note: String(note || '').trim() };
-      else nextSongs.unshift(payload);
-      persistSongsState(nextSongs);
-      setSongNote(payloadId, note);
-      state.currentSongId = payload.id; state.editingPdfData = pdfData; repertoireSelect.value = payload.id; persistCurrentDraft(); loadScript();
-      hideSongEditor(); openLibraryPanel();
-      if (isNewManualRegistration) { const sent = await enviarCadastroManualParaAppsScript(payload); showToast(sent ? 'Música salva e cadastro enviado' : 'Música salva no seu repertório', 1600); }
-      else showToast('Música atualizada', 1400);
+
+      // Ao concluir o cadastro, o PDF deve sempre ser recriado com os dados mais
+      // recentes. Um PDF gerado anteriormente é apenas uma prévia e nunca é
+      // reutilizado para efetivar o cadastro.
+      if (state.autoPdfGenerating || state.pdfProcessing) return;
+      state.autoPdfGenerating = true;
+      if (saveSongBtn) { saveSongBtn.disabled = true; saveSongBtn.textContent = 'Gerando PDF e salvando...'; }
+      try {
+        const pdfData = await generateSearchPdf(title, artist, lyrics);
+        if (!pdfData || !String(pdfData).startsWith('data:application/pdf')) throw new Error('PDF inválido.');
+        state.editingPdfData = pdfData;
+        updateSongPdfEditorUi();
+
+        const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
+        const payloadId = existingIndex >= 0 && state.currentSongId ? String(state.currentSongId) : createSongId();
+        const payload = { id: payloadId, title, artist, style, note, lyrics, pdfData, pdfUrl: previous?.pdfUrl || '', pdfFileName: previous?.pdfFileName || (title + ' - ' + artist + '.pdf') };
+        const nextSongs = state.songs.map(song => ({ ...song }));
+        const targetIndex = nextSongs.findIndex(song => String(song?.id || '') === payloadId);
+        if (targetIndex >= 0) nextSongs[targetIndex] = { ...nextSongs[targetIndex], ...payload, note: String(note || '').trim() };
+        else nextSongs.unshift(payload);
+        persistSongsState(nextSongs);
+        setSongNote(payloadId, note);
+        state.currentSongId = payload.id;
+        state.editingPdfData = pdfData;
+        if (repertoireSelect) repertoireSelect.value = payload.id;
+        persistCurrentDraft();
+        loadScript();
+        hideSongEditor();
+        openLibraryPanel();
+        if (isNewManualRegistration) {
+          const sent = await enviarCadastroManualParaAppsScript(payload);
+          showToast(sent ? 'Música salva, PDF vinculado e cadastro enviado' : 'Música salva com PDF no seu repertório', 1900);
+        } else {
+          showToast('Música atualizada e PDF recriado com os dados atuais', 1900);
+        }
+      } catch (error) {
+        console.error('Falha ao concluir cadastro com PDF:', error);
+        showToast('Não foi possível gerar o PDF. A música não foi salva.', 2600);
+      } finally {
+        state.autoPdfGenerating = false;
+        if (saveSongBtn) { saveSongBtn.disabled = false; saveSongBtn.textContent = 'Salvar música'; }
+      }
     }
 
     function normalizeSearchText(value) {
@@ -6527,9 +6549,6 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
           if (generateSongPdfBtn) { generateSongPdfBtn.disabled = false; generateSongPdfBtn.textContent = 'Gerar PDF'; }
         }
       });
-      attachSongPdfBtn?.addEventListener('click', () => songPdfInput?.click());
-      songPdfInput?.addEventListener('change', (event) => handleSongPdfFile(event.target.files?.[0]));
-      removeSongPdfBtn?.addEventListener('click', () => { setEditingSongPdf(''); showToast('PDF removido', 1200); });
       saveFirstAccessNameBtn?.addEventListener('click', submitFirstAccessName);
       closeFirstAccessTutorialBtn?.addEventListener('click', closeFirstAccessTutorial);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
@@ -6663,7 +6682,6 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     function bindExternalMusicAndSupportEvents() {
       if (supportContactBtn) supportContactBtn.addEventListener('click', openSupportContactPanel);
       if (hideSupportContactPanelBtn) hideSupportContactPanelBtn.addEventListener('click', hideSupportContactPanel);
-      if (openMusicSearchBtn) openMusicSearchBtn.addEventListener('click', openMusicSearchPanel);
       if (hideMusicSearchPanelBtn) hideMusicSearchPanelBtn.addEventListener('click', hideMusicSearchPanel);
       if (searchMusicOnlineSubmitBtn) {
       musicSearchQueryInput?.addEventListener('keydown', function(event){ if(event.key === 'Enter'){ event.preventDefault(); searchMusicOnlineFromMain(); } });
