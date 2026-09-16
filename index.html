@@ -2314,7 +2314,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
           </a>
           <div class="support-version-card">
             <span>Versão do aplicativo</span>
-            <strong id="appVersionValue">v1.16.0</strong>
+            <strong id="appVersionValue">v1.17.0</strong>
           </div>
         </div>
       </div>
@@ -2557,7 +2557,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.16.0';
+    const APP_VERSION = '1.17.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5916,7 +5916,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         if (sa !== sb) return sb - sa;
         return String(a.trackName || '').localeCompare(String(b.trackName || ''), 'pt-BR', { sensitivity:'base' });
       });
-      state.musicSearchResults = ranked.slice(0, 15);
+      state.musicSearchResults = ranked.slice(0, 30);
       renderExternalMusicResults();
       if (musicOnlineSearchStatus && state.musicSearchResults.length) {
         musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
@@ -6001,57 +6001,58 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       state.musicSearchResults = [];
       if (musicOnlineSearchResults) musicOnlineSearchResults.innerHTML = '';
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = true; searchMusicOnlineSubmitBtn.textContent = 'Pesquisando...'; }
-      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet...';
+      if (musicOnlineSearchStatus) musicOnlineSearchStatus.textContent = 'Pesquisando na internet... os resultados aparecerão conforme forem encontrados.';
 
       const variants = buildMusicSearchVariants(rawQuery);
-      const mergeRows = function(rows, hint) {
+      const maxResults = 30;
+      const mergeRowsLive = function(rows, hint) {
         if (requestId !== state.musicSearchRequestId || !Array.isArray(rows) || !rows.length) return false;
         mergeExternalMusicSearchResults(rows, hint || rawQuery, '');
+        if (musicOnlineSearchStatus && requestId === state.musicSearchRequestId) {
+          if (state.musicSearchResults.length >= maxResults) {
+            musicOnlineSearchStatus.textContent = maxResults + ' resultados encontrados. Selecione a música correta.';
+          } else {
+            musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '… buscando mais.';
+          }
+        }
         return state.musicSearchResults.length > 0;
       };
-      try {
-        // Busca rápida: até 15 resultados visíveis. As fontes são iniciadas em
-        // paralelo e a primeira resposta útil aparece sem esperar pelas outras.
-        let primaryFound = false;
-        for (let i = 0; i < variants.length && state.musicSearchResults.length < 15; i += 1) {
-          try {
-            const rows = await requestItunesSearchFast(variants[i]);
-            primaryFound = mergeRows(rows, variants[i]) || primaryFound;
-          } catch (_) {}
-        }
 
-        const complements = [];
-        for (let i = 0; i < variants.length; i += 1) {
-          const q = variants[i];
-          complements.push(searchDeezerSource(q).catch(function(){ return []; }));
-          complements.push(searchMusicBrainzSource(q, '').catch(function(){ return []; }));
-          complements.push(searchLrcLibSource(q).catch(function(){ return []; }));
-        }
-        Promise.all(complements).then(function(extra) {
-          if (requestId !== state.musicSearchRequestId) return;
-          let added = false;
-          for (let i = 0; i < extra.length; i += 1) added = mergeRows(extra[i], rawQuery) || added;
-          if (!state.musicSearchResults.length) {
-            musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente um trecho menor da letra ou acrescente o artista.';
-            musicOnlineSearchStatus.className = 'sync-status-note status-error';
-          } else {
-            musicOnlineSearchStatus.className = 'sync-status-note';
-          }
-        });
-        if (primaryFound || state.musicSearchResults.length) {
-          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Selecione a música correta.';
-        } else {
-          musicOnlineSearchStatus.textContent = 'Buscando correspondências alternativas...';
-        }
-      } catch (error) {
-        console.warn('Busca externa:', error);
-        musicOnlineSearchStatus.textContent = 'Tentando outras fontes da internet...';
-      } finally {
-        if (requestId === state.musicSearchRequestId) {
-          state.musicSearchBusy = false;
-          if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
-        }
+      const jobs = [];
+      // Fonte principal do ADM: rápida, por nome da música/consulta livre.
+      // Disparamos as variantes em paralelo e cada resposta é incorporada
+      // imediatamente na lista, sem esperar todas as fontes.
+      for (let i = 0; i < variants.length; i += 1) {
+        const q = variants[i];
+        jobs.push(requestItunesSearchFast(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
       }
+      // Complementos: entram em paralelo e alimentam a mesma lista conforme
+      // cada serviço responde. Se já houver 30, as novas linhas são ignoradas
+      // pelo limite do merge.
+      for (let i = 0; i < variants.length; i += 1) {
+        const q = variants[i];
+        jobs.push(searchDeezerSource(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
+        jobs.push(searchMusicBrainzSource(q, '').then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
+        jobs.push(searchLrcLibSource(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; }));
+      }
+
+      Promise.all(jobs).then(function(){
+        if (requestId !== state.musicSearchRequestId) return;
+        if (!state.musicSearchResults.length) {
+          musicOnlineSearchStatus.textContent = 'Nenhuma correspondência encontrada. Tente outro trecho, o nome da música ou acrescente o artista.';
+          musicOnlineSearchStatus.className = 'sync-status-note status-error';
+        } else if (state.musicSearchResults.length >= maxResults) {
+          musicOnlineSearchStatus.textContent = maxResults + ' resultados carregados. Selecione a música correta.';
+          musicOnlineSearchStatus.className = 'sync-status-note';
+        } else {
+          musicOnlineSearchStatus.textContent = state.musicSearchResults.length + ' resultado' + (state.musicSearchResults.length === 1 ? '' : 's') + ' encontrado' + (state.musicSearchResults.length === 1 ? '' : 's') + '. Não há mais correspondências nas fontes consultadas.';
+          musicOnlineSearchStatus.className = 'sync-status-note';
+        }
+      }).finally(function(){
+        if (requestId !== state.musicSearchRequestId) return;
+        state.musicSearchBusy = false;
+        if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
+      });
     }
     function openMusicSearchPanel() {
       hidePanel();
