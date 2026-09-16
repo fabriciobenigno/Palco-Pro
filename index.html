@@ -2559,7 +2559,7 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
     const themesBtn = $('themesBtn');
     const themeGrid = $('themeGrid');
     const syncStatusNote = $('syncStatusNote');
-    const APP_VERSION = '1.24.0';
+    const APP_VERSION = '1.25.0';
     const supportContactBtn = $('supportContactBtn');
     const supportContactPanel = $('supportContactPanel');
     const hideSupportContactPanelBtn = $('hideSupportContactPanelBtn');
@@ -5758,16 +5758,30 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const q = normalizeExternalMusicSearch(titleQuery);
       const title = normalizeExternalMusicSearch(item && (item.trackName || item.name || ''));
       const artist = normalizeExternalMusicSearch(item && (item.artistName || item.artist || ''));
+      const tokens = q.split(/\s+/).filter(Boolean);
       let score = 0;
       if (artistQuery) {
         const aq = normalizeExternalMusicSearch(artistQuery);
-        if (artist === aq) score += 1200;
-        else if (artist.indexOf(aq) >= 0) score += 700;
+        if (artist === aq) score += 1400;
+        else if (artist.indexOf(aq) >= 0) score += 850;
       }
-      if (title === q) score += 500;
-      else if (title.indexOf(q) === 0) score += 320;
-      else if (title.indexOf(q) >= 0) score += 180;
-      if (artist && q && title !== q && artist.indexOf(q) >= 0) score += 10;
+      if (title === q) score += 700;
+      else if (title.indexOf(q) === 0) score += 420;
+      else if (title.indexOf(q) >= 0) score += 240;
+      if (q && artist && title !== q && artist.indexOf(q) >= 0) score += 40;
+
+      // Pesquisa em uma única caixa: quando o usuário digita algo como
+      // "Oceano Djavan", o iTunes pode não retornar nada para a frase inteira.
+      // Nesse caso, usamos os termos individualmente para ranquear os resultados
+      // e damos peso extra ao último termo quando ele corresponde ao artista.
+      let titleTokenHits = 0;
+      for (let i = 0; i < tokens.length; i += 1) {
+        const token = tokens[i];
+        if (token.length < 2) continue;
+        if (title.indexOf(token) >= 0) { score += 75; titleTokenHits += 1; }
+        if (artist.indexOf(token) >= 0) score += (i === tokens.length - 1 ? 520 : 150);
+      }
+      if (tokens.length > 1 && titleTokenHits > 0) score += Math.min(180, titleTokenHits * 25);
       return score;
     }
     function renderExternalMusicResults() {
@@ -6109,13 +6123,21 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
       const parts = raw.split(/\s+/).filter(Boolean);
       const variants = [raw];
       if (parts.length > 1) {
+        // Primeiro tentamos a consulta completa. Depois, versões menores permitem
+        // encontrar o título mesmo quando o usuário também digitou o artista.
         variants.push(parts.slice(0, Math.min(3, parts.length)).join(' '));
+        variants.push(parts.slice(0, 2).join(' '));
+        variants.push(parts[0]);
+        // E uma ordem invertida ajuda consultas como "Djavan Oceano".
+        if (parts.length === 2) variants.push(parts[1] + ' ' + parts[0]);
       }
       if (parts.length > 4) {
         variants.push(parts.slice(0,4).join(' '));
         variants.push(parts.slice(0,6).join(' '));
       }
-      return variants.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+      return variants.filter(function(v,i,a){
+        return v && a.indexOf(v) === i;
+      });
     }
     async function searchMusicOnlineFromMain() {
       if (state.musicSearchBusy) return;
@@ -6146,11 +6168,11 @@ Você pode escolher entre letra e PDF e personalizar a leitura em Ajustes.</text
         }
       };
 
-      // 1) Fonte principal do ADM. A primeira chamada é JSONP, igual para PC e
-      // celular. Como não depende de CORS, evita a diferença que estava ocorrendo
-      // entre Safari/iPhone e navegadores de desktop.
+      // 1) Fonte principal do ADM. Todas as variantes são consultadas em paralelo.
+      // Isso evita o caso em que "Oceano Djavan" não retorna nada no iTunes,
+      // enquanto "Oceano" retorna normalmente.
       const primaryJobs = variants.map(function(q) {
-        return searchItunesSourceRobust(q).then(function(rows){ mergeRowsLive(rows, q); return rows; }).catch(function(){ return []; });
+        return searchItunesSourceRobust(q).then(function(rows){ mergeRowsLive(rows, rawQuery); return rows; }).catch(function(){ return []; });
       });
 
       // 2) Fontes complementares em paralelo. LRCLIB usa "q" para também localizar
