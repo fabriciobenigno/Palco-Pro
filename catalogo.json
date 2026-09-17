@@ -1,5 +1,15 @@
 [
   {
+    "id": "972b3208-75e5-411e-af63-328ccf959378",
+    "title": "Medo da Chuva",
+    "artist": "Raul Seixas",
+    "style": "MPB",
+    "lyrics": "É pena que você pense\nQue eu sou seu escravo\nDizendo que eu sou seu marido\nE não posso partir\n\nComo as pedras imóveis na praia\nEu fico ao teu lado sem saber\nDos amores que a vida me trouxe\nE eu não pude viver\n\nEu perdi o meu medo, o meu medo\nO meu medo da chuva\nPois a chuva voltando pra terra\nTraz coisas do ar\n\nAprendi o segredo, o segredo\nO segredo da vida\nVendo as pedras que choram\nSozinhas no mesmo lugar\n\nEu não posso entender tanta gente\nAceitando a mentira\nDe que os sonhos desfazem\nAquilo que o padre falou\n\nPorque quando eu jurei meu amor\nEu traí a mim mesmo\nHoje eu sei que ninguém nesse mundo\nÉ feliz tendo amado uma vez, uma vez\n\nEu perdi o meu medo, o meu medo\nO meu medo da chuva\nPois a chuva voltando pra terra\nTraz coisas do ar\n\nAprendi o segredo, o segredo\nO segredo da vida\nVendo as pedras que choram\nSozinhas no mesmo lugar\n\nVendo as pedras que choram\nSozinhas no mesmo lugar\nVendo as pedras que sonham\nSozinhas no mesmo lugar",
+    "pdfUrl": "",
+    "pdfFileName": "",
+    "active": true
+  },
+  {
     "id": "d9503a67-cfd3-4e83-9f9e-195d369bc7cf",
     "title": "Frevo Mulher",
     "artist": "Zé Ramalho",
@@ -337,6 +347,16 @@
     "lyrics": "Dez e dez tem alguém pensando em mim\nE eu também 'tava pensando em você, ai, ai\nSe eu te ligar de madrugada\nÉ que eu esbarrei no telefone sem querer\n\nVou te acompanhar cantando alto no chuveiro\nVou fazer massagem no seu pé o dia inteiro\nVou cuidar só de você, só de você\nSó de você\n\nOlha só, ó, como as coisas são\nNo meu coração você tinha um apê\nAgora tem uma mansão\n\nOlha só, viu, como as coisas são\nNo meu coração você tinha um apê\nAgora tem uma mansão\n\nDez e dez tem alguém pensando em mim\nE eu também 'tava pensando em você, ai, ai\nSe eu te ligar de madrugada\nÉ que eu esbarrei no telefone sem querer\n\nVou te acompanhar cantando alto no chuveiro\nVou fazer massagem no seu pé o dia inteiro\nVou cuidar só de você, só de você\nSó de você\n\nOlha só, ó, como as coisas são\nNo meu coração você tinha um apê\nAgora tem uma mansão, ô, ô-ô\n\nOlha só, viu, como as coisas são\nNo meu coração você tinha um apê\nAgora tem uma mansão\n\nUh, ôh, ôh, ôh, ô-ôu\nUh, ôh, ôh, ôh, ô-ôu\nUh, ôh, ôh, ôh, ô-ôu\nÔh, ô-ôu\n\nOlha só, ó, como as coisas são\nNo meu coração você tinha um apê\nAgora tem uma mansão",
     "pdfUrl": "https://fabriciobenigno.github.io/Palco-Pro/pdf/6be0cab7-f9e7-4ef9-992f-a1a3c8abc216-Ap%C3%AA%20-%20Melim%20(Palco%20Pro).pdf",
     "pdfFileName": "Apê - Melim (Palco Pro).pdf",
+    "active": true
+  },
+  {
+    "id": "f406bf20-85dd-403c-a2ba-e21d01a9d3c7",
+    "title": "É Preciso Saber Viver",
+    "artist": "Titãs",
+    "style": "Rock",
+    "lyrics": "Quem espera que a vida\nSeja feita de ilusão\nPode até ficar maluco\nOu morrer na solidão\nÉ preciso ter cuidado\nPra mais tarde não sofrer\nÉ preciso saber viver\nToda pedra do caminho\nVocê pode retirar\nNuma flor que tem espinho\nVocê pode se arranhar\nSe o bem e o bem existem\nVocê pode escolher\nÉ preciso saber viver\nÉ preciso saber viver\nÉ preciso saber viver\nÉ preciso saber viver\nSaber viver\nQuem espera que a vida\nSeja feita de ilusão\nPode até ficar maluco\nOu morrer na solidão\nÉ preciso ter cuidado\nPra mais tarde não sofrer\nÉ preciso saber viver\nToda pedra do caminho\nVocê pode retirar\nNuma flor que tem espinhos\nVocê pode se arranhar\nSe o bem e o bem existem\nVocê pode escolher\nÉ preciso saber viver\nÉ preciso saber viver\nÉ preciso saber viver\nÉ preciso saber viver\nSaber viver\nÉ preciso saber viver (saber viver)\nÉ preciso saber viver (é preciso)\nÉ preciso saber viver\nSaber viver\nÉ preciso saber viver (é preciso, é preciso)\nÉ preciso saber viver (é preciso)\nÉ preciso saber viver\nSaber viver",
+    "pdfUrl": "https://fabriciobenigno.github.io/Palco-Pro/pdf/f406bf20-85dd-403c-a2ba-e21d01a9d3c7-%C3%89%20Preciso%20Saber%20Viver%20-%20Tit%C3%A3s%20(Palco%20Pro).pdf",
+    "pdfFileName": "É Preciso Saber Viver - Titãs (Palco Pro).pdf",
     "active": true
   },
   {
