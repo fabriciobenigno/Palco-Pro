@@ -44,6 +44,9 @@
 .catalog-top{display:grid;gap:10px}.catalog-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.catalog-toolbar .search-wrap{flex:1 1 220px;position:relative}.search-wrap input{padding-right:90px}.search-counter{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--soft)}.filter-row{display:flex;flex-wrap:wrap;gap:8px}.filter-btn{min-height:34px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer}.filter-btn.active{background:linear-gradient(180deg,rgba(116,200,255,.18),rgba(74,137,255,.10));border-color:rgba(133,208,255,.30);color:#fff}
 .catalog-list{display:grid;gap:8px;padding-right:0}.song-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 13px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02)),rgba(15,21,34,.94);border:1px solid rgba(255,255,255,.06);transition:border-color .18s ease,transform .18s ease,background .18s ease}.song-row:hover{border-color:rgba(133,208,255,.20)}.song-main{display:grid;gap:5px;min-width:0}.song-title{margin:0;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-meta{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-submeta{color:var(--soft);font-size:10px;line-height:1.35}.song-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.song-select{width:20px;height:20px;margin:0;accent-color:#6cb7ff;cursor:pointer;flex:0 0 20px}.song-row.selected{border-color:rgba(133,208,255,.42);background:linear-gradient(180deg,rgba(116,200,255,.09),rgba(74,137,255,.035)),rgba(15,21,34,.94)}.bulk-actions{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.03);border:1px solid rgba(133,208,255,.14)}.bulk-actions.active{display:flex}.bulk-count{font-size:11px;color:var(--muted);font-weight:800;margin-right:auto}.bulk-actions .btn{min-height:40px}.style-modal-copy{color:var(--muted);font-size:13px;line-height:1.6}.empty{padding:30px 18px;border-radius:22px;border:1px dashed rgba(184,224,255,.14);background:rgba(255,255,255,.03);color:var(--muted);text-align:center;line-height:1.6}.stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat{padding:11px 12px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}.stat-label{font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}.stat-value{margin-top:4px;font-size:20px;font-weight:850;letter-spacing:-.04em}.import-zone{padding:14px;border-radius:20px;border:1px dashed rgba(133,208,255,.22);background:linear-gradient(180deg,rgba(116,200,255,.05),rgba(74,137,255,.02)),rgba(8,14,25,.64);text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease}.import-zone.dragover{border-color:rgba(133,208,255,.52);background:rgba(74,137,255,.10)}.import-zone strong{display:block;font-size:13px}.import-zone span{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.45}
 
+/* === CONTROLE DE PDFs DO CATÁLOGO === */
+.pdf-subpanel{margin-top:12px;padding:12px;border-radius:22px;background:rgba(255,255,255,.025);border:1px solid rgba(184,224,255,.10)}.pdf-subpanel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}.pdf-subpanel-head h3{margin:0;font-size:14px}.pdf-subpanel-head p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.5}.pdf-panel-actions .btn{min-width:220px}.pdf-batch-progress{padding:10px 12px;border-radius:16px;background:rgba(116,200,255,.07);border:1px solid rgba(116,200,255,.15);color:#c7ecff;font-size:11px;line-height:1.5}.pdf-batch-progress strong{color:#fff}.pdf-panel-actions{display:flex;gap:8px;flex-wrap:wrap}.pdf-panel-actions .btn{flex:1 1 220px}.pdf-catalog-list{display:grid;gap:8px}.pdf-catalog-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 13px;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02)),rgba(15,21,34,.94);border:1px solid rgba(255,255,255,.06)}.pdf-catalog-main{display:grid;gap:4px;min-width:0}.pdf-catalog-title{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pdf-catalog-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pdf-catalog-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pdf-catalog-empty{padding:26px 18px;border-radius:22px;border:1px dashed rgba(184,224,255,.14);background:rgba(255,255,255,.03);color:var(--muted);text-align:center;line-height:1.6}.pdf-batch-progress{padding:10px 12px;border-radius:16px;background:rgba(116,200,255,.07);border:1px solid rgba(116,200,255,.15);color:#c7ecff;font-size:11px;line-height:1.5}.pdf-batch-progress strong{color:#fff}
+
 /* PDF viewer responsivo — alinhado ao Index Principal */
 .pdf-viewer-screen{position:fixed;inset:0;z-index:120;display:none;background:#05080d;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);overflow:hidden;touch-action:none}.pdf-viewer-screen.open{display:flex;align-items:center;justify-content:center}.pdf-viewer-page-wrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 0%,rgba(89,164,255,.12),transparent 30%),#05080d}.pdf-viewer-canvas{position:relative;z-index:2;display:block;background:#fff;max-width:100%;max-height:100%;box-shadow:0 14px 40px rgba(0,0,0,.35);transform:translate3d(var(--page-swipe-x,0px),0,0);transition:transform .28s cubic-bezier(.22,.8,.26,1);will-change:transform}.page-swipe-active .pdf-viewer-canvas{transition:none!important}.page-swipe-preview{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .05s linear;will-change:transform,opacity}.page-swipe-preview.active{opacity:1}.page-swipe-preview.pdf{z-index:3;display:flex;align-items:center;justify-content:center;background:#05080d;transform:translate3d(var(--page-preview-x,100vw),0,0);transition:transform .28s cubic-bezier(.22,.8,.26,1);will-change:transform}.page-swipe-active .page-swipe-preview.pdf{transition:none!important}.page-swipe-preview.pdf canvas{display:block;background:#fff;max-width:100%;max-height:100%;box-shadow:0 14px 40px rgba(0,0,0,.30);will-change:transform}.page-swipe-edge{position:absolute;top:0;bottom:0;width:18px;z-index:32;opacity:0;pointer-events:none;transition:opacity .15s ease}.page-swipe-edge.left{left:0;box-shadow:inset 14px 0 22px rgba(0,0,0,.20)}.page-swipe-edge.right{right:0;box-shadow:inset -14px 0 22px rgba(0,0,0,.20)}.page-swipe-active .page-swipe-edge{opacity:1}.pdf-viewer-note{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;transform:translateX(-50%);z-index:40;max-width:min(92vw,520px);padding:7px 12px;border-radius:999px;background:rgba(5,9,17,.68);border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.86);font-size:11px;pointer-events:none;backdrop-filter:blur(10px)}.pdf-viewer-hint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);z-index:40;padding:7px 12px;border-radius:999px;background:rgba(5,9,17,.58);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.68);font-size:10px;pointer-events:none;backdrop-filter:blur(10px);transition:opacity .3s ease}.pdf-viewer-hint.hidden{opacity:0}.pdf-viewer-page-indicator{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:40;padding:6px 9px;border-radius:999px;background:rgba(5,9,17,.62);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.72);font-size:10px;pointer-events:none;backdrop-filter:blur(10px)}
 .modal{position:fixed;inset:0;z-index:90;display:none;padding:max(12px,calc(var(--safe-top) + 6px)) max(10px,calc(var(--safe-right) + 8px)) max(12px,calc(var(--safe-bottom) + 8px)) max(10px,calc(var(--safe-left) + 8px));background:rgba(1,3,8,.72);backdrop-filter:blur(16px)}.modal.active{display:block}.modal-card{height:100%;border-radius:30px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(11,17,30,.96),rgba(7,11,19,.98)),var(--glass);box-shadow:var(--shadow-xl),inset 0 1px 0 rgba(255,255,255,.05);display:grid;grid-template-rows:auto 1fr auto;overflow:hidden}.modal-head{padding:16px 14px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:10px}.modal-head h3{margin:0;font-size:18px;letter-spacing:-.02em}.modal-body{overflow:auto;padding:14px;display:grid;gap:12px;align-content:start}.modal-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);display:grid;gap:8px}.icon-btn{width:42px;min-width:42px;height:42px;border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04)),rgba(10,17,29,.82);color:#fff;border:1px solid rgba(255,255,255,.10);cursor:pointer;font-size:18px;box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.05)}.detail-block{padding:15px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:grid;gap:8px}.detail-block label{color:var(--soft);font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}.detail-block div{color:#fff;line-height:1.7;white-space:pre-wrap;word-break:break-word}.confirm-text{font-size:13px;line-height:1.6;color:var(--muted)}
@@ -67,7 +70,7 @@
 .card-head p{max-width:620px}
 .badge{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .catalog-toolbar{align-items:stretch}
-.catalog-toolbar-actions{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+.catalog-toolbar-actions{display:flex;gap:8px;align-items:center;flex:0 0 auto;flex-wrap:wrap}
 .search-wrap input{min-height:42px}
 .filter-row{padding-top:2px}
 .filter-btn{transition:transform .18s ease,background .18s ease,border-color .18s ease}
@@ -425,41 +428,6 @@ html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!impo
 .received-options-toggle:hover{background:rgba(116,200,255,.18)!important;border-color:rgba(133,208,255,.35)!important}
 .received-close-swipe{order:-1!important}
 @media(max-width:680px){.received-options-toggle{width:32px!important;min-width:32px!important;height:32px!important;border-radius:9px!important;font-size:18px!important}.received-actions .received-close-swipe{font-size:0!important}.received-actions .received-close-swipe .received-action-icon{font-size:16px!important}}
-
-/* === PAINEL PDF — CONTROLE E GERAÇÃO === */
-.pdf-dashboard{display:grid;gap:12px}
-.pdf-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pdf-toolbar .btn{flex:0 0 auto}
-.pdf-toolbar .btn-primary{min-width:190px}
-.pdf-batch-progress{padding:14px;border-radius:20px;background:linear-gradient(180deg,rgba(116,200,255,.06),rgba(74,137,255,.025)),rgba(8,14,25,.74);border:1px solid rgba(133,208,255,.14);line-height:1.55;color:var(--muted);font-size:11px}
-.pdf-batch-progress strong{color:#fff}
-.pdf-progress-bar{height:8px;margin-top:10px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}
-.pdf-progress-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--blue-1),var(--blue-2));transition:width .25s ease}
-.pdf-lists{display:grid;gap:12px}
-.pdf-list-card{padding:14px;border-radius:22px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}
-.pdf-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.pdf-list-head h3{margin:0;font-size:14px;letter-spacing:-.02em}
-.pdf-list-head span{font-size:10px;color:var(--soft)}
-.pdf-song-list,.pdf-file-list{display:grid;gap:7px;max-height:48dvh;overflow:auto;padding-right:2px}
-.pdf-song-row,.pdf-file-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:10px 11px;border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.018)),rgba(10,16,27,.76);border:1px solid rgba(255,255,255,.07)}
-.pdf-song-main{min-width:0;display:grid;gap:3px}
-.pdf-song-title{font-size:12px;font-weight:850;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pdf-song-meta{font-size:10px;color:var(--muted);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pdf-song-status{font-size:9px;font-weight:850}
-.pdf-song-status.valid{color:#a9f3c9}
-.pdf-song-status.missing{color:#ffdf94}
-.pdf-song-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
-.pdf-song-actions .btn{min-height:34px;padding:7px 9px;font-size:10px;border-radius:11px}
-.pdf-empty{padding:18px 14px;border-radius:16px;border:1px dashed rgba(184,224,255,.12);background:rgba(255,255,255,.02);color:var(--muted);text-align:center;font-size:11px;line-height:1.55}
-.pdf-integrity-note{padding:11px 12px;border-radius:16px;background:rgba(255,204,104,.05);border:1px solid rgba(255,204,104,.12);color:#ffdf94;font-size:10px;line-height:1.5}
-@media(max-width:680px){
-  .pdf-toolbar{display:grid;grid-template-columns:1fr}
-  .pdf-toolbar .btn{width:100%}
-  .pdf-song-row,.pdf-file-row{grid-template-columns:1fr}
-  .pdf-song-actions{justify-content:flex-start}
-  .pdf-song-actions .btn{flex:1}
-}
-
 </style>
 
 <style>
@@ -501,8 +469,9 @@ html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!impo
 
     <nav class="tabs" aria-label="Navegação administrativa">
       <button class="tab-btn active" data-tab="catalog" type="button">🎵 Catálogo</button>
+      <button class="tab-btn" data-tab="pdf" type="button">📄 PDFs</button>
       <button class="tab-btn" data-tab="editor" type="button">✚ Cadastrar</button>
-      <button class="tab-btn" data-tab="received" type="button">📥 Cadastros recebidos</button><button class="tab-btn" data-tab="pdf" type="button">📄 PDFs</button>
+      <button class="tab-btn" data-tab="received" type="button">📥 Cadastros recebidos</button>
       <button class="tab-btn" data-tab="project" type="button">ℹ️ Projeto</button>
     </nav>
 
@@ -512,10 +481,45 @@ html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!impo
           <div class="card-head"><div><h2>Catálogo atual</h2><p>Visualize e administre exatamente a lista que será disponibilizada em Sugestões.</p></div><span id="catalogCounter" class="badge">0 músicas</span></div>
           <div class="stats-grid" style="margin-bottom:12px"><div class="stat"><div class="stat-label">Total</div><div id="statTotal" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Ativas</div><div id="statActive" class="stat-value">0</div></div><div class="stat"><div class="stat-label">Inativas</div><div id="statInactive" class="stat-value">0</div></div></div>
           <div class="catalog-top">
-            <div class="catalog-toolbar"><div class="search-wrap"><input id="searchInput" type="text" placeholder="Buscar por música, artista ou estilo" aria-label="Buscar no catálogo" /><span id="searchCounter" class="search-counter">0 resultados</span></div><div class="catalog-toolbar-actions"><button id="refreshCatalogBtn" type="button" class="btn btn-secondary btn-small">↻ Atualizar catálogo</button><button id="removeDuplicatesBtn" type="button" class="btn btn-danger btn-small">🧹 Remover músicas copiadas</button><button id="newSongBtn" type="button" class="btn btn-primary btn-small">+ Nova música</button></div></div>
+            <div class="catalog-toolbar"><div class="search-wrap"><input id="searchInput" type="text" placeholder="Buscar por música, artista ou estilo" aria-label="Buscar no catálogo" /><span id="searchCounter" class="search-counter">0 resultados</span></div><div class="catalog-toolbar-actions"><button id="refreshCatalogBtn" type="button" class="btn btn-secondary btn-small">↻ Atualizar catálogo</button><button id="removeDuplicatesBtn" type="button" class="btn btn-danger btn-small">🧹 Remover músicas copiadas</button><button id="newSongBtn" type="button" class="btn btn-primary btn-small">+ Nova música</button></div>
             <div class="filter-row"><button class="filter-btn active" data-filter="all" type="button">Todas</button><button class="filter-btn" data-filter="active" type="button">Ativas</button><button class="filter-btn" data-filter="inactive" type="button">Inativas</button></div><div id="bulkActions" class="bulk-actions"><span id="bulkCount" class="bulk-count">0 músicas selecionadas</span><button id="selectAllBtn" type="button" class="btn btn-secondary btn-small">Selecionar todas</button><button id="clearSelectionBtn" type="button" class="btn btn-secondary btn-small">Limpar seleção</button><button id="changeStyleBtn" type="button" class="btn btn-primary btn-small">✏️ Editar nome do estilo</button></div>
           </div>
+          <section class="catalog-file-card card" style="margin-top:12px">
+            <div class="card-head"><div><h2>Arquivo do catálogo</h2><p>Carregue, vincule ou baixe o <strong>catalogo.json</strong> completo. O painel não limita a quantidade de músicas.</p></div><span id="fileStatus" class="badge">Catálogo remoto</span></div>
+            <div id="importZone" class="import-zone" role="button" tabindex="0" aria-label="Anexar catalogo.json"><strong>📂 Anexar o catalogo.json atual</strong><span>Clique aqui ou arraste o arquivo para carregar a lista completa.</span><span style="margin-top:8px;color:#9edcff">O limite de 200 é exclusivo das sugestões automáticas.</span></div>
+            <input id="importFile" class="hidden" type="file" accept=".json,application/json" />
+            <div class="actions-grid" style="margin-top:10px"><button id="linkCatalogBtn" type="button" class="btn btn-secondary">🔗 Vincular catalogo.json</button><button id="exportBtn" type="button" class="btn btn-success">Baixar catalogo.json</button></div>
+            <div id="catalogStatus" class="status-line" style="margin-top:8px"></div>
+          </section>
           <div id="catalogList" class="catalog-list" style="margin-top:12px"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" data-panel="pdf">
+        <section class="card">
+          <div class="card-head"><div><h2>Controle de PDFs</h2><p>Veja a quantidade de PDFs no catálogo e gerencie os arquivos publicados.</p></div><span id="pdfCatalogCounter" class="badge">0 PDFs</span></div>
+          <div class="stats-grid" style="margin-bottom:12px">
+            <div class="stat"><div class="stat-label">PDFs válidos vinculados</div><div id="pdfStatTotal" class="stat-value">0</div></div>
+            <div class="stat"><div class="stat-label">Músicas sem PDF válido</div><div id="pdfStatMissing" class="stat-value">0</div></div>
+            <div class="stat"><div class="stat-label">Com referência quebrada</div><div id="pdfStatBroken" class="stat-value">0</div></div>
+            <div class="stat"><div class="stat-label">Prontas para gerar</div><div id="pdfStatEligible" class="stat-value">0</div></div>
+          </div>
+          <div class="pdf-panel-actions">
+            <button id="refreshPdfPanelBtn" type="button" class="btn btn-secondary btn-small">↻ Atualizar painel</button>
+            <button id="generateMissingPdfsBtn" type="button" class="btn btn-primary btn-small">📄 Gerar PDFs pendentes</button>
+            <button id="deleteOrphanCatalogPdfsBtn" type="button" class="btn btn-danger btn-small">🧹 Excluir PDFs não vinculados</button>
+          </div>
+          <div id="pdfPanelStatus" class="status-line" style="margin-top:10px"></div>
+          <div class="note" style="margin-top:10px"><strong>Regra:</strong> o PDF só conta como existente quando o arquivo físico correspondente existe no GitHub e está vinculado a uma música do <strong>catalogo.json</strong>. Uma referência antiga sem arquivo físico é considerada quebrada e entra em “Músicas sem PDF válido”. Atualizar este painel apenas verifica e atualiza os números; não exclui nada.</div>
+          <div id="missingPdfProgress" class="pdf-batch-progress hidden" aria-live="polite" style="margin-top:10px"></div>
+          <section class="pdf-subpanel">
+            <div class="pdf-subpanel-head"><div><h3>Músicas no catálogo sem PDF válido</h3><p>Inclui músicas sem referência e músicas cuja referência aponta para um arquivo que não existe mais.</p></div><span id="pdfMissingCounter" class="badge">0</span></div>
+            <div id="pdfMissingSongsList" class="pdf-catalog-list"></div>
+          </section>
+          <section class="pdf-subpanel" style="margin-top:12px">
+            <div class="pdf-subpanel-head"><div><h3>PDFs válidos vinculados</h3><p>Somente arquivos físicos confirmados e vinculados ao catálogo.</p></div><span id="pdfLinkedCounter" class="badge">0</span></div>
+            <div id="pdfCatalogList" class="pdf-catalog-list"></div>
+          </section>
         </section>
       </section>
 
@@ -567,45 +571,7 @@ html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!impo
         </section>
       </section>
 
-      
-      <section class="tab-panel" data-panel="pdf">
-        <section class="card pdf-dashboard">
-          <div class="card-head">
-            <div><h2>Controle de PDFs</h2><p>O painel considera válido somente o PDF físico que realmente existe no repositório e está vinculado à música.</p></div>
-            <span id="pdfCatalogCounter" class="badge">0 PDFs válidos</span>
-          </div>
-          <div class="stats-grid" style="margin-bottom:4px">
-            <div class="stat"><div class="stat-label">PDFs válidos</div><div id="pdfStatValid" class="stat-value">0</div></div>
-            <div class="stat"><div class="stat-label">Sem PDF válido</div><div id="pdfStatMissing" class="stat-value">0</div></div>
-            <div class="stat"><div class="stat-label">Órfãos</div><div id="pdfStatOrphans" class="stat-value">0</div></div>
-          </div>
-          <div class="pdf-integrity-note">Referências antigas no <strong>catalogo.json</strong> não são consideradas válidas sozinhas. Se o arquivo físico não existir mais, a música aparece abaixo como pendente e pode receber um novo PDF.</div>
-          <div class="pdf-toolbar">
-            <button id="refreshPdfPanelBtn" type="button" class="btn btn-secondary btn-small">↻ Verificar PDFs</button>
-            <button id="generateMissingPdfsBtn" type="button" class="btn btn-primary btn-small">📄 Gerar PDFs pendentes</button>
-            <button id="retryFailedPdfsBtn" type="button" class="btn btn-amber btn-small hidden">🔄 Tentar falhas</button>
-            <button id="deleteOrphanPdfsBtn" type="button" class="btn btn-danger btn-small">🧹 Excluir PDFs não vinculados</button>
-          </div>
-          <div id="pdfBatchProgress" class="pdf-batch-progress hidden" aria-live="polite"></div>
-          <div id="pdfPanelStatus" class="status-line"></div>
-          <div class="pdf-lists">
-            <section class="pdf-list-card">
-              <div class="pdf-list-head"><h3>🎵 Músicas no catálogo sem PDF válido</h3><span id="pdfMissingCount">0</span></div>
-              <div id="pdfMissingList" class="pdf-song-list"></div>
-            </section>
-            <section class="pdf-list-card">
-              <div class="pdf-list-head"><h3>📄 PDFs vinculados ao catálogo</h3><span id="pdfValidCount">0</span></div>
-              <div id="pdfValidList" class="pdf-song-list"></div>
-            </section>
-            <section class="pdf-list-card">
-              <div class="pdf-list-head"><h3>🗑️ PDFs físicos não vinculados</h3><span id="pdfOrphanCount">0</span></div>
-              <div id="pdfOrphanList" class="pdf-file-list"></div>
-            </section>
-          </div>
-        </section>
-      </section>
-
-<section class="tab-panel" data-panel="project">
+      <section class="tab-panel" data-panel="project">
         <section class="card">
           <div class="card-head"><div><h2>Contexto do projeto</h2><p>Notas permanentes para manter este painel e futuras alterações alinhados com o projeto.</p></div><span class="badge">Palco Pro</span></div>
           <div class="project-context note">
@@ -670,11 +636,11 @@ const PDF_LIB_URL='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.
 const CATALOG_KEY='palco-pro-admin-catalog-v4';
 const SESSION_KEY='palco-pro-admin-session-v4';
 const $=id=>document.getElementById(id);
-const state={songs:[],editingId:null,filter:'all',confirmAction:null,lastFileName:'',selectedIds:new Set(),catalogHandle:null,received:[],receivedSelected:new Set(),receivedEditingIndex:null,musicSearchResults:[],musicSearchController:null,musicSearchTimer:null,musicSearchToken:0,bulkMusicSearchResults:[],bulkMusicSearchController:null,bulkMusicSearchToken:0,bulkMusicSelected:new Set(),bulkMusicSearchBusy:false,pdfProcessing:false,pdfDoc:null,pdfPage:1,pdfPageCount:0,pdfRenderToken:0,pdfUrl:'',pdfSwipeStartX:0,pdfSwipeStartY:0,pdfSwipeTracking:false,pdfNativeFrame:false,localPdfPreviewSongId:'',localPdfPreviewDataUrl:'',autoPdfGenerating:false,pdfIntegrity:{checked:false,validIds:new Set(),missingIds:new Set(),brokenIds:new Set(),validPaths:new Set(),orphanPaths:[],physicalPdfCount:0},pdfBatchBusy:false,pdfBatchFailedIds:new Set(),pdfBatchCheckpoint:null};
+const state={songs:[],editingId:null,filter:'all',confirmAction:null,lastFileName:'',selectedIds:new Set(),catalogHandle:null,received:[],receivedSelected:new Set(),receivedEditingIndex:null,musicSearchResults:[],musicSearchController:null,musicSearchTimer:null,musicSearchToken:0,bulkMusicSearchResults:[],bulkMusicSearchController:null,bulkMusicSearchToken:0,bulkMusicSelected:new Set(),bulkMusicSearchBusy:false,pdfProcessing:false,pdfBatchBusy:false,pdfIntegrityChecked:false,pdfValidSongIds:new Set(),pdfMissingSongIds:new Set(),pdfBrokenSongIds:new Set(),pdfStatusById:new Map(),pdfOrphanPaths:[],pdfValidPaths:new Set(),pdfDoc:null,pdfPage:1,pdfPageCount:0,pdfRenderToken:0,pdfUrl:'',pdfSwipeStartX:0,pdfSwipeStartY:0,pdfSwipeTracking:false,pdfNativeFrame:false,localPdfPreviewSongId:'',localPdfPreviewDataUrl:'',autoPdfGenerating:false};
 const els={
- authCard:$('authCard'),adminPanel:$('adminPanel'),loginInput:$('loginInput'),passwordInput:$('passwordInput'),showPassword:$('showPasswordToggle'),loginBtn:$('loginBtn'),authStatus:$('authStatus'),logoutBtn:$('logoutBtn'),refreshIndexBtn:$('refreshIndexBtn'), refreshCatalog:$('refreshCatalogBtn'),
+ authCard:$('authCard'),adminPanel:$('adminPanel'),loginInput:$('loginInput'),passwordInput:$('passwordInput'),showPassword:$('showPasswordToggle'),loginBtn:$('loginBtn'),authStatus:$('authStatus'),logoutBtn:$('logoutBtn'),refreshIndexBtn:$('refreshIndexBtn'), refreshCatalog:$('refreshCatalogBtn'),missingPdfProgress:$('missingPdfProgress'),pdfCatalogCounter:$('pdfCatalogCounter'),pdfStatTotal:$('pdfStatTotal'),pdfStatMissing:$('pdfStatMissing'),pdfStatBroken:$('pdfStatBroken'),pdfStatEligible:$('pdfStatEligible'),pdfPanelStatus:$('pdfPanelStatus'),pdfCatalogList:$('pdfCatalogList'),pdfMissingSongsList:$('pdfMissingSongsList'),pdfMissingCounter:$('pdfMissingCounter'),pdfLinkedCounter:$('pdfLinkedCounter'),refreshPdfPanelBtn:$('refreshPdfPanelBtn'),generateMissingPdfsBtn:$('generateMissingPdfsBtn'),deleteOrphanCatalogPdfsBtn:$('deleteOrphanCatalogPdfsBtn'),
  songTitle:$('songTitle'),songArtist:$('songArtist'),songStyle:$('songStyle'),musicSearchQuery:$('musicSearchQuery'),searchMusicBtn:$('searchMusicBtn'),openBulkMusicSearchBtn:$('openBulkMusicSearchBtn'),closeBulkMusicSearchBtn:$('closeBulkMusicSearchBtn'),bulkMusicSearchPanel:$('bulkMusicSearchPanel'),bulkMusicSearchBtn:$('bulkMusicSearchBtn'),bulkMusicSearchStatus:$('bulkMusicSearchStatus'),bulkMusicSelectionActions:$('bulkMusicSelectionActions'),bulkMusicSelectionCount:$('bulkMusicSelectionCount'),selectAllBulkMusicBtn:$('selectAllBulkMusicBtn'),clearBulkMusicSelectionBtn:$('clearBulkMusicSelectionBtn'),addSelectedBulkMusicBtn:$('addSelectedBulkMusicBtn'),bulkMusicSearchResults:$('bulkMusicSearchResults'),musicSearchStatus:$('musicSearchStatus'),musicSearchResults:$('musicSearchResults'),musicSearchSelected:$('musicSearchSelected'),songNote:$('songNote'),songLyrics:$('songLyrics'),selectSongPdfBtn:$('selectSongPdfBtn'),songPdfStatus:$('songPdfStatus'),viewSongPdfBtn:$('viewSongPdfBtn'),formTitle:$('formTitle'),formSubtitle:$('formSubtitle'),editingBadge:$('editingBadge'),saveSong:$('saveSongBtn'),cancelEdit:$('cancelEditBtn'),formStatus:$('formStatus'),
- importZone:$('importZone'),importFile:$('importFile'),exportBtn:$('exportBtn'),quickExport:$('quickExportBtn'),fileStatus:$('fileStatus'),catalogStatus:$('catalogStatus'),search:$('searchInput'),searchCounter:$('searchCounter'),catalogList:$('catalogList'),catalogCounter:$('catalogCounter'),statTotal:$('statTotal'),statActive:$('statActive'),statInactive:$('statInactive'),newSong:$('newSongBtn'),receivedList:$('receivedList'),receivedCounter:$('receivedCounter'),refreshReceived:$('refreshReceivedBtn'),receivedStatus:$('receivedStatus'),receivedBulk:$('receivedBulk'),receivedBulkCount:$('receivedBulkCount'),selectAllReceived:$('selectAllReceivedBtn'),clearReceivedSelection:$('clearReceivedSelectionBtn'),approveSelectedReceived:$('approveSelectedReceivedBtn'),receivedEditModal:$('receivedEditModal'),receivedEditTitle:$('receivedEditTitle'),receivedEditArtist:$('receivedEditArtist'),receivedEditStyle:$('receivedEditStyle'),receivedEditNote:$('receivedEditNote'),receivedEditUser:$('receivedEditUser'),receivedEditLyrics:$('receivedEditLyrics'),receivedEditPdfStatus:$('receivedEditPdfStatus'),receivedEditPdfBtn:$('receivedEditPdfBtn'),receivedEditViewPdf:$('receivedEditViewPdfBtn'),catalogPdfInput:$('catalogPdfInput'),receivedPdfInput:$('receivedPdfInput'),saveReceivedEdit:$('saveReceivedEditBtn'),bulkActions:$('bulkActions'),bulkCount:$('bulkCount'),selectAll:$('selectAllBtn'),clearSelection:$('clearSelectionBtn'),changeStyle:$('changeStyleBtn'),styleModal:$('styleModal'),bulkStyleInput:$('bulkStyleInput'),continueStyle:$('continueStyleBtn'),linkCatalog:$('linkCatalogBtn'),detailModal:$('detailModal'),detailTitle:$('detailTitle'),detailBody:$('detailBody'),confirmModal:$('confirmModal'),confirmTitle:$('confirmTitle'),confirmBody:$('confirmBody'),confirmBtn:$('confirmBtn'),toast:$('toast'),confirmationOverlay:$('confirmationOverlay'),confirmationSong:$('confirmationSong'),pdfViewerScreen:$('pdfViewerScreen'),pdfViewerPageWrap:$('pdfViewerPageWrap'),pdfViewerCanvas:$('pdfViewerCanvas'),pdfPagePreview:$('pdfPagePreview'),pdfPagePreviewCanvas:$('pdfPagePreviewCanvas'),pdfViewerPrev:$('pdfViewerPrev'),pdfViewerNext:$('pdfViewerNext'),pdfViewerClose:$('pdfViewerClose'),pdfViewerPageIndicator:$('pdfViewerPageIndicator'),pdfViewerHint:$('pdfViewerHint'),pdfNativeFrame:$('pdfNativeFrame'),removeDuplicatesBtn:$('removeDuplicatesBtn'),pdfCatalogCounter:$('pdfCatalogCounter'),pdfStatValid:$('pdfStatValid'),pdfStatMissing:$('pdfStatMissing'),pdfStatOrphans:$('pdfStatOrphans'),refreshPdfPanelBtn:$('refreshPdfPanelBtn'),generateMissingPdfsBtn:$('generateMissingPdfsBtn'),retryFailedPdfsBtn:$('retryFailedPdfsBtn'),deleteOrphanPdfsBtn:$('deleteOrphanPdfsBtn'),pdfBatchProgress:$('pdfBatchProgress'),pdfPanelStatus:$('pdfPanelStatus'),pdfMissingCount:$('pdfMissingCount'),pdfValidCount:$('pdfValidCount'),pdfOrphanCount:$('pdfOrphanCount'),pdfMissingList:$('pdfMissingList'),pdfValidList:$('pdfValidList'),pdfOrphanList:$('pdfOrphanList')
+ importZone:$('importZone'),importFile:$('importFile'),exportBtn:$('exportBtn'),quickExport:$('quickExportBtn'),fileStatus:$('fileStatus'),catalogStatus:$('catalogStatus'),search:$('searchInput'),searchCounter:$('searchCounter'),catalogList:$('catalogList'),catalogCounter:$('catalogCounter'),statTotal:$('statTotal'),statActive:$('statActive'),statInactive:$('statInactive'),newSong:$('newSongBtn'),receivedList:$('receivedList'),receivedCounter:$('receivedCounter'),refreshReceived:$('refreshReceivedBtn'),receivedStatus:$('receivedStatus'),receivedBulk:$('receivedBulk'),receivedBulkCount:$('receivedBulkCount'),selectAllReceived:$('selectAllReceivedBtn'),clearReceivedSelection:$('clearReceivedSelectionBtn'),approveSelectedReceived:$('approveSelectedReceivedBtn'),receivedEditModal:$('receivedEditModal'),receivedEditTitle:$('receivedEditTitle'),receivedEditArtist:$('receivedEditArtist'),receivedEditStyle:$('receivedEditStyle'),receivedEditNote:$('receivedEditNote'),receivedEditUser:$('receivedEditUser'),receivedEditLyrics:$('receivedEditLyrics'),receivedEditPdfStatus:$('receivedEditPdfStatus'),receivedEditPdfBtn:$('receivedEditPdfBtn'),receivedEditViewPdf:$('receivedEditViewPdfBtn'),catalogPdfInput:$('catalogPdfInput'),receivedPdfInput:$('receivedPdfInput'),saveReceivedEdit:$('saveReceivedEditBtn'),bulkActions:$('bulkActions'),bulkCount:$('bulkCount'),selectAll:$('selectAllBtn'),clearSelection:$('clearSelectionBtn'),changeStyle:$('changeStyleBtn'),styleModal:$('styleModal'),bulkStyleInput:$('bulkStyleInput'),continueStyle:$('continueStyleBtn'),linkCatalog:$('linkCatalogBtn'),detailModal:$('detailModal'),detailTitle:$('detailTitle'),detailBody:$('detailBody'),removeDuplicatesBtn:$('removeDuplicatesBtn'),confirmModal:$('confirmModal'),confirmTitle:$('confirmTitle'),confirmBody:$('confirmBody'),confirmBtn:$('confirmBtn'),toast:$('toast'),confirmationOverlay:$('confirmationOverlay'),confirmationSong:$('confirmationSong'),pdfViewerScreen:$('pdfViewerScreen'),pdfViewerPageWrap:$('pdfViewerPageWrap'),pdfViewerCanvas:$('pdfViewerCanvas'),pdfPagePreview:$('pdfPagePreview'),pdfPagePreviewCanvas:$('pdfPagePreviewCanvas'),pdfViewerPrev:$('pdfViewerPrev'),pdfViewerNext:$('pdfViewerNext'),pdfViewerClose:$('pdfViewerClose'),pdfViewerPageIndicator:$('pdfViewerPageIndicator'),pdfViewerHint:$('pdfViewerHint'),pdfNativeFrame:$('pdfNativeFrame')
 };
 function normalize(v){return String(v??'').trim()}
 function sanitizeLyrics(v){return String(v??'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim()}
@@ -715,17 +681,8 @@ function getSongPdfReference(song){
   }
   return '';
 }
-function songHasPdf(song){
-  const id=String(song?.id||'');
-  if(state.pdfIntegrity?.checked){
-    return state.pdfIntegrity.validIds.has(id);
-  }
-  return Boolean(getSongPdfReference(song)||song?.pdfData||song?.pdfFileName||song?.pdf?.fileName||song?.arquivoPdf?.fileName);
-}
-function getCatalogPdfUrl(song){
-  if(state.pdfIntegrity?.checked && !state.pdfIntegrity.validIds.has(String(song?.id||''))) return '';
-  return getSongPdfReference(song);
-}
+function songHasPdf(song){return Boolean(getSongPdfReference(song)||song?.pdfData||song?.pdfFileName||song?.pdf?.fileName||song?.arquivoPdf?.fileName)}
+function getCatalogPdfUrl(song){return getSongPdfReference(song)}
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 async function fetchJson(url,options={},timeoutMs=15000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs);try{const response=await fetch(url,{...options,signal:controller.signal,cache:'no-store'});const text=await response.text();let data=null;try{data=JSON.parse(text)}catch(_){throw new Error('Resposta inválida do servidor.')}if(!response.ok)throw new Error('HTTP '+response.status);return data}finally{clearTimeout(timer)}}
 function fileToDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('Não foi possível ler o PDF selecionado.'));reader.readAsDataURL(file)})}
@@ -866,45 +823,89 @@ async function processPdfFileToFile(file){
 function showToast(message,type='success'){els.toast.textContent=message;els.toast.className=`toast show ${type}`;clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>els.toast.classList.remove('show'),2200)}
 function setStatus(message,type=''){if(els.formStatus){els.formStatus.textContent=message||'';els.formStatus.className=`status-line ${type?'status-'+type:''}`}if(els.catalogStatus){els.catalogStatus.textContent=message||'';els.catalogStatus.className=`status-line ${type?'status-'+type:''}`}}
 async function persist(){const payload=JSON.stringify(state.songs.map(normalizeSong),null,2);localStorage.setItem(CATALOG_KEY,payload);if(state.catalogHandle){try{const writable=await state.catalogHandle.createWritable();await writable.write(payload);await writable.close();els.fileStatus.textContent='catalogo.json sincronizado';els.fileStatus.className='badge'}catch(error){els.catalogStatus.textContent='Alteração local salva, mas não foi possível escrever no catalogo.json: '+error.message;els.catalogStatus.className='status-line status-warn'}}}
-async function publishCatalogToServer(options={}){if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='COLE_AQUI_A_MESMA_URL_DO_APPS_SCRIPT_DO_INDEX_PRINCIPAL'){return {sucesso:false,mensagem:'URL do Apps Script não configurada.'}}try{const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveCatalog',catalogo:state.songs.map(normalizeSong),allowCatalogShrink:!!options.allowCatalogShrink})},20000);if(!data?.sucesso)throw new Error(data?.mensagem||'Falha ao publicar o catálogo.');return data}catch(error){return {sucesso:false,mensagem:error.name==='AbortError'?'Tempo limite excedido na comunicação com o Apps Script.':error.message}}}
-function parseCatalogPayload(parsed){const arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.catalogo)?parsed.catalogo:(Array.isArray(parsed?.songs)?parsed.songs:null));if(!arr)throw new Error('O catálogo recebido não contém uma lista de músicas.');return arr.map(normalizeSong)}
-async function fetchCatalogFromUrl(url){const response=await fetch(url+'?ts='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});if(!response.ok)throw new Error('HTTP '+response.status);const parsed=await response.json();const arr=parseCatalogPayload(parsed);if(!arr.length)throw new Error('O catálogo retornou 0 músicas.');return arr}
-async function loadMainCatalog(){
-  const errors=[];
-  const previousCount=Array.isArray(state.songs)&&state.songs.length ? state.songs.length : (()=>{try{const cached=JSON.parse(localStorage.getItem(CATALOG_KEY)||'[]');return Array.isArray(cached)?cached.length:(Array.isArray(cached?.songs)?cached.songs.length:0)}catch(_){return 0}})();
-  const publicSources=[MAIN_CATALOG_URL,CDN_CATALOG_URL,RAW_CATALOG_URL,LOCAL_CATALOG_URL];
-  for(const url of publicSources){
-    try{
-      const arr=await fetchCatalogFromUrl(url);
-      if(previousCount>=300&&arr.length<Math.floor(previousCount*0.6)){throw new Error(`Resposta rejeitada por segurança: ${arr.length} músicas contra ${previousCount} na cópia conhecida.`)}
-      state.songs=arr;
-      localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs));
-      state.catalogHandle=null;
-      if(els.fileStatus){els.fileStatus.textContent=`Catálogo carregado (${arr.length} músicas)`;els.fileStatus.className='badge'}
-      renderCatalog();
-      return;
-    }catch(error){errors.push(String(url).replace(/^https?:\/\//,'' )+': '+(error?.message||'erro'))}
-  }
-  if(APPS_SCRIPT_URL&&APPS_SCRIPT_URL!=='COLE_AQUI_A_MESMA_URL_DO_APPS_SCRIPT_DO_INDEX_PRINCIPAL'){
-    try{
-      const data=await fetchJson(APPS_SCRIPT_URL+'?action=getCatalog&ts='+Date.now(),{},20000);
-      const arr=parseCatalogPayload(data);
-      if(!arr.length)throw new Error('O Apps Script retornou 0 músicas.');
-      if(previousCount>=300&&arr.length<Math.floor(previousCount*0.6))throw new Error(`Resposta rejeitada por segurança: ${arr.length} músicas contra ${previousCount} na cópia conhecida.`);
-      state.songs=arr;localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs));state.catalogHandle=null;if(els.fileStatus){els.fileStatus.textContent=`Catálogo carregado pelo Apps Script (${arr.length} músicas)`;els.fileStatus.className='badge'}renderCatalog();return;
-    }catch(error){errors.push('Apps Script: '+(error?.message||'erro'))}
-  }
-  throw new Error('Não foi possível carregar o catálogo por nenhuma fonte. '+errors.join(' | '));
+async function publishCatalogToServer(options={}){if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='COLE_AQUI_A_MESMA_URL_DO_APPS_SCRIPT_DO_INDEX_PRINCIPAL'){return {sucesso:false,mensagem:'URL do Apps Script não configurada.'}}try{const payload={action:'saveCatalog',catalogo:state.songs.map(normalizeSong)};if(options?.allowCatalogShrink===true)payload.allowCatalogShrink=true;const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)},20000);if(!data?.sucesso)throw new Error(data?.mensagem||'Falha ao publicar o catálogo.');return data}catch(error){return {sucesso:false,mensagem:error.name==='AbortError'?'Tempo limite excedido na comunicação com o Apps Script.':error.message}}}
+async function readCatalogFromUrl(url,label='catálogo remoto'){
+  const target=String(url||'').trim();
+  if(!target)throw new Error('Fonte do catálogo não configurada.');
+  const separator=target.includes('?')?'&':'?';
+  const cacheBusted=target+separator+'palco_catalog_ts='+Date.now();
+  const response=await fetch(cacheBusted,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'}});
+  if(!response.ok)throw new Error(label+' respondeu HTTP '+response.status+'.');
+  const parsed=await response.json();
+  const arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.songs)?parsed.songs:null);
+  if(!Array.isArray(arr))throw new Error(label+' não contém uma lista válida de músicas.');
+  if(arr.length<1)throw new Error(label+' retornou um catálogo vazio.');
+  const normalized=arr.map(normalizeSong);
+  const invalid=normalized.find(song=>!song.title||!song.lyrics);
+  if(invalid)throw new Error(label+' contém uma música sem título ou letra.');
+  return normalized;
 }
-async function loadLocal(){
-  try{await loadMainCatalog();return}catch(error){}
-  try{
-    const parsed=JSON.parse(localStorage.getItem(CATALOG_KEY)||'[]');
-    state.songs=parseCatalogPayload(parsed);
-  }catch(_){state.songs=[]}
+
+async function fetchRemoteCatalog(){
+  const sources=[
+    [RAW_CATALOG_URL,'GitHub Raw'],
+    [MAIN_CATALOG_URL,'GitHub Pages'],
+    [CDN_CATALOG_URL,'CDN jsDelivr'],
+    [LOCAL_CATALOG_URL,'catalogo.json local']
+  ];
+  const errors=[];
+  for(const [url,label] of sources){
+    try{
+      const songs=await readCatalogFromUrl(url,label);
+      return {songs,source:label};
+    }catch(error){
+      errors.push(label+': '+(error?.message||'erro desconhecido'));
+    }
+  }
+  throw new Error('Não foi possível carregar o catálogo publicado. '+errors.join(' | '));
+}
+
+function applyCatalogSongs(songs,sourceLabel='catálogo remoto'){
+  const incoming=Array.isArray(songs)?songs:[];
+  const previous=Array.isArray(state.songs)?state.songs:[];
+  if(sourceLabel!=='catálogo.json local' && previous.length>=300 && incoming.length<previous.length*0.60){
+    throw new Error(`Proteção contra redução acidental: o catálogo atual tem ${previous.length} músicas e a fonte retornou apenas ${incoming.length}.`);
+  }
+  state.songs=incoming.map(normalizeSong);
+  resetPdfIntegrity();
+  localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs));
+  state.catalogHandle=null;
+  if(els.fileStatus){els.fileStatus.textContent='Catálogo principal carregado';els.fileStatus.className='badge'}
   renderCatalog();
-  els.catalogStatus.textContent=state.songs.length?`Catálogo remoto indisponível; exibindo ${state.songs.length} músicas salvas neste dispositivo.`:'Não foi possível carregar o catálogo. Verifique a conexão e use ↻ Atualizar catálogo.';
-  els.catalogStatus.className=`status-line ${state.songs.length?'status-warn':'status-error'}`;
+  if(els.catalogStatus){
+    els.catalogStatus.textContent=`✅ ${sourceLabel}: ${state.songs.length} músicas carregadas.`;
+    els.catalogStatus.className='status-line status-success';
+  }
+}
+
+async function loadMainCatalog(){
+  const result=await fetchRemoteCatalog();
+  applyCatalogSongs(result.songs,result.source);
+  return result.songs;
+}
+
+async function loadLocal(){
+  try{
+    await loadMainCatalog();
+    return;
+  }catch(remoteError){
+    try{
+      const parsed=JSON.parse(localStorage.getItem(CATALOG_KEY)||'[]');
+      const arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.songs)?parsed.songs:[]);
+      if(arr.length){
+        state.songs=arr.map(normalizeSong);
+        state.catalogHandle=null;
+        renderCatalog();
+        els.catalogStatus.textContent='⚠️ O catálogo publicado não respondeu. Exibindo a última cópia local ('+state.songs.length+' músicas).';
+        els.catalogStatus.className='status-line status-warn';
+        return;
+      }
+    }catch(_){ }
+    state.songs=[];
+    renderCatalog();
+    els.catalogStatus.textContent='❌ '+(remoteError?.message||'Não foi possível carregar o catálogo.')+' Use “Anexar catalogo.json” para carregar uma cópia manualmente.';
+    els.catalogStatus.className='status-line status-error';
+  }
 }
 function filtered(){const q=normalizeSearch(els.search.value);return state.songs.filter(song=>{const filterOk=state.filter==='all'||(state.filter==='active'?song.active:!song.active);const textOk=!q||normalizeSearch(`${song.title} ${song.artist} ${song.style}`).includes(q);return filterOk&&textOk}).sort((a,b)=>a.title.localeCompare(b.title,'pt-BR',{sensitivity:'base'}))}
 function updateBulkUI(){const visible=filtered();const visibleIds=new Set(visible.map(s=>s.id));state.selectedIds=new Set([...state.selectedIds].filter(id=>state.songs.some(s=>s.id===id)));const count=state.selectedIds.size;els.bulkActions.classList.toggle('active',count>0);els.bulkCount.textContent=`${count} música${count===1?'':'s'} selecionada${count===1?'':'s'}`;els.selectAll.textContent=visible.length&&visible.every(s=>state.selectedIds.has(s.id))?'Desmarcar todas':'Selecionar todas'}
@@ -927,11 +928,179 @@ function renderCatalog(){
     const row=document.createElement('article');
     row.className=`song-row ${state.selectedIds.has(song.id)?'selected':''}`;
     row.dataset.songSwipe='1';
-    row.innerHTML=`<div class="song-actions"><span class="badge ${song.active?'':'inactive'}">${song.active?'Ativa':'Inativa'}</span><button class="btn btn-secondary btn-small" type="button" data-view="${escapeHtml(song.id)}">Ver</button><button class="btn btn-secondary btn-small" type="button" data-edit="${escapeHtml(song.id)}">Editar</button>${(songHasPdf(song)||state.localPdfPreviewSongId===song.id)?`<button class="btn btn-secondary btn-small" type="button" data-view-pdf="${escapeHtml(song.id)}">👁 PDF</button>`:''}<button class="btn btn-secondary btn-small" type="button" data-pdf="${escapeHtml(song.id)}">${songHasPdf(song)?'Alterar PDF':'Adicionar PDF'}</button><button class="btn ${song.active?'btn-amber':'btn-success'} btn-small" type="button" data-toggle="${escapeHtml(song.id)}">${song.active?'Desativar':'Ativar'}</button><button class="btn btn-danger btn-small" type="button" data-delete="${escapeHtml(song.id)}">Excluir</button></div><div class="song-card"><input class="song-select" type="checkbox" data-select="${escapeHtml(song.id)}" aria-label="Selecionar música" ${state.selectedIds.has(song.id)?'checked':''}><div class="song-main"><div class="song-title-line"><div class="song-title">${escapeHtml(song.title)}</div>${songHasPdf(song)?'<span class="song-pdf-indicator" aria-label="PDF anexado" title="PDF anexado">📄</span>':''}<button class="song-lyrics-search-btn" type="button" data-search-lyrics="${escapeHtml(song.id)}" aria-label="Buscar letra na internet" title="Buscar letra na internet">🔎</button></div><div class="song-meta">${escapeHtml(song.artist||'Sem artista')}${song.style?' • '+escapeHtml(song.style):''}${song.note?' • Tom: '+escapeHtml(song.note):''}</div></div></div>`;
+    const catalogPdfOk=state.pdfIntegrityChecked?songHasValidPdf(song):songHasPdf(song);
+    row.innerHTML=`<div class="song-actions"><span class="badge ${song.active?'':'inactive'}">${song.active?'Ativa':'Inativa'}</span><button class="btn btn-secondary btn-small" type="button" data-view="${escapeHtml(song.id)}">Ver</button><button class="btn btn-secondary btn-small" type="button" data-edit="${escapeHtml(song.id)}">Editar</button>${(catalogPdfOk||state.localPdfPreviewSongId===song.id)?`<button class="btn btn-secondary btn-small" type="button" data-view-pdf="${escapeHtml(song.id)}">👁 PDF</button>`:''}<button class="btn btn-secondary btn-small" type="button" data-pdf="${escapeHtml(song.id)}">${catalogPdfOk?'Alterar PDF':'Adicionar PDF'}</button><button class="btn ${song.active?'btn-amber':'btn-success'} btn-small" type="button" data-toggle="${escapeHtml(song.id)}">${song.active?'Desativar':'Ativar'}</button><button class="btn btn-danger btn-small" type="button" data-delete="${escapeHtml(song.id)}">Excluir</button></div><div class="song-card"><input class="song-select" type="checkbox" data-select="${escapeHtml(song.id)}" aria-label="Selecionar música" ${state.selectedIds.has(song.id)?'checked':''}><div class="song-main"><div class="song-title-line"><div class="song-title">${escapeHtml(song.title)}</div>${catalogPdfOk?'<span class="song-pdf-indicator" aria-label="PDF anexado" title="PDF anexado">📄</span>':''}<button class="song-lyrics-search-btn" type="button" data-search-lyrics="${escapeHtml(song.id)}" aria-label="Buscar letra na internet" title="Buscar letra na internet">🔎</button></div><div class="song-meta">${escapeHtml(song.artist||'Sem artista')}${song.style?' • '+escapeHtml(song.style):''}${song.note?' • Tom: '+escapeHtml(song.note):''}</div></div></div>`;
     els.catalogList.appendChild(row);
   }
   updateBulkUI();
 }
+function songHasValidPdf(song){return !!(song&&state.pdfIntegrityChecked&&state.pdfValidSongIds.has(String(song.id)));}
+function resetPdfIntegrity(){state.pdfIntegrityChecked=false;state.pdfValidSongIds=new Set();state.pdfMissingSongIds=new Set();state.pdfBrokenSongIds=new Set();state.pdfStatusById=new Map();state.pdfOrphanPaths=[];state.pdfValidPaths=new Set();}
+function getCatalogPdfSongs(){return (Array.isArray(state.songs)?state.songs:[]).filter(song=>songHasValidPdf(song)).sort((a,b)=>(a.title||'').localeCompare((b.title||''),'pt-BR',{sensitivity:'base'}));}
+function getCatalogMissingPdfSongs(){return (Array.isArray(state.songs)?state.songs:[]).filter(song=>!songHasValidPdf(song)).sort((a,b)=>(a.title||'').localeCompare((b.title||''),'pt-BR',{sensitivity:'base'}));}
+async function fetchPdfIntegrityStatus(options={}){
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='COLE_AQUI_A_MESMA_URL_DO_APPS_SCRIPT_DO_INDEX_PRINCIPAL')throw new Error('URL do Apps Script não configurada.');
+  const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getCatalogPdfStatus'})},60000);
+  if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível verificar os PDFs físicos do catálogo.');
+  state.pdfIntegrityChecked=true;
+  state.pdfValidSongIds=new Set((Array.isArray(data.pdfsValidos)?data.pdfsValidos:[]).map(x=>String(x.id??x)));
+  state.pdfMissingSongIds=new Set((Array.isArray(data.musicasSemPdf)?data.musicasSemPdf:[]).map(x=>String(x.id??x)));
+  state.pdfBrokenSongIds=new Set((Array.isArray(data.musicasComReferenciaQuebrada)?data.musicasComReferenciaQuebrada:[]).map(x=>String(x.id??x)));
+  state.pdfStatusById=new Map();
+  for(const item of (Array.isArray(data.musicasSemPdf)?data.musicasSemPdf:[])){if(item&&item.id!=null)state.pdfStatusById.set(String(item.id),String(item.reason||'sem-pdf'));}
+  for(const item of (Array.isArray(data.musicasComReferenciaQuebrada)?data.musicasComReferenciaQuebrada:[])){if(item&&item.id!=null)state.pdfStatusById.set(String(item.id),'referencia-quebrada');}
+  state.pdfOrphanPaths=Array.isArray(data.arquivosOrfaos)?data.arquivosOrfaos.map(String):[];
+  state.pdfValidPaths=new Set(Array.isArray(data.caminhosPdfValidos)?data.caminhosPdfValidos.map(String):[]);
+  renderCatalog();
+  renderPdfPanel();
+  if(!options?.silent){updatePdfPanelStatus(`✅ Verificação concluída: ${state.pdfValidSongIds.size} PDF${state.pdfValidSongIds.size===1?'':'s'} válido${state.pdfValidSongIds.size===1?'':'s'} e ${state.pdfMissingSongIds.size} música${state.pdfMissingSongIds.size===1?'':'s'} sem PDF válido.`,'success');}
+  return data;
+}
+function renderPdfPanel(){
+  if(!els.pdfCatalogList||!els.pdfMissingSongsList)return;
+  const all=Array.isArray(state.songs)?state.songs:[];
+  if(!state.pdfIntegrityChecked){
+    els.pdfCatalogCounter.textContent='—';els.pdfStatTotal.textContent='—';els.pdfStatMissing.textContent='—';els.pdfStatBroken.textContent='—';els.pdfStatEligible.textContent='—';els.pdfMissingCounter.textContent='—';els.pdfLinkedCounter.textContent='—';
+    els.pdfCatalogList.innerHTML='<div class="pdf-catalog-empty">Atualize o painel para conferir a existência física dos PDFs no GitHub.</div>';
+    els.pdfMissingSongsList.innerHTML='<div class="pdf-catalog-empty">Aguardando verificação do catálogo.</div>';return;
+  }
+  const withPdf=getCatalogPdfSongs();
+  const missing=getCatalogMissingPdfSongs();
+  const broken=missing.filter(song=>state.pdfBrokenSongIds.has(String(song.id)));
+  const eligible=missing.filter(song=>!!normalize(song.lyrics||song.letra));
+  els.pdfCatalogCounter.textContent=`${withPdf.length} PDF${withPdf.length===1?'':'s'}`;
+  els.pdfStatTotal.textContent=withPdf.length;
+  els.pdfStatMissing.textContent=missing.length;
+  els.pdfStatBroken.textContent=broken.length;
+  els.pdfStatEligible.textContent=eligible.length;
+  els.pdfMissingCounter.textContent=String(missing.length);
+  els.pdfLinkedCounter.textContent=String(withPdf.length);
+  els.pdfMissingSongsList.innerHTML='';
+  if(!missing.length){els.pdfMissingSongsList.innerHTML='<div class="pdf-catalog-empty">✅ Todas as músicas do catálogo possuem um PDF físico válido vinculado.</div>';} else {
+    for(const song of missing){
+      const row=document.createElement('article');row.className='pdf-catalog-row';
+      const reason=state.pdfBrokenSongIds.has(String(song.id))?'⚠️ Referência quebrada: o catálogo possui uma referência, mas o arquivo físico não foi encontrado.':'⚪ Sem PDF vinculado';
+      row.innerHTML=`<div class="pdf-catalog-main"><div class="pdf-catalog-title">${escapeHtml(song.title)}</div><div class="pdf-catalog-meta">${escapeHtml(song.artist||'Sem artista')}${song.style?' • '+escapeHtml(song.style):''}${song.note?' • Tom: '+escapeHtml(song.note):''}</div><div class="pdf-catalog-meta">${reason}${normalize(song.lyrics||song.letra)?' • Letra disponível para geração automática':' • Sem letra para geração automática'}</div></div><div class="pdf-catalog-actions"><button class="btn btn-primary btn-small" type="button" data-pdf-missing-generate="${escapeHtml(song.id)}" ${normalize(song.lyrics||song.letra)?'':'disabled'}>📄 Gerar</button><button class="btn btn-secondary btn-small" type="button" data-pdf-panel-edit="${escapeHtml(song.id)}">✏️ Editar</button></div>`;
+      els.pdfMissingSongsList.appendChild(row);
+    }
+  }
+  els.pdfCatalogList.innerHTML='';
+  if(!withPdf.length){els.pdfCatalogList.innerHTML='<div class="pdf-catalog-empty">Nenhum PDF físico válido está atualmente vinculado às músicas deste catálogo.</div>';}
+  else for(const song of withPdf){
+    const row=document.createElement('article');row.className='pdf-catalog-row';
+    const ref=getCatalogPdfUrl(song);
+    row.innerHTML=`<div class="pdf-catalog-main"><div class="pdf-catalog-title">${escapeHtml(song.title)}</div><div class="pdf-catalog-meta">${escapeHtml(song.artist||'Sem artista')}${song.style?' • '+escapeHtml(song.style):''}${song.note?' • Tom: '+escapeHtml(song.note):''}</div><div class="pdf-catalog-meta">📄 ${escapeHtml(song.pdfFileName||'PDF publicado')}</div></div><div class="pdf-catalog-actions">${ref?`<button class="btn btn-secondary btn-small" type="button" data-pdf-panel-view="${escapeHtml(song.id)}">👁 Ver</button>`:''}<button class="btn btn-secondary btn-small" type="button" data-pdf-panel-edit="${escapeHtml(song.id)}">✏️ Editar</button></div>`;
+    els.pdfCatalogList.appendChild(row);
+  }
+}
+function setPdfBatchProgress(message,visible=true){if(!els.missingPdfProgress)return;els.missingPdfProgress.classList.toggle('hidden',!visible);els.missingPdfProgress.innerHTML=visible?message:'';}
+function updatePdfPanelStatus(message,type=''){if(!els.pdfPanelStatus)return;els.pdfPanelStatus.textContent=message||'';els.pdfPanelStatus.className=`status-line ${type?'status-'+type:''}`;}
+function askDeleteOrphanCatalogPdfs(){
+  if(!state.pdfIntegrityChecked){updatePdfPanelStatus('Atualize o painel antes de excluir PDFs não vinculados.','warn');return;}
+  const orphanCount=state.pdfOrphanPaths.length;
+  if(!orphanCount){updatePdfPanelStatus('✅ Não existem PDFs físicos não vinculados ao catálogo.','success');showToast('Nenhum PDF não vinculado encontrado.','success');return;}
+  els.confirmTitle.textContent='Excluir PDFs não vinculados';
+  els.confirmBody.innerHTML=`<div class="confirm-text">Foram encontrados <strong>${orphanCount} arquivo${orphanCount===1?'':'s'} PDF</strong> na pasta <strong>pdf/</strong> que não estão vinculados fisicamente a nenhuma música do catálogo.<br><br>Esta ação <strong>não apaga músicas nem altera letras</strong>. Ela excluirá somente esses arquivos PDF não vinculados.<br><br>Deseja realmente continuar?</div>`;
+  els.confirmBtn.textContent='Sim, excluir PDFs não vinculados';
+  state.confirmAction=async()=>{
+    closeConfirm();
+    if(els.deleteOrphanCatalogPdfsBtn)els.deleteOrphanCatalogPdfsBtn.disabled=true;
+    updatePdfPanelStatus('Excluindo PDFs não vinculados...');
+    try{
+      const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'deleteOrphanCatalogPdfs'})},120000);
+      if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível excluir os PDFs não vinculados.');
+      const deleted=Number(data.arquivosExcluidos||0);
+      resetPdfIntegrity();
+      await fetchPdfIntegrityStatus({silent:true});
+      updatePdfPanelStatus(`✅ ${deleted} PDF${deleted===1?'':'s'} não vinculado${deleted===1?'':'s'} excluído${deleted===1?'':'s'}. O catálogo não foi alterado.`,'success');
+      showToast(`${deleted} PDF${deleted===1?'':'s'} não vinculado${deleted===1?'':'s'} excluído${deleted===1?'':'s'}.`,'success');
+    }catch(error){updatePdfPanelStatus('❌ '+(error?.message||'Erro ao excluir PDFs não vinculados.'),'error');showToast('Erro ao excluir PDFs não vinculados.','error');}
+    finally{if(els.deleteOrphanCatalogPdfsBtn)els.deleteOrphanCatalogPdfsBtn.disabled=false;}
+  };
+  els.confirmModal.classList.add('active');
+}
+async function generateMissingCatalogPdfs(){
+  if(state.pdfBatchBusy)return;
+  try{
+    // Sempre atualiza a integridade antes de montar a fila. Assim,
+    // somente músicas que realmente não possuem PDF físico válido entram nela.
+    await fetchPdfIntegrityStatus({silent:true});
+  }catch(error){
+    updatePdfPanelStatus('❌ '+(error?.message||'Não foi possível verificar os PDFs antes da geração.'),'error');
+    showToast('Não foi possível verificar os PDFs atuais.','error');
+    return;
+  }
+
+  // A fila é criada uma única vez. A execução abaixo usa um FOR normal
+  // com await: o próximo PDF NÃO começa enquanto o anterior não terminar.
+  const missing=Array.from(new Map(
+    state.songs
+      .filter(song=>!songHasValidPdf(song)&&!!normalize(song.lyrics||song.letra))
+      .map(song=>[String(song.id),song])
+  ).values());
+  const withoutLyrics=state.songs.filter(song=>!songHasValidPdf(song)&&!normalize(song.lyrics||song.letra)).length;
+
+  if(!missing.length){
+    setPdfBatchProgress(`✅ Nenhuma música com letra e sem PDF válido foi encontrada.${withoutLyrics?` ${withoutLyrics} estão sem letra e não podem ser geradas automaticamente.`:''}`);
+    updatePdfPanelStatus('✅ Nenhum PDF pendente para gerar.','success');
+    renderPdfPanel();
+    return;
+  }
+
+  els.confirmTitle.textContent='Gerar PDFs pendentes';
+  els.confirmBody.innerHTML=`<div class="confirm-text">Foram encontradas <strong>${missing.length} música${missing.length===1?'':'s'}</strong> no catálogo sem PDF físico válido e com letra cadastrada.<br><br>Uma referência quebrada também será considerada pendente e receberá um novo PDF. As músicas que já possuem PDF físico válido não serão alteradas.${withoutLyrics?`<br><br>${withoutLyrics} música${withoutLyrics===1?'':'s'} sem letra serão ignoradas.`:''}<br><br><strong>A geração será feita uma música por vez.</strong> O próximo PDF só começará depois que o anterior terminar de ser gerado e salvo.<br><br>Deseja gerar os PDFs agora?</div>`;
+  els.confirmBtn.textContent='Sim, gerar PDFs pendentes';
+
+  state.confirmAction=async()=>{
+    closeConfirm();
+    state.pdfBatchBusy=true;
+    let ok=0,fail=0;
+    if(els.generateMissingPdfsBtn)els.generateMissingPdfsBtn.disabled=true;
+    try{
+      for(let i=0;i<missing.length;i++){
+        const song=state.songs.find(x=>String(x.id)===String(missing[i].id));
+        if(!song)continue;
+
+        // Não inicia o item seguinte antes de TODA a promessa desta música
+        // terminar. Cada tentativa também espera a anterior terminar.
+        setPdfBatchProgress(`<strong>Gerando PDF ${i+1}/${missing.length}</strong><br>⏳ ${escapeHtml(song.title)} — ${escapeHtml(song.artist||'Sem artista')}<br><span>Gerando e salvando este PDF…</span>`);
+        updatePdfPanelStatus(`⏳ Processando ${i+1}/${missing.length}: ${song.title}`,'warn');
+
+        let done=false;
+        for(let tentativa=1;tentativa<=2&&!done;tentativa++){
+          done=await generatePdfForCatalogSong(song.id,{silent:true});
+          if(!done&&tentativa<2){
+            setPdfBatchProgress(`<strong>Gerando PDF ${i+1}/${missing.length}</strong><br>⚠️ Falha na primeira tentativa de ${escapeHtml(song.title)}.<br>🔄 Tentando novamente antes de passar para a próxima…`);
+            await sleep(800);
+          }
+        }
+
+        if(done)ok++;else fail++;
+
+        // Somente depois que a geração/salvamento desta música terminou
+        // atualizamos a interface e liberamos a próxima da fila.
+        renderPdfPanel();
+        setPdfBatchProgress(`<strong>Gerando PDFs:</strong> ${i+1}/${missing.length}<br>✅ ${ok} concluído${ok===1?'':'s'} · ❌ ${fail} falha${fail===1?'':'s'} · ${missing.length-i-1} restante${missing.length-i-1===1?'':'s'}`);
+        await sleep(250);
+      }
+
+      resetPdfIntegrity();
+      await fetchPdfIntegrityStatus({silent:true});
+      setPdfBatchProgress(`<strong>Processo concluído:</strong> ✅ ${ok} PDF${ok===1?'':'s'} gerado${ok===1?'':'s'}${fail?` · ❌ ${fail} falha${fail===1?'':'s'}`:''}.${withoutLyrics?` ${withoutLyrics} sem letra.`:''}`);
+      updatePdfPanelStatus(`✅ ${ok} PDFs gerados${fail?` e ${fail} falharam`:''}.`,'success');
+      showToast(`Geração concluída: ${ok} PDF${ok===1?'':'s'} gerado${ok===1?'':'s'}.`,'success');
+    }catch(error){
+      updatePdfPanelStatus('❌ '+(error?.message||'A geração dos PDFs encontrou um erro.'),'error');
+      showToast('A geração dos PDFs encontrou um erro.','error');
+    }finally{
+      state.pdfBatchBusy=false;
+      if(els.generateMissingPdfsBtn)els.generateMissingPdfsBtn.disabled=false;
+      renderPdfPanel();
+    }
+  };
+  els.confirmModal.classList.add('active');
+}
+
 function showConfirmationAnimation(title){
   if(!els.confirmationOverlay)return;
   els.confirmationSong.textContent=title||'';
@@ -1649,6 +1818,7 @@ async function addSelectedBulkMusic(){
   state.confirmAction=async()=>{
     closeConfirm();
     state.songs=[...pending,...state.songs];
+    resetPdfIntegrity();
     localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs.map(normalizeSong)));
     renderCatalog();
     if(els.bulkMusicSearchStatus)els.bulkMusicSearchStatus.textContent=`Salvando ${pending.length} música${pending.length===1?'':'s'} no catálogo principal...`;
@@ -1659,14 +1829,9 @@ async function addSelectedBulkMusic(){
         showToast('Falha na sincronização do lote.','error');
         return;
       }
-      let pdfOk=0,pdfFail=0;
-      for(let i=0;i<pending.length;i++){
-        if(els.bulkMusicSearchStatus)els.bulkMusicSearchStatus.textContent=`Catálogo sincronizado. Preparando PDFs: ${i+1}/${pending.length}...`;
-        const ok=await generatePdfForCatalogSong(pending[i].id);
-        if(ok)pdfOk++;else pdfFail++;
-      }
+      resetPdfIntegrity();
       state.bulkMusicSelected.clear();
-      if(els.bulkMusicSearchStatus)els.bulkMusicSearchStatus.textContent=`✅ ${pending.length} música${pending.length===1?'':'s'} adicionada${pending.length===1?'':'s'} ao catálogo. ${pdfOk} PDF${pdfOk===1?'':'s'} gerado${pdfOk===1?'':'s'} automaticamente${pdfFail?`; ${pdfFail} PDF${pdfFail===1?'':'s'} não gerado${pdfFail===1?'':'s'}`:''}.`;
+      if(els.bulkMusicSearchStatus)els.bulkMusicSearchStatus.textContent=`✅ ${pending.length} música${pending.length===1?'':'s'} adicionada${pending.length===1?'':'s'} ao catálogo. Os PDFs pendentes podem ser gerados na área 📄 PDFs.`;
       renderBulkMusicSearchResults();
       showToast(`${pending.length} música${pending.length===1?'':'s'} adicionada${pending.length===1?'':'s'} em lote.`,'success');
     }catch(error){
@@ -1965,9 +2130,9 @@ async function uploadCatalogPdfFile(songId,file){
     state.localPdfPreviewSongId=song.id;state.localPdfPreviewDataUrl=processedDataUrl;
     if(els.refreshCatalog)els.refreshCatalog.textContent='Enviando PDF...';
     const pdfData=processedDataUrl;
-    const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSongPdf',songId:song.id,id:song.id,title:song.title,musica:song.title,nome:song.title,songTitle:song.title,artist:song.artist,artista:song.artist,interprete:song.artist,songArtist:song.artist,pdfData,pdfFileName:processed.name})},30000);
+    const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSongPdf',songId:song.id,title:song.title,artist:song.artist,pdfData,pdfFileName:processed.name})},30000);
     if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível salvar o PDF.');
-    song.pdfUrl=data.pdfUrl||'';song.pdfFileName=data.pdfFileName||processed.name;resetPdfIntegrity();localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs.map(normalizeSong)));renderCatalog();
+    song.pdfUrl=data.pdfUrl||'';song.pdfFileName=data.pdfFileName||processed.name;localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs.map(normalizeSong)));renderCatalog();
     setStatus('✅ PDF processado e salvo para '+song.title+'.','success');showToast(processed.detectedWatermarks?'PDF salvo com a marca Palco Pro.':'PDF salvo.','success');return true;
   }catch(error){setStatus('Não foi possível salvar o PDF: '+(error.name==='AbortError'?'tempo limite excedido.':error.message),'error');showToast('Erro ao salvar PDF.','error');return false}
   finally{state.pdfProcessing=false;if(els.refreshCatalog){els.refreshCatalog.disabled=false;els.refreshCatalog.textContent=original}pendingPdfSongId=null}
@@ -1975,50 +2140,23 @@ async function uploadCatalogPdfFile(songId,file){
 async function generatePdfForCatalogSong(songId,options={}){
   const song=state.songs.find(s=>String(s.id)===String(songId));
   if(!song)return false;
-  const silent=!!options.silent;
-  if(songHasPdf(song)){if(!silent)showToast('Esta música já possui PDF válido.','error');return false;}
+  if(state.pdfIntegrityChecked && songHasValidPdf(song)){if(!options?.silent)showToast('Esta música já possui PDF físico válido.','error');return false;}
   const lyrics=sanitizeLyrics(song.lyrics||song.letra);
-  if(!lyrics){if(!silent)showToast('Esta música não possui letra cadastrada.','error');return false;}
-  if(state.pdfProcessing){if(!silent)showToast('Já existe uma operação de PDF em andamento.','error');return false;}
+  if(!lyrics){if(!options?.silent)showToast('Esta música não possui letra cadastrada.','error');return false;}
   state.pdfProcessing=true;
-  const button=els.catalogList?.querySelector(`[data-generate-pdf="${CSS.escape(String(songId))}"]`);
-  const oldText=button?.textContent||'🖨️ PDF';
-  if(button){button.disabled=true;button.textContent='⏳';}
-  const attempts=options.retryCount==null?3:Math.max(1,Number(options.retryCount)||1);
-  let lastError=null;
   try{
     const generated=await generateAutomaticLyricsPdf(song.title,song.artist,lyrics);
     const pdfDataUrl=await fileToDataUrl(generated);
-    for(let attempt=1;attempt<=attempts;attempt++){
-      try{
-        const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSongPdf',songId:song.id,id:song.id,title:song.title,musica:song.title,nome:song.title,songTitle:song.title,artist:song.artist,artista:song.artist,interprete:song.artist,songArtist:song.artist,lyrics:lyrics,letra:lyrics,lyric:lyrics,pdfData:pdfDataUrl,pdfFileName:generated.name})},120000);
-        if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível salvar o PDF.');
-        song.pdfUrl=data.pdfUrl||'';
-        song.pdfFileName=data.pdfFileName||generated.name;
-        song.pdfMimeType='application/pdf';
-        if(state.pdfIntegrity?.checked){
-          state.pdfIntegrity.validIds.add(String(song.id));
-          state.pdfIntegrity.missingIds.delete(String(song.id));
-          state.pdfIntegrity.brokenIds.delete(String(song.id));
-        }
-        localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs.map(normalizeSong)));
-        state.localPdfPreviewSongId=song.id;
-        state.localPdfPreviewDataUrl=pdfDataUrl;
-        if(!silent){renderCatalog();showToast('✅ PDF gerado e adicionado ao catálogo.','success');}
-        return true;
-      }catch(error){
-        lastError=error;
-        if(attempt<attempts)await sleep(1500*attempt);
-      }
-    }
-    throw lastError||new Error('Não foi possível salvar o PDF.');
-  }catch(error){
-    if(!silent)showToast('Não foi possível gerar o PDF: '+(error?.message||'erro desconhecido'),'error');
-    return false;
-  }finally{
-    state.pdfProcessing=false;
-    if(button){button.disabled=false;button.textContent=oldText;}
-  }
+    const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSongPdf',songId:song.id,title:song.title,artist:song.artist,pdfData:pdfDataUrl,pdfFileName:generated.name})},30000);
+    if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível salvar o PDF.');
+    song.pdfUrl=data.pdfUrl||'';song.pdfFileName=data.pdfFileName||generated.name;song.pdfMimeType='application/pdf';
+    localStorage.setItem(CATALOG_KEY,JSON.stringify(state.songs.map(normalizeSong)));await persist().catch(()=>{});
+    if(state.pdfIntegrityChecked){state.pdfValidSongIds.add(String(song.id));state.pdfMissingSongIds.delete(String(song.id));state.pdfBrokenSongIds.delete(String(song.id));state.pdfStatusById.delete(String(song.id));}
+    state.localPdfPreviewSongId=song.id;state.localPdfPreviewDataUrl=pdfDataUrl;renderCatalog();renderPdfPanel();
+    if(!options?.silent)showToast('✅ PDF gerado e adicionado ao catálogo.','success');
+    return true;
+  }catch(error){if(!options?.silent)showToast('Não foi possível gerar o PDF: '+(error?.message||'erro desconhecido'),'error');return false}
+  finally{state.pdfProcessing=false}
 }
 
 async function uploadCatalogPdf(file){return uploadCatalogPdfFile(pendingPdfSongId,file)}
@@ -2137,270 +2275,16 @@ async function changeAdminPdfPage(delta){
   await renderAdminPdfPage(next);
 }
 
-
-function resetPdfIntegrity(){
-  state.pdfIntegrity={checked:false,validIds:new Set(),missingIds:new Set(),brokenIds:new Set(),validPaths:new Set(),orphanPaths:[],physicalPdfCount:0};
-}
-function setPdfPanelStatus(message,type=''){
-  if(!els.pdfPanelStatus)return;
-  els.pdfPanelStatus.textContent=message||'';
-  els.pdfPanelStatus.className='status-line'+(type?' status-'+type:'');
-}
-function setPdfBatchProgress(message,percent=null){
-  if(!els.pdfBatchProgress)return;
-  els.pdfBatchProgress.classList.remove('hidden');
-  const pct=percent==null?'':`<div class="pdf-progress-bar"><div class="pdf-progress-fill" style="width:${Math.max(0,Math.min(100,Number(percent)||0))}%"></div></div>`;
-  els.pdfBatchProgress.innerHTML=String(message||'')+pct;
-}
-function clearPdfBatchProgress(){els.pdfBatchProgress?.classList.add('hidden');}
-function pdfCheckpointKey(){return 'palco-pro-pdf-batch-checkpoint-v1'}
-function catalogSignature(){
-  return (state.songs||[]).map(s=>[String(s.id||''),String(s.title||''),String(s.artist||'')].join('|')).join('\u001e');
-}
-function savePdfBatchCheckpoint(queue,failedIds,meta={}){
-  const payload={catalogSignature:catalogSignature(),queue:[...queue].map(String),failed:[...failedIds].map(String),updatedAt:new Date().toISOString(),...meta};
-  state.pdfBatchCheckpoint=payload;
-  try{localStorage.setItem(pdfCheckpointKey(),JSON.stringify(payload));}catch(_){}
-}
-function loadPdfBatchCheckpoint(){
-  try{
-    const raw=localStorage.getItem(pdfCheckpointKey());
-    if(!raw)return null;
-    const parsed=JSON.parse(raw);
-    if(!parsed||parsed.catalogSignature!==catalogSignature())return null;
-    return parsed;
-  }catch(_){return null}
-}
-function clearPdfBatchCheckpoint(){
-  state.pdfBatchCheckpoint=null;
-  try{localStorage.removeItem(pdfCheckpointKey())}catch(_){}
-}
-async function fetchPdfIntegrityStatus(options={}){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL==='COLE_AQUI_A_MESMA_URL_DO_APPS_SCRIPT_DO_INDEX_PRINCIPAL'){
-    throw new Error('URL do Apps Script não configurada.');
-  }
-  const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getCatalogPdfStatus'})},120000);
-  if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível verificar os PDFs.');
-  // O servidor pode reparar automaticamente vínculos antigos de PDFs físicos
-  // que ainda estavam sem referência no catálogo. Atualizamos a música local
-  // com esses dados para que o botão "Ver" e a interface usem o mesmo vínculo.
-  (data.vinculosReparadosDetalhes||[]).forEach(item=>{
-    const song=state.songs.find(s=>String(s.id)===String(item.id));
-    if(!song)return;
-    song.pdfUrl=item.pdfUrl||song.pdfUrl||'';
-    song.pdfFileName=item.pdfFileName||song.pdfFileName||'';
-    song.pdfMimeType='application/pdf';
-  });
-  state.pdfIntegrity={
-    checked:true,
-    validIds:new Set((data.pdfsValidos||[]).map(x=>String(x.songId||x.id||''))),
-    missingIds:new Set((data.musicasSemPdf||[]).map(x=>String(x.songId||x.id||''))),
-    brokenIds:new Set((data.musicasComReferenciaQuebrada||[]).map(x=>String(x.songId||x.id||''))),
-    validPaths:new Set((data.caminhosPdfValidos||[]).map(String)),
-    orphanPaths:(data.arquivosOrfaos||[]).map(String),
-    physicalPdfCount:Number(data.quantidadeArquivosPdfFisicos||data.pdfFilesTotal||0)
-  };
-  return data;
-}
-function renderPdfPanel(){
-  if(!els.pdfMissingList)return;
-  const songs=state.songs||[];
-  const missing=songs.filter(song=>!songHasPdf(song));
-  const valid=songs.filter(song=>songHasPdf(song));
-  const broken=missing.filter(song=>state.pdfIntegrity.brokenIds.has(String(song.id)));
-  const withoutLyrics=missing.filter(song=>!sanitizeLyrics(song.lyrics||song.letra));
-  els.pdfCatalogCounter.textContent=`${valid.length} PDF${valid.length===1?'':'s'} válido${valid.length===1?'':'s'}`;
-  els.pdfStatValid.textContent=valid.length;
-  els.pdfStatMissing.textContent=missing.length;
-  els.pdfStatOrphans.textContent=state.pdfIntegrity.orphanPaths.length;
-  els.pdfMissingCount.textContent=`${missing.length}${broken.length?' • '+broken.length+' referência'+(broken.length===1?'':'s')+' quebrada'+(broken.length===1?'':'s'):''}`;
-  els.pdfValidCount.textContent=`${valid.length}`;
-  els.pdfOrphanCount.textContent=`${state.pdfIntegrity.orphanPaths.length}`;
-  if(!missing.length){
-    els.pdfMissingList.innerHTML='<div class="pdf-empty">✅ Todas as músicas possuem um PDF físico válido vinculado ao catálogo.</div>';
-  }else{
-    els.pdfMissingList.innerHTML='';
-    missing.forEach(song=>{
-      const row=document.createElement('article');row.className='pdf-song-row';
-      const brokenRef=state.pdfIntegrity.brokenIds.has(String(song.id));
-      const noLyrics=!sanitizeLyrics(song.lyrics||song.letra);
-      const status=brokenRef?'⚠️ Referência quebrada':noLyrics?'⚪ Sem letra cadastrada':'⏳ Pendente';
-      row.innerHTML=`<div class="pdf-song-main"><div class="pdf-song-title">${escapeHtml(song.title)}</div><div class="pdf-song-meta">${escapeHtml(song.artist||'Sem artista')} • ${escapeHtml(song.style||'Sem estilo')}</div><div class="pdf-song-status missing">${status}</div></div><div class="pdf-song-actions">${noLyrics?'':`<button class="btn btn-primary btn-small" type="button" data-pdf-generate="${escapeHtml(song.id)}">📄 Gerar</button>`}<button class="btn btn-secondary btn-small" type="button" data-pdf-edit="${escapeHtml(song.id)}">✏️ Editar</button></div>`;
-      els.pdfMissingList.appendChild(row);
-    });
-  }
-  if(!valid.length){
-    els.pdfValidList.innerHTML='<div class="pdf-empty">Nenhum PDF físico válido vinculado ao catálogo neste momento.</div>';
-  }else{
-    els.pdfValidList.innerHTML='';
-    valid.forEach(song=>{
-      const row=document.createElement('article');row.className='pdf-song-row';
-      row.innerHTML=`<div class="pdf-song-main"><div class="pdf-song-title">📄 ${escapeHtml(song.title)}</div><div class="pdf-song-meta">${escapeHtml(song.artist||'Sem artista')} • ${escapeHtml(song.pdfFileName||'PDF')}</div><div class="pdf-song-status valid">✅ PDF válido e vinculado</div></div><div class="pdf-song-actions"><button class="btn btn-secondary btn-small" type="button" data-pdf-view="${escapeHtml(song.id)}">👁 Ver</button><button class="btn btn-secondary btn-small" type="button" data-pdf-edit="${escapeHtml(song.id)}">✏️ Editar</button></div>`;
-      els.pdfValidList.appendChild(row);
-    });
-  }
-  if(!state.pdfIntegrity.orphanPaths.length){
-    els.pdfOrphanList.innerHTML='<div class="pdf-empty">✅ Nenhum PDF físico não vinculado foi encontrado.</div>';
-  }else{
-    els.pdfOrphanList.innerHTML='';
-    state.pdfIntegrity.orphanPaths.forEach(path=>{
-      const row=document.createElement('article');row.className='pdf-file-row';
-      row.innerHTML=`<div class="pdf-song-main"><div class="pdf-song-title">🗑️ ${escapeHtml(path)}</div><div class="pdf-song-meta">Arquivo físico sem vínculo com nenhuma música do catalogo.json.</div></div>`;
-      els.pdfOrphanList.appendChild(row);
-    });
-  }
-  const pending=missing.filter(song=>sanitizeLyrics(song.lyrics||song.letra));
-  els.generateMissingPdfsBtn.disabled=state.pdfBatchBusy||pending.length===0;
-  const failedCount=state.pdfBatchFailedIds.size;
-  els.retryFailedPdfsBtn.classList.toggle('hidden',failedCount===0||state.pdfBatchBusy);
-}
-async function refreshPdfPanel(options={}){
-  const silent=!!options.silent;
-  if(state.pdfBatchBusy)return false;
-  if(!silent)setPdfPanelStatus('Verificando PDFs no repositório...');
-  if(els.refreshPdfPanelBtn)els.refreshPdfPanelBtn.disabled=true;
-  try{
-    resetPdfIntegrity();
-    const data=await fetchPdfIntegrityStatus(options);
-    renderPdfPanel();
-    if(!silent){
-      const reparados=Number(data.vinculosReparados||0);
-      setPdfPanelStatus(`✅ Verificação concluída: ${data.quantidadePdfsValidos||0} PDF${Number(data.quantidadePdfsValidos||0)===1?'':'s'} válido${Number(data.quantidadePdfsValidos||0)===1?'':'s'}; ${data.quantidadeMusicasSemPdf||0} música${Number(data.quantidadeMusicasSemPdf||0)===1?'':'s'} sem PDF válido${reparados?`; ${reparados} vínculo${reparados===1?'':'s'} reparado${reparados===1?'':'s'}`:''}.`);
-      if(reparados)showToast(`✅ ${reparados} vínculo${reparados===1?'':'s'} de PDF reparado${reparados===1?'':'s'}.`,'success');
-    }
-    return true;
-  }catch(error){
-    resetPdfIntegrity();
-    renderPdfPanel();
-    if(!silent)setPdfPanelStatus('❌ '+(error?.message||'Falha ao verificar PDFs.'),'error');
-    if(!silent)showToast('Não foi possível verificar os PDFs.','error');
-    return false;
-  }finally{
-    if(els.refreshPdfPanelBtn)els.refreshPdfPanelBtn.disabled=false;
-  }
-}
-async function generatePdfQueue(ids,options={}){
-  if(state.pdfBatchBusy)return;
-  state.pdfBatchBusy=true;
-  state.pdfBatchFailedIds=new Set();
-  if(els.generateMissingPdfsBtn)els.generateMissingPdfsBtn.disabled=true;
-  if(els.retryFailedPdfsBtn)els.retryFailedPdfsBtn.disabled=true;
-  let queue=[...ids].map(String);
-  let ok=0,fail=0,skipped=0;
-  savePdfBatchCheckpoint(queue,[],{running:true});
-  try{
-    for(let i=0;i<queue.length;i++){
-      const id=queue[i];
-      const song=state.songs.find(s=>String(s.id)===id);
-      if(!song)continue;
-      if(songHasPdf(song)){skipped++;savePdfBatchCheckpoint(queue.slice(i+1),state.pdfBatchFailedIds,{running:true});continue;}
-      const lyrics=sanitizeLyrics(song.lyrics||song.letra);
-      if(!lyrics){skipped++;savePdfBatchCheckpoint(queue.slice(i+1),state.pdfBatchFailedIds,{running:true});continue;}
-      const pct=(i/Math.max(1,queue.length))*100;
-      setPdfBatchProgress(`<strong>Gerando PDFs:</strong> ${i+1}/${queue.length}<br>🎵 ${escapeHtml(song.title)} — ${escapeHtml(song.artist||'Sem artista')}<br>✅ ${ok} concluído · ❌ ${fail} falha · ⏳ ${queue.length-i-1} restante`,pct);
-      const done=await generatePdfForCatalogSong(id,{silent:true,retryCount:3});
-      if(done){
-        ok++;
-      }else{
-        fail++;state.pdfBatchFailedIds.add(id);
-      }
-      savePdfBatchCheckpoint(queue.slice(i+1),state.pdfBatchFailedIds,{running:true,ok,fail});
-      renderPdfPanel();
-      setPdfBatchProgress(`<strong>Processando fila:</strong> ${i+1}/${queue.length}<br>✅ ${ok} concluído · ❌ ${fail} falha · ⏳ ${queue.length-i-1} restante`,((i+1)/Math.max(1,queue.length))*100);
-    }
-    clearPdfBatchCheckpoint();
-    await refreshPdfPanel({silent:true});
-    renderPdfPanel();
-    setPdfBatchProgress(`<strong>✅ Processo concluído.</strong><br>Gerados: ${ok} · Falhas: ${fail} · Ignorados: ${skipped}`);
-    setPdfPanelStatus(`✅ Geração concluída: ${ok} PDF${ok===1?'':'s'} gerado${ok===1?'':'s'}${fail?`; ${fail} falha${fail===1?'':'s'}`:''}.`,'success');
-    if(fail){
-      showToast(`Geração concluída com ${fail} falha${fail===1?'':'s'}.`,'error');
-    }else{
-      showToast(`✅ ${ok} PDFs gerados com sucesso.`,'success');
-    }
-    return {ok,fail,skipped};
-  }catch(error){
-    setPdfPanelStatus('❌ '+(error?.message||'A geração em massa encontrou um erro.'),'error');
-    showToast('A geração em massa encontrou um erro.','error');
-    return {ok,fail,skipped,error};
-  }finally{
-    state.pdfBatchBusy=false;
-    if(els.retryFailedPdfsBtn)els.retryFailedPdfsBtn.disabled=false;
-    renderPdfPanel();
-  }
-}
-async function startMissingPdfGeneration(){
-  if(state.pdfBatchBusy)return;
-  const verified=await refreshPdfPanel({silent:true});
-  if(!verified)return;
-  const missing=(state.songs||[]).filter(song=>!songHasPdf(song)&&sanitizeLyrics(song.lyrics||song.letra));
-  const noLyrics=(state.songs||[]).filter(song=>!songHasPdf(song)&&!sanitizeLyrics(song.lyrics||song.letra)).length;
-  if(!missing.length){
-    setPdfPanelStatus(noLyrics?`✅ Não há PDFs pendentes com letra. ${noLyrics} música${noLyrics===1?'':'s'} não possui letra cadastrada.`:'✅ Não há PDFs pendentes.','success');
-    return;
-  }
-  els.confirmTitle.textContent='Gerar PDFs pendentes';
-  els.confirmBody.innerHTML=`<div class="confirm-text">Serão processadas <strong>${missing.length} música${missing.length===1?'':'s'}</strong>, uma por vez. A próxima só começa depois que o PDF anterior terminar de ser gerado e salvo. ${noLyrics?`<br><br>${noLyrics} música${noLyrics===1?'':'s'} sem letra serão ignoradas.`:''}<br><br>Uma falha não interrompe o restante da fila.</div>`;
-  els.confirmBtn.textContent='Iniciar geração';
-  state.confirmAction=async()=>{closeConfirm();await generatePdfQueue(missing.map(s=>s.id));};
-  els.confirmModal.classList.add('active');
-}
-async function retryFailedPdfs(){
-  if(state.pdfBatchBusy||!state.pdfBatchFailedIds.size)return;
-  await refreshPdfPanel({silent:true});
-  const ids=[...state.pdfBatchFailedIds].filter(id=>state.pdfIntegrity.missingIds.has(String(id))||state.pdfIntegrity.brokenIds.has(String(id)));
-  if(!ids.length){state.pdfBatchFailedIds.clear();renderPdfPanel();return;}
-  await generatePdfQueue(ids);
-}
-function askDeleteOrphanPdfs(){
-  if(state.pdfIntegrity.orphanPaths.length===0){
-    showToast('Não existem PDFs não vinculados para excluir.','success');
-    return;
-  }
-  const count=state.pdfIntegrity.orphanPaths.length;
-  els.confirmTitle.textContent='Excluir PDFs não vinculados';
-  els.confirmBody.innerHTML=`<div class="confirm-text">Foram encontrados <strong>${count} PDF${count===1?'':'s'}</strong> físicos que não estão vinculados a nenhuma música do catálogo.<br><br>Deseja realmente excluir esses arquivos do repositório?<br><br><strong>Somente os PDFs listados como não vinculados serão excluídos. Nenhuma música do catálogo será apagada.</strong></div>`;
-  els.confirmBtn.textContent='Sim, excluir órfãos';
-  state.confirmAction=async()=>{
-    closeConfirm();
-    if(els.deleteOrphanPdfsBtn)els.deleteOrphanPdfsBtn.disabled=true;
-    setPdfPanelStatus('Excluindo PDFs não vinculados...');
-    try{
-      const data=await fetchJson(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'deleteOrphanCatalogPdfs'})},120000);
-      if(!data?.sucesso)throw new Error(data?.mensagem||'Não foi possível excluir os PDFs não vinculados.');
-      setPdfPanelStatus(`✅ ${data.arquivosExcluidos||0} PDF${Number(data.arquivosExcluidos||0)===1?'':'s'} não vinculado${Number(data.arquivosExcluidos||0)===1?'':'s'} excluído${Number(data.arquivosExcluidos||0)===1?'':'s'}.`,'success');
-      await refreshPdfPanel({silent:true});
-    }catch(error){
-      setPdfPanelStatus('❌ '+(error?.message||'Falha ao excluir PDFs não vinculados.'),'error');
-      showToast('Falha ao excluir PDFs não vinculados.','error');
-    }finally{
-      if(els.deleteOrphanPdfsBtn)els.deleteOrphanPdfsBtn.disabled=false;
-    }
-  };
-  els.confirmModal.classList.add('active');
-}
-function handlePdfPanelClick(e){
-  const generate=e.target.closest('[data-pdf-generate]');
-  if(generate){generatePdfForCatalogSong(generate.dataset.pdfGenerate);return;}
-  const view=e.target.closest('[data-pdf-view]');
-  if(view){
-    const song=state.songs.find(s=>String(s.id)===String(view.dataset.pdfView));
-    const url=getCatalogPdfUrl(song);
-    if(url)viewPdf(url);else showToast('PDF não disponível.','error');
-    return;
-  }
-  const edit=e.target.closest('[data-pdf-edit]');
-  if(edit){
-    beginEdit(edit.dataset.pdfEdit);
-    document.querySelector('.tab-btn[data-tab="editor"]')?.click();
-  }
-}
 function toggleSelected(id,checked){if(checked)state.selectedIds.add(id);else state.selectedIds.delete(id);renderCatalog()}
 function toggleAllVisible(){const visible=filtered();const allSelected=visible.length>0&&visible.every(s=>state.selectedIds.has(s.id));if(allSelected)visible.forEach(s=>state.selectedIds.delete(s.id));else visible.forEach(s=>state.selectedIds.add(s.id));renderCatalog()}
 function clearSelection(){state.selectedIds.clear();renderCatalog()}
-
 function normalizeDuplicateText(value){
-  return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim();
+  return String(value??'')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,'')
+    .trim();
 }
 function getDuplicateGroups(){
   const groups=new Map();
@@ -2416,20 +2300,27 @@ function getDuplicateGroups(){
 }
 function chooseDuplicateKeeper(group){
   return group.slice().sort((a,b)=>{
-    const aPdf=songHasPdf(a.song)?1:0,bPdf=songHasPdf(b.song)?1:0;
+    const aPdf=songHasPdf(a.song)?1:0, bPdf=songHasPdf(b.song)?1:0;
     if(aPdf!==bPdf)return bPdf-aPdf;
-    const aActive=a.song?.active!==false?1:0,bActive=b.song?.active!==false?1:0;
+    const aActive=a.song?.active!==false?1:0, bActive=b.song?.active!==false?1:0;
     if(aActive!==bActive)return bActive-aActive;
-    const aPdfName=normalize(a.song?.pdfFileName).length?1:0,bPdfName=normalize(b.song?.pdfFileName).length?1:0;
+    const aPdfName=normalize(a.song?.pdfFileName).length?1:0, bPdfName=normalize(b.song?.pdfFileName).length?1:0;
     if(aPdfName!==bPdfName)return bPdfName-aPdfName;
     return a.index-b.index;
   })[0];
 }
 function askRemoveDuplicates(){
   const groups=getDuplicateGroups();
-  if(!groups.length){showToast('Nenhuma música copiada foi encontrada.','success');return;}
-  const duplicateEntries=groups.flatMap(group=>group.filter(item=>item.song));
-  const duplicateCount=duplicateEntries.length-groups.length;
+  if(!groups.length){
+    showToast('Nenhuma música copiada foi encontrada.','success');
+    if(els.catalogStatus){
+      els.catalogStatus.textContent='✅ Nenhuma duplicata exata encontrada pelo critério nome + letra.';
+      els.catalogStatus.className='status-line status-success';
+    }
+    return;
+  }
+  const duplicateEntries=groups.flatMap(group=>group.slice(1));
+  const duplicateCount=duplicateEntries.length;
   const preview=groups.slice(0,8).map(group=>{
     const keeper=chooseDuplicateKeeper(group);
     const copies=group.filter(item=>item.index!==keeper.index).map(item=>`${escapeHtml(item.song.title)} — ${escapeHtml(item.song.artist||'Sem artista')}`);
@@ -2437,24 +2328,32 @@ function askRemoveDuplicates(){
   }).join('');
   const more=groups.length>8?`<div style="opacity:.7;margin-top:6px">+ ${groups.length-8} grupo${groups.length-8===1?'':'s'} de duplicatas.</div>`:'';
   els.confirmTitle.textContent='Remover músicas copiadas';
-  els.confirmBody.innerHTML=`<div class="confirm-text">Encontrei <strong>${duplicateCount} música${duplicateCount===1?'':'s'} duplicada${duplicateCount===1?'':'s'}</strong> em <strong>${groups.length} grupo${groups.length===1?'':'s'}</strong> com o mesmo nome e a mesma letra, considerando diferenças de acentos, espaços e pontuação.<br><br>${preview}${more}<br><strong>Será mantida uma versão de cada música, priorizando a que possui PDF válido e depois a que está ativa.</strong></div>`;
+  els.confirmBody.innerHTML=`<div class="confirm-text">Encontrei <strong>${duplicateCount} música${duplicateCount===1?'':'s'} duplicada${duplicateCount===1?'':'s'}</strong> em <strong>${groups.length} grupo${groups.length===1?'':'s'}</strong> com o mesmo nome e a mesma letra, considerando diferenças de acentos, espaços e pontuação.<br><br>${preview}${more}<br><strong>Será mantida uma versão de cada música, priorizando a que já possui PDF e depois a que está ativa.</strong></div>`;
   els.confirmBtn.textContent='Remover copiadas';
   state.confirmAction=async()=>{
-    const currentGroups=getDuplicateGroups();const removeIds=new Set();
-    currentGroups.forEach(group=>{const keeper=chooseDuplicateKeeper(group);group.forEach(item=>{if(item.index!==keeper.index)removeIds.add(String(item.song.id));})});
+    const currentGroups=getDuplicateGroups();
+    const removeIds=new Set();
+    currentGroups.forEach(group=>{
+      const keeper=chooseDuplicateKeeper(group);
+      group.forEach(item=>{if(item.index!==keeper.index)removeIds.add(String(item.song.id));});
+    });
     if(!removeIds.size){closeConfirm();return;}
     closeConfirm();
     state.songs=state.songs.filter(song=>!removeIds.has(String(song.id)));
     state.selectedIds=new Set([...state.selectedIds].filter(id=>state.songs.some(song=>String(song.id)===String(id))));
     await persist();
-    const publicado=await publishCatalogToServer();
-    renderCatalog();renderPdfPanel();
-    if(!publicado.sucesso){setStatus(`Duplicatas removidas localmente (${removeIds.size}), mas não publicadas: ${publicado.mensagem}`,'error');showToast('Duplicatas removidas localmente; falha na publicação.','error');return}
-    setStatus(`✅ ${removeIds.size} música${removeIds.size===1?'':'s'} copiada${removeIds.size===1?'':'s'} removida${removeIds.size===1?'':'s'} do catálogo.`,'success');showToast(`${removeIds.size} duplicata${removeIds.size===1?'':'s'} removida${removeIds.size===1?'':'s'}.`,'success');
+    const publicado=await publishCatalogToServer({allowCatalogShrink:true});
+    renderCatalog();
+    if(!publicado.sucesso){
+      setStatus(`Duplicatas removidas localmente (${removeIds.size}), mas não publicadas: ${publicado.mensagem}`,'error');
+      showToast('Duplicatas removidas localmente; falha na publicação.','error');
+      return;
+    }
+    setStatus(`✅ ${removeIds.size} música${removeIds.size===1?'':'s'} copiada${removeIds.size===1?'':'s'} removida${removeIds.size===1?'':'s'} do catálogo.`,'success');
+    showToast(`${removeIds.size} duplicata${removeIds.size===1?'':'s'} removida${removeIds.size===1?'':'s'}.`,'success');
   };
   els.confirmModal.classList.add('active');
 }
-
 function openStyleModal(){if(!state.selectedIds.size){showToast('Selecione pelo menos uma música.','error');return}els.bulkStyleInput.value='';els.styleModal.classList.add('active');setTimeout(()=>els.bulkStyleInput.focus(),50)}
 function closeStyleModal(){els.styleModal.classList.remove('active');els.bulkStyleInput.value=''}
 function continueStyleChange(){const style=normalize(els.bulkStyleInput.value);if(!style){showToast('Informe o novo estilo.','error');els.bulkStyleInput.focus();return}closeStyleModal();const count=state.selectedIds.size;els.confirmTitle.textContent='Confirmar alteração de estilo';els.confirmBody.innerHTML=`<div class="confirm-text">Você quer mudar todas essas <strong>${count} música${count===1?'':'s'}</strong> para o estilo <strong>${escapeHtml(style)}</strong>?</div>`;els.confirmBtn.textContent='Sim, mudar estilo';state.confirmAction=async()=>{state.songs=state.songs.map(song=>state.selectedIds.has(song.id)?{...song,style}:song);state.selectedIds.clear();await persist();const publicado=await publishCatalogToServer();renderCatalog();closeConfirm();if(!publicado.sucesso){setStatus('Alteração salva localmente, mas não foi publicada: '+publicado.mensagem,'error');showToast('Falha ao publicar catálogo.','error');return}setStatus('✅ Estilo das músicas selecionadas atualizado.','success');showToast('Estilo alterado com sucesso.','success')};els.confirmModal.classList.add('active')}
@@ -2687,15 +2586,15 @@ async function refreshMainCatalog(){
   const original=els.refreshCatalog.textContent;
   els.refreshCatalog.disabled=true;
   els.refreshCatalog.textContent='↻ Atualizando...';
-  setStatus('Atualizando o catálogo principal...');
+  if(els.catalogStatus){els.catalogStatus.textContent='Atualizando o catálogo publicado...';els.catalogStatus.className='status-line';}
   try{
-    await loadMainCatalog();
-    state.localPdfPreviewSongId='';state.localPdfPreviewDataUrl='';
-    setStatus(`✅ Catálogo atualizado com ${state.songs.length} músicas.`,'success');
-    showToast(`Catálogo atualizado: ${state.songs.length} músicas.`,'success');
-    if(document.querySelector('.tab-btn.active')?.dataset.tab==='pdf')refreshPdfAudit({silent:true}).catch(()=>{});
+    const songs=await loadMainCatalog();
+    state.localPdfPreviewSongId='';
+    state.localPdfPreviewDataUrl='';
+    setStatus(`✅ Catálogo principal atualizado: ${songs.length} músicas.`,'success');
+    showToast('Catálogo atualizado.','success');
   }catch(error){
-    setStatus('Não foi possível atualizar o catálogo: '+error.message,'error');
+    setStatus('❌ Não foi possível atualizar o catálogo: '+(error?.message||'erro desconhecido'),'error');
     showToast('Falha ao atualizar catálogo.','error');
   }finally{
     els.refreshCatalog.disabled=false;
@@ -2896,24 +2795,48 @@ function init(){
   document.addEventListener('pointerleave', clearTap, {passive:true});
  initCatalogSwipe();
  initReceivedSwipe();
- els.removeDuplicatesBtn?.addEventListener('click',askRemoveDuplicates);els.pdfMissingList?.addEventListener('click',handlePdfPanelClick);els.pdfValidList?.addEventListener('click',handlePdfPanelClick);els.refreshPdfPanelBtn?.addEventListener('click',()=>refreshPdfPanel());els.generateMissingPdfsBtn?.addEventListener('click',startMissingPdfGeneration);els.retryFailedPdfsBtn?.addEventListener('click',retryFailedPdfs);els.deleteOrphanPdfsBtn?.addEventListener('click',askDeleteOrphanPdfs);els.catalogPdfInput?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(e.target.dataset.formMode==='1'){delete e.target.dataset.formMode;handleFormPdfSelection(file)}else uploadCatalogPdf(file)});els.selectSongPdfBtn?.addEventListener('click',selectFormPdf);els.viewSongPdfBtn?.addEventListener('click',async()=>{if(selectedFormPdf){await openProcessedPdfPreview(selectedFormPdf,selectedFormPdf.__palcoAutoGenerated?'Pré-visualização do PDF automático':'Pré-visualização do PDF processado');return;}const song=state.songs.find(s=>s.id===state.editingId);if(song?.pdfUrl)viewPdf(song.pdfUrl);else showToast('PDF não disponível para visualização.','error')});els.receivedPdfInput?.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)uploadReceivedPdf(file)});els.showPassword.addEventListener('change',()=>els.passwordInput.type=els.showPassword.checked?'text':'password');els.loginBtn.addEventListener('click',handleLogin);[els.loginInput,els.passwordInput].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin()}));els.logoutBtn.addEventListener('click',logout);els.refreshIndexBtn?.addEventListener('click',()=>{window.location.reload()});els.refreshCatalog?.addEventListener('click',refreshMainCatalog);els.refreshReceived.addEventListener('click',loadReceived);els.selectAllReceived.addEventListener('click',()=>{const all=state.received.length>0&&state.received.every((_,i)=>state.receivedSelected.has(i));state.receivedSelected=all?new Set():new Set(state.received.map((_,i)=>i));renderReceived()});els.clearReceivedSelection.addEventListener('click',()=>{state.receivedSelected.clear();renderReceived()});els.approveSelectedReceived.addEventListener('click',authorizeSelectedReceived);els.saveReceivedEdit.addEventListener('click',saveReceivedEditor);els.receivedEditModal.querySelectorAll('[data-close-received-edit]').forEach(b=>b.addEventListener('click',closeReceivedEditor));
-   els.searchMusicBtn?.addEventListener('click',searchMusicOnline);els.openBulkMusicSearchBtn?.addEventListener('click',openBulkMusicSearch);els.closeBulkMusicSearchBtn?.addEventListener('click',closeBulkMusicSearch);els.bulkMusicSearchBtn?.addEventListener('click',searchCatalogSuggestions);els.selectAllBulkMusicBtn?.addEventListener('click',selectAllBulkMusic);els.clearBulkMusicSelectionBtn?.addEventListener('click',clearBulkMusicSelection);els.addSelectedBulkMusicBtn?.addEventListener('click',addSelectedBulkMusic);els.bulkMusicSearchResults?.addEventListener('change',e=>{const checkbox=e.target.closest('[data-bulk-music-select]');if(checkbox)toggleBulkMusicSelection(checkbox.dataset.bulkMusicSelect,checkbox.checked)});els.musicSearchResults?.addEventListener('click',e=>{const result=e.target.closest('[data-music-search-index]');if(result)selectMusicSearchResult(result.dataset.musicSearchIndex)});els.musicSearchQuery?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!state.editingId&&els.musicSearchQuery.value.trim()){e.preventDefault();searchMusicOnline()}});els.saveSong.addEventListener('click',saveSong);els.cancelEdit.addEventListener('click',clearForm);els.newSong.addEventListener('click',()=>{document.querySelector('.tab-btn[data-tab="editor"]').click();clearForm();els.songTitle.focus();window.scrollTo({top:0,behavior:'smooth'})});els.exportBtn?.addEventListener('click',exportCatalog);els.quickExport?.addEventListener('click',exportCatalog);els.selectAll.addEventListener('click',toggleAllVisible);els.clearSelection.addEventListener('click',clearSelection);els.changeStyle.addEventListener('click',openStyleModal);els.continueStyle.addEventListener('click',continueStyleChange);els.styleModal.querySelectorAll('[data-close-style]').forEach(b=>b.addEventListener('click',closeStyleModal));els.linkCatalog?.addEventListener('click',linkCatalog);els.search.addEventListener('input',renderCatalog);document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.filter)));
+ els.catalogPdfInput?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;if(e.target.dataset.formMode==='1'){delete e.target.dataset.formMode;handleFormPdfSelection(file)}else uploadCatalogPdf(file)});els.refreshPdfPanelBtn?.addEventListener('click',async()=>{try{await loadLocal();await fetchPdfIntegrityStatus({silent:true})}catch(error){updatePdfPanelStatus('❌ '+(error?.message||'Não foi possível atualizar o painel de PDFs.'),'error')} });els.generateMissingPdfsBtn?.addEventListener('click',generateMissingCatalogPdfs);els.deleteOrphanCatalogPdfsBtn?.addEventListener('click',askDeleteOrphanCatalogPdfs);els.pdfMissingSongsList?.addEventListener('click',e=>{const gen=e.target.closest('[data-pdf-missing-generate]');if(gen&&!gen.disabled){generatePdfForCatalogSong(gen.dataset.pdfMissingGenerate,{silent:false}).then(()=>fetchPdfIntegrityStatus({silent:true}).catch(()=>{}));return}const edit=e.target.closest('[data-pdf-panel-edit]');if(edit){beginEdit(edit.dataset.pdfPanelEdit);document.querySelector('.tab-btn[data-tab="editor"]')?.click();}});els.pdfCatalogList?.addEventListener('click',e=>{const view=e.target.closest('[data-pdf-panel-view]');if(view){const song=state.songs.find(s=>String(s.id)===String(view.dataset.pdfPanelView));const url=song&&getCatalogPdfUrl(song);if(url)viewPdf(url);return}const edit=e.target.closest('[data-pdf-panel-edit]');if(edit){beginEdit(edit.dataset.pdfPanelEdit);document.querySelector('.tab-btn[data-tab="editor"]')?.click();}});els.selectSongPdfBtn?.addEventListener('click',selectFormPdf);els.viewSongPdfBtn?.addEventListener('click',async()=>{if(selectedFormPdf){await openProcessedPdfPreview(selectedFormPdf,selectedFormPdf.__palcoAutoGenerated?'Pré-visualização do PDF automático':'Pré-visualização do PDF processado');return;}const song=state.songs.find(s=>s.id===state.editingId);if(song?.pdfUrl)viewPdf(song.pdfUrl);else showToast('PDF não disponível para visualização.','error')});els.receivedPdfInput?.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)uploadReceivedPdf(file)});els.showPassword.addEventListener('change',()=>els.passwordInput.type=els.showPassword.checked?'text':'password');els.loginBtn.addEventListener('click',handleLogin);[els.loginInput,els.passwordInput].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin()}));els.logoutBtn.addEventListener('click',logout);els.refreshIndexBtn?.addEventListener('click',()=>{window.location.reload()});els.refreshCatalog?.addEventListener('click',refreshMainCatalog);els.importZone?.addEventListener('click',()=>els.importFile?.click());els.importZone?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();els.importFile?.click()}});els.importFile?.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)importCatalog(file);e.target.value=''});els.refreshReceived.addEventListener('click',loadReceived);els.selectAllReceived.addEventListener('click',()=>{const all=state.received.length>0&&state.received.every((_,i)=>state.receivedSelected.has(i));state.receivedSelected=all?new Set():new Set(state.received.map((_,i)=>i));renderReceived()});els.clearReceivedSelection.addEventListener('click',()=>{state.receivedSelected.clear();renderReceived()});els.approveSelectedReceived.addEventListener('click',authorizeSelectedReceived);els.saveReceivedEdit.addEventListener('click',saveReceivedEditor);els.receivedEditModal.querySelectorAll('[data-close-received-edit]').forEach(b=>b.addEventListener('click',closeReceivedEditor));
+   els.searchMusicBtn?.addEventListener('click',searchMusicOnline);els.openBulkMusicSearchBtn?.addEventListener('click',openBulkMusicSearch);els.closeBulkMusicSearchBtn?.addEventListener('click',closeBulkMusicSearch);els.bulkMusicSearchBtn?.addEventListener('click',searchCatalogSuggestions);els.selectAllBulkMusicBtn?.addEventListener('click',selectAllBulkMusic);els.clearBulkMusicSelectionBtn?.addEventListener('click',clearBulkMusicSelection);els.addSelectedBulkMusicBtn?.addEventListener('click',addSelectedBulkMusic);els.bulkMusicSearchResults?.addEventListener('change',e=>{const checkbox=e.target.closest('[data-bulk-music-select]');if(checkbox)toggleBulkMusicSelection(checkbox.dataset.bulkMusicSelect,checkbox.checked)});els.musicSearchResults?.addEventListener('click',e=>{const result=e.target.closest('[data-music-search-index]');if(result)selectMusicSearchResult(result.dataset.musicSearchIndex)});els.musicSearchQuery?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!state.editingId&&els.musicSearchQuery.value.trim()){e.preventDefault();searchMusicOnline()}});els.saveSong.addEventListener('click',saveSong);els.cancelEdit.addEventListener('click',clearForm);els.newSong.addEventListener('click',()=>{document.querySelector('.tab-btn[data-tab="editor"]').click();clearForm();els.songTitle.focus();window.scrollTo({top:0,behavior:'smooth'})});els.exportBtn?.addEventListener('click',exportCatalog);els.quickExport?.addEventListener('click',exportCatalog);els.selectAll.addEventListener('click',toggleAllVisible);els.clearSelection.addEventListener('click',clearSelection);els.changeStyle.addEventListener('click',openStyleModal);els.continueStyle.addEventListener('click',continueStyleChange);els.styleModal.querySelectorAll('[data-close-style]').forEach(b=>b.addEventListener('click',closeStyleModal));els.linkCatalog?.addEventListener('click',linkCatalog);els.search.addEventListener('input',renderCatalog);els.removeDuplicatesBtn?.addEventListener('click',askRemoveDuplicates);document.querySelectorAll('.filter-btn').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.filter)));
  els.catalogList.addEventListener('click',e=>{const lyricsSearch=e.target.closest('[data-search-lyrics]');if(lyricsSearch){const song=state.songs.find(x=>x.id===lyricsSearch.dataset.searchLyrics);if(song)openLyricsSearch(song.title);return;}const select=e.target.closest('[data-select]');if(select){toggleSelected(select.dataset.select,select.checked);return;}const edit=e.target.closest('[data-edit]');const view=e.target.closest('[data-view]');const viewPdfBtn=e.target.closest('[data-view-pdf]');const pdf=e.target.closest('[data-pdf]');const toggle=e.target.closest('[data-toggle]');const del=e.target.closest('[data-delete]');if(edit){beginEdit(edit.dataset.edit);document.querySelector('.tab-btn[data-tab="editor"]').click();}else if(view)showLyrics(view.dataset.view);else if(viewPdfBtn){const song=state.songs.find(x=>x.id===viewPdfBtn.dataset.viewPdf);const localPreview=song&&state.localPdfPreviewSongId===song.id?state.localPdfPreviewDataUrl:'';const catalogPdf=getCatalogPdfUrl(song);if(localPreview)openProcessedPdfPreview(localPreview,'PDF processado recentemente');else if(catalogPdf)viewPdf(catalogPdf);else showToast('PDF não disponível para visualização.','error');}else if(pdf)askPdfForSong(pdf.dataset.pdf);else if(toggle)toggleActive(toggle.dataset.toggle);else if(del)askDelete(del.dataset.delete)});
   els.receivedList.addEventListener('click',e=>{const receivedLyricsSearch=e.target.closest('[data-search-received-lyrics]');if(receivedLyricsSearch){const item=state.received?.[Number(receivedLyricsSearch.dataset.searchReceivedLyrics)];const title=item?.musica||item?.title||item?.cadastroCompleto?.title||'';if(title)openLyricsSearch(title);return}const select=e.target.closest('[data-received-select]');if(select){const index=Number(select.dataset.receivedSelect);if(select.checked)state.receivedSelected.add(index);else state.receivedSelected.delete(index);renderReceived();return}const detail=e.target.closest('[data-detail]');if(detail){viewReceivedCadastro(Number(detail.dataset.detail));return}const pdfView=e.target.closest('[data-view-pdf]');if(pdfView){const item=state.received?.[Number(pdfView.dataset.viewPdf)];const url=getReceivedPdf(item);if(url)viewPdf(url);else showToast('PDF não disponível para visualização.','error');return}const del=e.target.closest('[data-delete-received]');if(del){deleteReceivedCadastro(Number(del.dataset.deleteReceived));return}const approve=e.target.closest('[data-approve]');if(approve){authorizeReceivedCadastro(Number(approve.dataset.approve));return}const edit=e.target.closest('[data-edit-received]');if(edit){openReceivedEditor(Number(edit.dataset.editReceived));return}});
-  document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===target));if(target==='catalog')loadLocal();if(target==='received')loadReceived();if(target==='pdf'){renderPdfPanel();refreshPdfPanel();}}));
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.toggle('active',panel.dataset.panel===target));if(target==='catalog')loadLocal();if(target==='pdf'){loadLocal().then(()=>fetchPdfIntegrityStatus({silent:true})).catch(()=>renderPdfPanel())};if(target==='received')loadReceived();}));
  els.detailModal.querySelectorAll('[data-close-detail]').forEach(b=>b.addEventListener('click',closeDetail));els.confirmModal.querySelectorAll('[data-close-confirm]').forEach(b=>b.addEventListener('click',closeConfirm));els.confirmBtn.addEventListener('click',()=>state.confirmAction?.());
  document.addEventListener('keydown',e=>{if(els.pdfViewerScreen?.classList.contains('open')){if(e.key==='Escape')closePdfViewer();else if(e.key==='ArrowLeft')changeAdminPdfPage(-1);else if(e.key==='ArrowRight')changeAdminPdfPage(1);return}if(e.key==='Escape'){closeDetail();closeConfirm();closeStyleModal();closeReceivedEditor()}});
- if(sessionStorage.getItem(SESSION_KEY)==='1'){els.authCard.classList.add('hidden');els.adminPanel.classList.remove('hidden');loadLocal()}else{els.loginInput.focus()}
+ if(sessionStorage.getItem(SESSION_KEY)==='1'){els.authCard.classList.add('hidden');els.adminPanel.classList.remove('hidden');loadLocal().then(()=>fetchPdfIntegrityStatus({silent:true})).catch(()=>renderPdfPanel())}else{els.loginInput.focus()}
 }
 init();
 })();
 </script>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20260918-catalog-fix', { scope: './' }).catch(() => {});
+(() => {
+  const REPAIR_KEY='palco-pro-adm-cache-repair-v3';
+  window.addEventListener('load', async () => {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      if (!sessionStorage.getItem(REPAIR_KEY)) {
+        const regs=await navigator.serviceWorker.getRegistrations();
+        let changed=false;
+        for (const reg of regs) {
+          try { changed=(await reg.unregister())||changed; } catch (_) {}
+        }
+        if ('caches' in window) {
+          const keys=await caches.keys();
+          for (const key of keys) {
+            if (/palco-pro/i.test(key)) {
+              try { await caches.delete(key); } catch (_) {}
+            }
+          }
+        }
+        sessionStorage.setItem(REPAIR_KEY,'1');
+        if (changed) { window.location.reload(); return; }
+      }
+    } catch (_) {}
+    try {
+      const registration=await navigator.serviceWorker.register('./sw.js?v=20260918-3',{scope:'./'});
+      await registration.update().catch(()=>{});
+    } catch (_) {}
   });
-}
+})();
 </script>
 </body>
 </html>
