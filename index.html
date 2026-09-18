@@ -3829,31 +3829,82 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       renderSuggestionList();
     }
 
+    function pdfDataUrlToBlob(dataUrl) {
+      const raw = String(dataUrl || '');
+      const parts = raw.split(',');
+      if (parts.length < 2) throw new Error('PDF inválido.');
+      const mime = (parts[0].match(/data:([^;]+)/i) || [])[1] || 'application/pdf';
+      const binary = atob(parts[1]);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    }
+
+    async function generateLocalPdfForRepertoireSong(song) {
+      if (!song?.id) throw new Error('Música inválida para geração do PDF.');
+      const title = String(song.title || '').trim();
+      const artist = String(song.artist || '').trim();
+      const lyrics = sanitizeLyrics(song.lyrics || '');
+      if (!title) throw new Error(`A música "${artist || 'sem artista'}" não possui título.`);
+      if (!artist) throw new Error(`A música "${title}" não possui artista.`);
+      if (!lyrics) throw new Error(`A música "${title}" não possui letra para gerar o PDF.`);
+
+      const pdfData = await generateSearchPdf(title, artist, lyrics);
+      if (!pdfData || !String(pdfData).startsWith('data:application/pdf')) {
+        throw new Error(`Não foi possível gerar o PDF de "${title}".`);
+      }
+
+      const blob = pdfDataUrlToBlob(pdfData);
+      await saveOfflinePdf(String(song.id), blob, `${title} - ${artist}.pdf`);
+
+      // O PDF gerado para o repertório é exclusivo do aparelho do usuário.
+      // Não reutilizamos o PDF remoto do catálogo e não o enviamos ao servidor.
+      song.pdfData = '';
+      song.pdfUrl = '';
+      song.pdfFileName = `${title} - ${artist}.pdf`;
+      state.offlinePdfIds.add(String(song.id));
+      return song;
+    }
+
     async function addSongsToRepertoire(songs = [], emptyMessage = 'Nenhuma música para adicionar') {
       const validSongs = Array.isArray(songs) ? songs.filter(Boolean).slice(0, 30) : [];
       if (!validSongs.length) {
         showToast(emptyMessage, 1400);
         return 0;
       }
-      const personalCopies = validSongs.map(song => cloneSongForUser(song));
-      persistSongsState([...personalCopies, ...state.songs.map(song => ({...song}))]);
-      state.selectedSuggestionIds = [];
-      updateSuggestionSelectionUi();
-      renderRepertoire();
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      renderListSongsSelection(getListById(state.editingListId)?.songIds || []);
+      if (state.autoPdfGenerating || state.pdfProcessing) return 0;
 
-      const offlineResult = await cacheSongsPdfsOffline(personalCopies);
-      const pdfCount = personalCopies.filter(song => song?.pdfData || song?.pdfUrl).length;
-      if (offlineResult.saved) {
-        offlineResult.savedSongs.forEach(song => state.offlinePdfIds.add(String(song.id)));
+      state.autoPdfGenerating = true;
+      try {
+        const personalCopies = validSongs.map(song => cloneSongForUser(song));
+        const generatedCopies = [];
+
+        // Gera e salva cada PDF localmente antes de alterar o repertório.
+        // Assim, uma falha não deixa músicas parcialmente adicionadas.
+        for (let i = 0; i < personalCopies.length; i += 1) {
+          const current = personalCopies[i];
+          showToast(`Gerando PDF ${i + 1}/${personalCopies.length}: ${current.title || 'música'}...`, 1800);
+          generatedCopies.push(await generateLocalPdfForRepertoireSong(current));
+        }
+
+        persistSongsState([...generatedCopies, ...state.songs.map(song => ({...song}))]);
+        state.selectedSuggestionIds = [];
+        updateSuggestionSelectionUi();
+        renderRepertoire();
+        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        renderListSongsSelection(getListById(state.editingListId)?.songIds || []);
+
+        generatedCopies.forEach(song => state.offlinePdfIds.add(String(song.id)));
+        renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+        showOfflinePdfBatchSummary(generatedCopies.length, generatedCopies.length, 0);
+        return generatedCopies.length;
+      } catch (error) {
+        console.error('Falha ao gerar PDF local durante a adição ao repertório:', error);
+        showToast(error?.message || 'Não foi possível gerar o PDF. Nenhuma música foi adicionada.', 3000);
+        return 0;
+      } finally {
+        state.autoPdfGenerating = false;
       }
-      if (personalCopies.some(song => song?.pdfData)) {
-        personalCopies.filter(song => song?.pdfData).forEach(song => state.offlinePdfIds.add(String(song.id)));
-      }
-      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
-      showOfflinePdfBatchSummary(pdfCount, offlineResult.saved + personalCopies.filter(song => song?.pdfData).length, offlineResult.failed);
-      return personalCopies.length;
     }
 
     async function saveSelectedSuggestions() {
