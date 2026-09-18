@@ -1,4 +1,4 @@
-const CACHE_NAME = "palco-pro-v1";
+const CACHE_NAME = "palco-pro-v2";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -18,11 +18,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     )
   );
@@ -32,6 +30,51 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isCatalog = isSameOrigin && /(^|\/)catalogo\.json$/i.test(requestUrl.pathname);
+  const isAppShell =
+    isSameOrigin &&
+    (requestUrl.pathname === "/" || requestUrl.pathname.endsWith("/index.html"));
+
+  // O catálogo público precisa sempre ter prioridade da rede.
+  // Nunca devolva index.html como fallback de catalogo.json.
+  if (isCatalog) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // O shell do app também deve ser atualizado quando houver internet.
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Demais arquivos continuam com o comportamento de cache existente.
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
