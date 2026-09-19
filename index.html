@@ -3574,6 +3574,9 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
       if (title.startsWith(normalized)) return { score: 900, type: 'Título', group: 'title' };
       if (title.includes(normalized)) return { score: 800, type: 'Título', group: 'title' };
+      if (artist === normalized) return { score: 780, type: 'Artista', group: 'artist' };
+      if (artist.startsWith(normalized)) return { score: 720, type: 'Artista', group: 'artist' };
+      if (artist.includes(normalized)) return { score: 680, type: 'Artista', group: 'artist' };
       return null;
     }
 
@@ -3602,6 +3605,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         const titleMatches = primary.filter((entry) => entry.match.group === 'title')
           .sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' }));
         if (titleMatches.length) return { songs: titleMatches, mode: 'primary' };
+
+        const artistMatches = primary.filter((entry) => entry.match.group === 'artist')
+          .sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' }));
+        if (artistMatches.length) return { songs: artistMatches, mode: 'artist' };
       }
 
       const lyricMatches = available.map((song) => ({
@@ -3924,7 +3931,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       const result = getCatalogSearchResults(query);
       const songs = result.songs.map((entry) => ({ ...entry.song, _catalogMatch: entry.match.type }));
-      const resultTitle = result.mode === 'lyrics' ? 'Resultados • trecho da letra' : 'Resultados da pesquisa';
+      const resultTitle = result.mode === 'lyrics' ? 'Resultados • trecho da letra' : (result.mode === 'artist' ? 'Resultados • artista' : 'Resultados da pesquisa');
       renderCatalogSongs(songs, resultTitle, {
         emptyMessage: `Nenhuma música corresponde a “${query}”. Tente outro título, combine título + artista ou pesquise outro trecho da letra.`
       });
