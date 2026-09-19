@@ -3781,18 +3781,17 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         const matchHtml = song._catalogMatch ? `<span class="suggestion-item-match">${escapeHtml(song._catalogMatch)}</span>` : '';
         const statusText = alreadyInRepertoire
           ? 'Já está no seu repertório'
-          : 'Toque no nome para abrir • marque para adicionar';
+          : 'Marque ou toque para selecionar e adicionar à lista';
         content.innerHTML = `<span class="suggestion-item-title">${escapeHtml(song.title || 'Sem título')}</span><span class="suggestion-item-meta">${escapeHtml(song.artist || 'Artista não informado')} • ${escapeHtml(statusText)}</span>${matchHtml}`;
 
-        content.addEventListener('click', async (event) => {
+        content.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
           if (alreadyInRepertoire) {
-            const personalSong = state.songs.find((item) => isSameSongIdentity(item, song));
-            if (personalSong) await openSongById(personalSong.id);
+            showToast('Esta música já está no seu repertório.', 1500);
             return;
           }
-          await openTemporaryCatalogSong(song);
+          toggleSuggestionSelection(song.id);
         });
 
         row.appendChild(checkbox);
@@ -6110,6 +6109,11 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       const previous = existingIndex >= 0 ? state.songs[existingIndex] : null;
       const payloadId = existingIndex >= 0 && state.currentSongId ? String(state.currentSongId) : createSongId();
+      const contentChanged = isNewManualRegistration || !!previous && (
+        String(previous.title || '').trim() !== title ||
+        String(previous.artist || '').trim() !== artist ||
+        sanitizeLyrics(previous.lyrics || '') !== lyrics
+      );
       const payload = {
         id: payloadId,
         title,
@@ -6120,13 +6124,22 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         pdfData: '',
         // O PDF local é a fonte definitiva. Não dependemos do PDF remoto antigo.
         pdfUrl: '',
-        pdfFileName: previous?.pdfFileName || `${title} - ${artist}.pdf`
+        pdfFileName: contentChanged
+          ? `${title} - ${artist}.pdf`
+          : (previous?.pdfFileName || `${title} - ${artist}.pdf`)
       };
 
       const nextSongs = state.songs.map(song => ({ ...song }));
       const targetIndex = nextSongs.findIndex(song => String(song?.id || '') === payloadId);
       if (targetIndex >= 0) nextSongs[targetIndex] = { ...nextSongs[targetIndex], ...payload };
       else nextSongs.unshift(payload);
+
+      // O tom e o estilo não alteram o conteúdo textual do PDF. Somente
+      // título, artista ou letra invalidam o PDF já salvo no aparelho.
+      if (contentChanged && previous) {
+        await deleteOfflinePdf(payloadId);
+        state.offlinePdfIds.delete(String(payloadId));
+      }
 
       persistSongsState(nextSongs);
       setSongNote(payloadId, note);
@@ -6138,16 +6151,19 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       hideSongEditor();
       openLibraryPanel();
 
-      // O cadastro termina primeiro. O PDF permanente é criado depois, um por vez.
-      enqueueRepertoirePdfBatch([payloadId]);
+      // O cadastro termina primeiro. O PDF permanente só é gerado quando necessário.
+      // Em edição, o tom/estilo isoladamente preserva o PDF já salvo no aparelho.
+      if (isNewManualRegistration || contentChanged) enqueueRepertoirePdfBatch([payloadId]);
 
       if (isNewManualRegistration) {
         const sent = await enviarCadastroManualParaAppsScript(payload);
         showToast(sent
           ? 'Música salva no repertório. O PDF será anexado em segundo plano.'
           : 'Música salva no repertório. O PDF será anexado em segundo plano.', 2200);
+      } else if (contentChanged) {
+        showToast('Música atualizada. O PDF antigo foi substituído por um novo em segundo plano.', 2200);
       } else {
-        showToast('Música atualizada. O PDF será recriado em segundo plano.', 2000);
+        showToast('Música atualizada. O PDF existente foi mantido.', 1800);
       }
     }
 
@@ -6180,12 +6196,18 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       if (query) {
-        songs = songs.filter(song =>
-          normalizeSearchText(song?.title).includes(query) ||
-          normalizeSearchText(song?.artist).includes(query) ||
-          normalizeSearchText(song?.style).includes(query) ||
-          normalizeSearchText(song?.lyrics).includes(query)
-        );
+        const tokens = getCatalogSearchTokens(query);
+        songs = songs.filter(song => {
+          const fields = [
+            normalizeSearchText(song?.title),
+            normalizeSearchText(song?.artist),
+            normalizeSearchText(song?.style),
+            normalizeSearchText(song?.lyrics)
+          ].filter(Boolean);
+          const combined = fields.join(' ');
+          if (fields.some(value => value.includes(query)) || combined.includes(query)) return true;
+          return tokens.length > 0 && tokens.every(token => fields.some(value => value.includes(token)));
+        });
       }
 
       return songs;
@@ -7583,7 +7605,6 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         const personalMatches = getNormalizedLibrarySongs(term);
         if (String(term).trim().length >= 2 && !personalMatches.length) {
           renderLibraryList(term);
-          renderLibraryCatalogFallback(term);
         } else {
           libraryCatalogSearchToken += 1;
           renderLibraryList(term);
