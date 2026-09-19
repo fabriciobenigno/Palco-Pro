@@ -661,6 +661,14 @@
       font-weight: 500;
       color: var(--soft-text);
     }
+
+    .library-catalog-online-card {
+      background: linear-gradient(180deg, rgba(35,52,78,0.94), rgba(18,27,40,0.94));
+    }
+
+    .library-catalog-search-note {
+      margin: 0 0 8px;
+    }
     .library-song-pdf-badge {
       display: inline-flex;
       align-items: center;
@@ -2431,7 +2439,7 @@
             <button class="ghost-btn hidden" id="cancelLibrarySelectionBtn">Cancelar</button>
           </div>
           <div class="field library-search-field">
-            <input id="librarySearchInput" type="text" placeholder="Buscar por música, cantor ou estilo" autocomplete="off" />
+            <input id="librarySearchInput" type="text" placeholder="Buscar no repertório ou catálogo" autocomplete="off" />
             <div class="library-search-suggestions hidden" id="librarySearchSuggestions"></div>
           </div>
           <div class="library-sort-row" id="librarySortControls">
@@ -3886,6 +3894,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       scriptInput.value = sanitizeLyrics(song.lyrics || '');
       closePdfViewer();
       hideSuggestionsPanel();
+      if (libraryPanel?.classList.contains('open')) hideLibraryPanel();
       try {
         showToast('Gerando PDF temporário para visualização...', 1800);
         const pdfData = await generateSearchPdf(song.title, song.artist, song.lyrics);
@@ -6171,17 +6180,109 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       if (query) {
-        songs = songs.filter(song => normalizeSearchText(song?.title).includes(query) || normalizeSearchText(song?.lyrics).includes(query));
+        songs = songs.filter(song =>
+          normalizeSearchText(song?.title).includes(query) ||
+          normalizeSearchText(song?.artist).includes(query) ||
+          normalizeSearchText(song?.style).includes(query) ||
+          normalizeSearchText(song?.lyrics).includes(query)
+        );
       }
 
       return songs;
     }
+
+    let libraryCatalogSearchToken = 0;
 
     function getLibrarySearchBaseSongs() {
       if (state.librarySortMode === 'lists' && state.currentListId) {
         return getSongsFromList(state.currentListId);
       }
       return getNormalizedLibrarySongs('');
+    }
+
+    async function ensureCatalogForLibrarySearch() {
+      if (Array.isArray(state.suggestionSongs) && state.suggestionSongs.length) return true;
+      let catalog = [];
+      try {
+        catalog = await fetchSuggestionCatalog(SUGGESTIONS_CATALOG_URL);
+      } catch (_) {
+        try {
+          catalog = await fetchSuggestionCatalog(SUGGESTIONS_CATALOG_FALLBACK_URL);
+        } catch (error) {
+          console.error('Falha ao carregar catálogo para busca no repertório:', error);
+          return false;
+        }
+      }
+      state.suggestionSongs = catalog
+        .filter((song) => song && song.active !== false)
+        .map(normalizeSuggestionRow)
+        .filter((song) => song.id && (song.title || song.lyrics));
+      state.suggestionsLoadedAt = Date.now();
+      try {
+        localStorage.setItem(SUGGESTIONS_CACHE_KEY, JSON.stringify(state.suggestionSongs));
+      } catch (_) {}
+      return state.suggestionSongs.length > 0;
+    }
+
+    function getLibraryCatalogFallbackResults(term = '') {
+      const query = String(term || '').trim();
+      if (!query || query.length < 2 || !Array.isArray(state.suggestionSongs) || !state.suggestionSongs.length) return [];
+      const result = getCatalogSearchResults(query);
+      return result.songs
+        .map((entry) => ({ ...entry.song, _catalogMatch: entry.match?.type || '' }))
+        .filter((song) => !isSongAlreadyInRepertoire(song));
+    }
+
+    async function renderLibraryCatalogFallback(term = '') {
+      const query = String(term || '').trim();
+      if (query.length < 2) return;
+      const token = ++libraryCatalogSearchToken;
+
+      const personalMatches = getNormalizedLibrarySongs(query);
+      if (personalMatches.length) {
+        if (token === libraryCatalogSearchToken) renderLibraryList(query);
+        return;
+      }
+
+      const loaded = await ensureCatalogForLibrarySearch();
+      if (!loaded || token !== libraryCatalogSearchToken) return;
+
+      const personalMatchesAfterLoad = getNormalizedLibrarySongs(query);
+      if (personalMatchesAfterLoad.length) {
+        renderLibraryList(query);
+        return;
+      }
+
+      const catalogSongs = getLibraryCatalogFallbackResults(query);
+      libraryList.innerHTML = '';
+
+      const notice = document.createElement('div');
+      notice.className = 'panel-note library-catalog-search-note';
+      notice.textContent = catalogSongs.length
+        ? 'Nenhuma música do seu repertório correspondeu. Resultados do catálogo disponíveis pela internet:'
+        : `Nenhuma música do repertório ou do catálogo corresponde a “${query}”.`;
+      libraryList.appendChild(notice);
+
+      catalogSongs.slice(0, 200).forEach((song) => {
+        const row = document.createElement('div');
+        row.className = 'library-song-swipe library-catalog-online-row';
+        row.dataset.catalogSongId = song.id;
+
+        const card = document.createElement('button');
+        card.className = 'library-song-card library-catalog-online-card';
+        card.type = 'button';
+        const artistText = song.artist || 'Sem cantor';
+        const matchText = song._catalogMatch ? ` • ${song._catalogMatch}` : '';
+        card.innerHTML = `<span class="library-song-line">${escapeHtml(song.title || 'Sem título')} <small>- ${escapeHtml(artistText)}${escapeHtml(matchText)} • Internet • fora do repertório</small></span>`;
+        card.addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          await openTemporaryCatalogSong(song);
+        });
+
+        row.appendChild(card);
+        libraryList.appendChild(row);
+      });
     }
 
     function getLibrarySearchMatchType(song, query) {
@@ -6497,6 +6598,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       if (!state.songs.length) {
+        if (query && query.length >= 2) {
+          renderLibraryCatalogFallback(term);
+          return;
+        }
         const emptyAll = document.createElement('div');
         emptyAll.className = 'panel-note';
         emptyAll.textContent = 'Nenhuma música salva no repertório.';
@@ -6504,7 +6609,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         return;
       }
 
-      if (!state.librarySortMode) {
+      if (!state.librarySortMode && !query) {
         const selectNote = document.createElement('div');
         selectNote.className = 'panel-note';
         selectNote.textContent = 'Escolha Alfabética, Artista, Estilo, Cadastro ou Listas para visualizar o repertório.';
@@ -6531,6 +6636,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       if (!normalized.length) {
+        if (query && query.length >= 2 && !(state.librarySortMode === 'lists' && state.currentListId)) {
+          renderLibraryCatalogFallback(term);
+          return;
+        }
         const empty = document.createElement('div');
         empty.className = 'panel-note';
         empty.textContent = state.librarySortMode === 'lists' && state.currentListId
@@ -6540,6 +6649,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         return;
       }
 
+      libraryCatalogSearchToken += 1;
       normalized.forEach(song => {
         const row = document.createElement('div');
         row.className = 'library-song-swipe';
@@ -7467,7 +7577,18 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       closeFirstAccessTutorialBtn?.addEventListener('click', closeFirstAccessTutorial);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); });; if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', () => { const hasValue = !!String(suggestionsSearchInput.value || '').trim(); clearCatalogSearchBtn?.classList.toggle('hidden', !hasValue); if (hasValue) { state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); } renderSuggestionList(); }); if (clearCatalogSearchBtn) clearCatalogSearchBtn.addEventListener('click', () => { suggestionsSearchInput.value = ''; clearCatalogSearchBtn.classList.add('hidden'); state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); renderSuggestionList(); suggestionsSearchInput.focus(); }); if ($('catalogFilterControls')) $('catalogFilterControls').addEventListener('click', (event) => { const btn = event.target.closest('.catalog-filter-btn'); if (!btn) return; state.suggestionFilterMode = btn.dataset.catalogFilter || ''; state.suggestionFilterValue = ''; if (suggestionsSearchInput) suggestionsSearchInput.value = ''; clearCatalogSearchBtn?.classList.add('hidden'); updateCatalogFilterUi(); renderSuggestionList(); }); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => { renderLibrarySearchSuggestions(librarySearchInput.value); renderLibraryList(librarySearchInput.value); });
+      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); });; if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', () => { const hasValue = !!String(suggestionsSearchInput.value || '').trim(); clearCatalogSearchBtn?.classList.toggle('hidden', !hasValue); if (hasValue) { state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); } renderSuggestionList(); }); if (clearCatalogSearchBtn) clearCatalogSearchBtn.addEventListener('click', () => { suggestionsSearchInput.value = ''; clearCatalogSearchBtn.classList.add('hidden'); state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); renderSuggestionList(); suggestionsSearchInput.focus(); }); if ($('catalogFilterControls')) $('catalogFilterControls').addEventListener('click', (event) => { const btn = event.target.closest('.catalog-filter-btn'); if (!btn) return; state.suggestionFilterMode = btn.dataset.catalogFilter || ''; state.suggestionFilterValue = ''; if (suggestionsSearchInput) suggestionsSearchInput.value = ''; clearCatalogSearchBtn?.classList.add('hidden'); updateCatalogFilterUi(); renderSuggestionList(); }); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => {
+        const term = librarySearchInput.value || '';
+        renderLibrarySearchSuggestions(term);
+        const personalMatches = getNormalizedLibrarySongs(term);
+        if (String(term).trim().length >= 2 && !personalMatches.length) {
+          renderLibraryList(term);
+          renderLibraryCatalogFallback(term);
+        } else {
+          libraryCatalogSearchToken += 1;
+          renderLibraryList(term);
+        }
+      });
       librarySearchInput.addEventListener('focus', () => renderLibrarySearchSuggestions(librarySearchInput.value));
       librarySearchInput.addEventListener('keydown', (event) => { if (event.key === 'Escape' && librarySearchSuggestions) librarySearchSuggestions.classList.add('hidden'); }); bindPdfWatermarkUi(); if (librarySortControls) { librarySortControls.addEventListener('click', (event) => { const btn = event.target.closest('.library-sort-btn'); if (!btn) return; state.librarySortMode = btn.dataset.sort || 'alpha'; state.libraryFilterValue = ''; if (state.librarySortMode !== 'lists') state.currentListId = null; librarySearchInput.value=''; librarySortControls.querySelectorAll('.library-sort-btn').forEach((node) => node.classList.toggle('active', node === btn)); persistSettings(); renderLibraryFilterOptions(); renderLibrarySearchSuggestions(''); renderLibraryList(''); }); } libraryList.addEventListener('pointerdown', (event) => { if (!event.target.closest('.library-song-swipe')) { closeAllLibrarySwipes(); closeAllListSwipes(); } }); $('hidePanelBtn').addEventListener('click', hidePanel); if (moreOptionsBtn) moreOptionsBtn.addEventListener('click', toggleMoreOptions); if ($('resetSettingsBtn')) $('resetSettingsBtn').addEventListener('click', resetUserAdjustments); if (themesBtn) themesBtn.addEventListener('click', toggleThemes); if (themeGrid) { themeGrid.addEventListener('click', (event) => { const btn = event.target.closest('.theme-btn'); if (!btn) return; selectTheme(btn.dataset.theme || 'original'); }); }       repertoireSelect.addEventListener('change', openSelectedSong); [fontSize, stanzaSpacing, lineHeight, textWidth, overlayOpacity].forEach(input => { if (!input) return; input.addEventListener('input', () => { updateValueLabels(); refreshLayoutPreservingPoint(); persistSettings(); }); }); baseSpeed.addEventListener('input', () => { updateValueLabels(); state.baseSpeed = Number(baseSpeed.value); if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; if (detailSpeedSlider) detailSpeedSlider.value = baseSpeed.value; persistSettings(); }); if (detailSpeedSlider) { detailSpeedSlider.addEventListener('input', () => { baseSpeed.value = detailSpeedSlider.value; updateValueLabels(); state.baseSpeed = Number(detailSpeedSlider.value); persistSettings(); }); } voiceFollowSpeed.addEventListener('input', () => { updateValueLabels(); const raw = Number(voiceFollowSpeed.value); state.voiceFollowSpeed = raw / 100; state.voiceBoostStrength = 14 + Math.round(state.voiceFollowSpeed * 34); state.voiceBoostDuration = 110 + Math.round(state.voiceFollowSpeed * 140); persistSettings(); }); voiceToggle.addEventListener('change', () => { enableVoice(voiceToggle.checked); persistSettings(); }); mirrorToggle.addEventListener('change', toggleMirror); if ($('preferPdfRadio')) $('preferPdfRadio').addEventListener('change', async () => { if ($('preferPdfRadio').checked) { setReadingPreference('pdf'); persistSettings(); await applyReadingPreferenceToCurrentSong(); } }); if ($('preferLyricsRadio')) $('preferLyricsRadio').addEventListener('change', async () => { if ($('preferLyricsRadio').checked) { setReadingPreference('lyrics'); persistSettings(); await applyReadingPreferenceToCurrentSong(); } }); if (swipeSongRadio) swipeSongRadio.addEventListener('change', () => { if (swipeSongRadio.checked) setSwipeNavigationPreference('song'); }); if (swipeStanzaRadio) swipeStanzaRadio.addEventListener('change', () => { if (swipeStanzaRadio.checked) setSwipeNavigationPreference('stanza'); }); songTitleInput.addEventListener('input', persistCurrentDraft); artistInput.addEventListener('input', persistCurrentDraft); styleInput.addEventListener('input', persistCurrentDraft); scriptInput.addEventListener('input', persistCurrentDraft); window.addEventListener('resize', () => { refreshLayoutPreservingPoint(); if (state.pdfDoc) renderPdfPage(state.pdfPage); });  }
     function registerServiceWorker() {
