@@ -3548,35 +3548,87 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
     function getCatalogSearchParts(query) {
       const normalized = normalizeSearchText(query);
-      const tokens = normalized.split(/\s+/).filter(Boolean);
+      const tokens = getCatalogSearchTokens(normalized);
       return { normalized, tokens };
+    }
+
+    function getCatalogSearchTokens(value) {
+      const stopWords = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'as', 'os']);
+      return normalizeSearchText(value)
+        .replace(/&/g, ' e ')
+        .replace(/[^a-z0-9áéíóúàâêôãõçüñ]+/gi, ' ')
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter((token) => token && !stopWords.has(token));
+    }
+
+    function catalogTokensCoverQuery(fieldValue, queryTokens) {
+      const fieldTokens = getCatalogSearchTokens(fieldValue);
+      const normalizedQueryTokens = queryTokens.filter((token) => token && !['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'as', 'os'].includes(token));
+      if (!normalizedQueryTokens.length || !fieldTokens.length) return false;
+      return normalizedQueryTokens.every((queryToken) =>
+        fieldTokens.some((fieldToken) => fieldToken === queryToken || fieldToken.startsWith(queryToken) || (queryToken.length >= 3 && fieldToken.includes(queryToken)))
+      );
     }
 
     function getCatalogTitleArtistMatch(song, query) {
       const { normalized, tokens } = getCatalogSearchParts(query);
       const title = normalizeSearchText(song?.title || '');
       const artist = normalizeSearchText(song?.artist || '');
-      const titleArtist = `${title} ${artist}`.trim();
       if (!normalized) return null;
 
-      if (titleArtist === normalized && title && artist) {
-        return { score: 1200, type: 'Título + artista', group: 'title-artist' };
-      }
+      const titleTokens = getCatalogSearchTokens(title);
+      const artistTokens = getCatalogSearchTokens(artist);
+      const titleArtist = `${title} ${artist}`.trim();
+      const searchTokens = tokens.filter((token) => !['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'as', 'os'].includes(token));
+      const titleTokenHits = searchTokens.filter((token) => titleTokens.some((fieldToken) => fieldToken === token || fieldToken.startsWith(token) || (token.length >= 3 && fieldToken.includes(token)))).length;
+      const artistTokenHits = searchTokens.filter((token) => artistTokens.some((fieldToken) => fieldToken === token || fieldToken.startsWith(token) || (token.length >= 3 && fieldToken.includes(token)))).length;
+
       if (title === normalized) {
-        return { score: 1100, type: 'Título exato', group: 'title' };
+        return { score: 1400, type: 'Título exato', group: 'title' };
       }
-      if (tokens.length > 1 && tokens.every((token) => titleArtist.includes(token))) {
-        const titleHits = tokens.filter((token) => title.includes(token)).length;
-        const artistHits = tokens.filter((token) => artist.includes(token)).length;
-        if (titleHits && artistHits) {
-          return { score: 1000 + titleHits * 12 + artistHits * 10, type: 'Título + artista', group: 'title-artist' };
-        }
+
+      if (artist === normalized) {
+        return { score: 1350, type: 'Artista exato', group: 'artist' };
       }
-      if (title.startsWith(normalized)) return { score: 900, type: 'Título', group: 'title' };
-      if (title.includes(normalized)) return { score: 800, type: 'Título', group: 'title' };
-      if (artist === normalized) return { score: 780, type: 'Artista', group: 'artist' };
-      if (artist.startsWith(normalized)) return { score: 720, type: 'Artista', group: 'artist' };
-      if (artist.includes(normalized)) return { score: 680, type: 'Artista', group: 'artist' };
+
+      if (titleArtist === normalized) {
+        return { score: 1450, type: 'Título + artista', group: 'title-artist' };
+      }
+
+      // Busca por artista com várias palavras, inclusive quando o catálogo usa
+      // "&" e o usuário digita "e", ou quando há pontuação diferente.
+      if (artistTokens.length && searchTokens.length && artistTokenHits === searchTokens.length) {
+        const exactWordBonus = searchTokens.filter((token) => artistTokens.includes(token)).length * 18;
+        return { score: 1100 + exactWordBonus, type: 'Artista', group: 'artist' };
+      }
+
+      // Busca por título com várias palavras.
+      if (titleTokens.length && searchTokens.length && titleTokenHits === searchTokens.length) {
+        return { score: 1000 + titleTokenHits * 12, type: 'Título', group: 'title' };
+      }
+
+      // Combinação título + artista, independentemente da pontuação/conector entre eles.
+      if (searchTokens.length > 1 && titleTokenHits > 0 && artistTokenHits > 0 && (titleTokenHits + artistTokenHits) >= searchTokens.length) {
+        return { score: 1200 + titleTokenHits * 14 + artistTokenHits * 16, type: 'Título + artista', group: 'title-artist' };
+      }
+
+      if (title.startsWith(normalized)) {
+        return { score: 900, type: 'Título', group: 'title' };
+      }
+
+      if (title.includes(normalized)) {
+        return { score: 800, type: 'Título', group: 'title' };
+      }
+
+      if (artist.startsWith(normalized)) {
+        return { score: 780, type: 'Artista', group: 'artist' };
+      }
+
+      if (artist.includes(normalized)) {
+        return { score: 740, type: 'Artista', group: 'artist' };
+      }
+
       return null;
     }
 
@@ -3589,7 +3641,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
     function getCatalogSearchResults(query) {
       const available = getAvailableCatalogSongs();
-      const { normalized } = getCatalogSearchParts(query);
+      const { normalized, tokens } = getCatalogSearchParts(query);
       if (!normalized) return { songs: available, mode: 'none' };
 
       const primary = available.map((song) => ({
@@ -3597,18 +3649,41 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         match: getCatalogTitleArtistMatch(song, normalized)
       })).filter((entry) => entry.match);
 
-      if (primary.length) {
-        const titleArtist = primary.filter((entry) => entry.match.group === 'title-artist')
-          .sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' }));
-        if (titleArtist.length) return { songs: titleArtist, mode: 'primary' };
+      // Prioridade explícita para consultas inequívocas:
+      // 1) título exato; 2) título + artista; 3) artista; 4) título parcial.
+      const exactTitles = primary.filter((entry) => entry.match.group === 'title' && entry.match.score >= 1400);
+      if (exactTitles.length) {
+        return { songs: exactTitles.sort((a,b) => a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity:'base' })), mode: 'title' };
+      }
 
-        const titleMatches = primary.filter((entry) => entry.match.group === 'title')
-          .sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' }));
-        if (titleMatches.length) return { songs: titleMatches, mode: 'primary' };
+      const exactTitleArtists = primary.filter((entry) => entry.match.group === 'title-artist' && entry.match.score >= 1400);
+      if (exactTitleArtists.length) {
+        return { songs: exactTitleArtists.sort((a,b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity:'base' })), mode: 'title-artist' };
+      }
 
-        const artistMatches = primary.filter((entry) => entry.match.group === 'artist')
-          .sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' }));
-        if (artistMatches.length) return { songs: artistMatches, mode: 'artist' };
+      // Se todas as palavras pesquisadas aparecem no nome do artista, a intenção
+      // é buscar o artista: retornamos todas as músicas desse artista, não apenas
+      // as que também coincidirem com o título.
+      const artistMatches = available.map((song) => ({
+        song,
+        match: getCatalogTitleArtistMatch(song, normalized)
+      })).filter((entry) => {
+        if (!entry.match || entry.match.group !== 'artist') return false;
+        return catalogTokensCoverQuery(entry.song.artist || '', tokens);
+      });
+      if (artistMatches.length) {
+        return {
+          songs: artistMatches.sort((a,b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity:'base' })),
+          mode: 'artist'
+        };
+      }
+
+      const titleMatches = primary.filter((entry) => entry.match.group === 'title' || entry.match.group === 'title-artist');
+      if (titleMatches.length) {
+        return {
+          songs: titleMatches.sort((a,b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity:'base' })),
+          mode: 'title'
+        };
       }
 
       const lyricMatches = available.map((song) => ({
@@ -3616,8 +3691,20 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         match: getCatalogLyricsMatch(song, normalized)
       })).filter((entry) => entry.match);
 
+      // Para trechos maiores ou com mais de uma palavra, além da sequência exata,
+      // aceitamos a presença de todas as palavras na letra.
+      if (!lyricMatches.length && tokens.length > 1) {
+        const tokenMatches = available.map((song) => ({
+          song,
+          match: catalogTokensCoverQuery(song?.lyrics || '', tokens)
+            ? { score: 420, type: 'Trecho da letra', group: 'lyrics' }
+            : null
+        })).filter((entry) => entry.match);
+        if (tokenMatches.length) return { songs: tokenMatches, mode: 'lyrics' };
+      }
+
       return {
-        songs: lyricMatches.sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity: 'base' })),
+        songs: lyricMatches.sort((a, b) => b.match.score - a.match.score || a.song.title.localeCompare(b.song.title, 'pt-BR', { sensitivity:'base' })),
         mode: 'lyrics'
       };
     }
@@ -3931,7 +4018,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       const result = getCatalogSearchResults(query);
       const songs = result.songs.map((entry) => ({ ...entry.song, _catalogMatch: entry.match.type }));
-      const resultTitle = result.mode === 'lyrics' ? 'Resultados • trecho da letra' : (result.mode === 'artist' ? 'Resultados • artista' : 'Resultados da pesquisa');
+      const resultTitle = result.mode === 'lyrics' ? 'Resultados • trecho da letra' : (result.mode === 'artist' ? 'Resultados • artista' : (result.mode === 'title-artist' ? 'Resultados • título + artista' : 'Resultados da pesquisa'));
       renderCatalogSongs(songs, resultTitle, {
         emptyMessage: `Nenhuma música corresponde a “${query}”. Tente outro título, combine título + artista ou pesquise outro trecho da letra.`
       });
