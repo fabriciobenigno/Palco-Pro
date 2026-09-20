@@ -2835,7 +2835,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
             </div>
 
             <div class="pp-admin-card pp-admin-card-inner">
-              <div class="pp-admin-card-head"><div><h2>📚 Cadastro em massa</h2><p>Até 100 músicas válidas, encontradas e verificadas progressivamente.</p></div><span class="pp-admin-limit">Limite rígido: 100</span></div>
+              <div class="pp-admin-card-head"><div><h2>📚 Cadastro em massa</h2><p>Até 100 músicas válidas, buscando continuamente nas fontes disponíveis e verificando progressivamente.</p></div><span class="pp-admin-limit">Limite rígido: 100</span></div>
               <div class="pp-admin-search-panel">
                 <div class="pp-admin-search"><input id="ppAdminBulkQuery" type="search" placeholder="Ex.: MPB, Djavan, pagode, forró..." autocomplete="off" /></div>
                 <div class="pp-admin-bulk-note">O sistema procura até chegar a 100 candidatas válidas. Versões como ao vivo, live, feat., acústico, remix, demo e equivalentes são convertidas/rejeitadas para manter o título-base.</div>
@@ -8904,14 +8904,71 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       });
     }
 
+    async function ppAdminSearchItunesPage(query, offset) {
+      const q = normalizeExternalMusicText(query); if (!q) return [];
+      const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(q) + '&media=music&entity=song&limit=50&offset=' + encodeURIComponent(String(offset || 0)) + '&country=BR';
+      try {
+        const data = await requestUniversalJson(url, 7000);
+        const rows = mapItunesSearchResults(data);
+        if (rows.length) return rows;
+      } catch (_) {}
+      try {
+        const data = await requestJsonViaJsonpWithTimeout(url, 'callback', 7000);
+        return mapItunesSearchResults(data);
+      } catch (_) { return []; }
+    }
+
+    async function ppAdminSearchDeezerPage(query, index) {
+      const q = normalizeExternalMusicText(query); if (!q) return [];
+      const url = 'https://api.deezer.com/search?q=' + encodeURIComponent(q) + '&limit=25&index=' + encodeURIComponent(String(index || 0));
+      try {
+        const data = await requestInternetJson(url, { timeoutMs: 6500, jsonp: 'callback' });
+        const rows = Array.isArray(data && data.data) ? data.data : [];
+        return rows.map(function(item) {
+          return { trackName:item.title || '', artistName:item.artist && item.artist.name || '', primaryGenreName:'', collectionName:item.album && item.album.title || '', releaseDate:'', trackId:item.id || '', trackViewUrl:item.link || '', previewUrl:item.preview || '', source:'Deezer' };
+        }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+      } catch (_) { return []; }
+    }
+
+    async function ppAdminSearchMusicBrainzPage(query, offset) {
+      const clean = normalizeExternalMusicText(query).replace(/"/g, '');
+      if (!clean) return [];
+      const lucene = 'recording:"' + clean + '"';
+      const url = 'https://musicbrainz.org/ws/2/recording/?query=' + encodeURIComponent(lucene) + '&fmt=json&limit=100&offset=' + encodeURIComponent(String(offset || 0));
+      try {
+        const data = await requestInternetJson(url, { timeoutMs: 7000 });
+        const rows = Array.isArray(data && data.recordings) ? data.recordings : [];
+        return rows.map(function(item) {
+          const credits = Array.isArray(item && item['artist-credit']) ? item['artist-credit'] : [];
+          const artist = credits.map(function(ac){ return ac && ac.name || ac && ac.artist && ac.artist.name || ''; }).filter(Boolean).join(', ');
+          return { trackName:item.title || '', artistName:artist, primaryGenreName:'', collectionName:'', releaseDate:'', trackId:item.id || '', trackViewUrl:'', previewUrl:'', source:'MusicBrainz', tags:(item.tags || []).concat(item.genres || []) };
+        }).filter(function(item){ return normalizeExternalMusicText(item.trackName); });
+      } catch (_) { return []; }
+    }
+
     function ppAdminBuildSearchJobs(query) {
       const variants = ppAdminBuildSearchVariants(query);
       const jobs = [];
-      variants.forEach((variant, idx) => {
-        jobs.push(() => searchItunesSource(variant).catch(() => []));
-        jobs.push(() => searchLrcLibSource(variant).catch(() => []));
-        if (idx < 4) jobs.push(() => searchDeezerSource(variant).catch(() => []));
-        if (idx < 3) jobs.push(() => searchMusicBrainzSource(variant, '').catch(() => []));
+      // Cada fonte recebe várias páginas. A busca em massa não fica presa aos
+      // primeiros 25/50 resultados retornados pelos servidores.
+      const itunesOffsets = [0, 50, 100, 150, 200, 250];
+      const deezerOffsets = [0, 25, 50, 75, 100, 125, 150];
+      const musicBrainzOffsets = [0, 100, 200, 300, 400, 500];
+
+      variants.forEach(function(variant, idx) {
+        itunesOffsets.forEach(function(offset) {
+          jobs.push(function(){ return ppAdminSearchItunesPage(variant, offset).catch(function(){ return []; }); });
+        });
+        jobs.push(function(){ return searchLrcLibSource(variant).catch(function(){ return []; }); });
+        deezerOffsets.forEach(function(offset) {
+          jobs.push(function(){ return ppAdminSearchDeezerPage(variant, offset).catch(function(){ return []; }); });
+        });
+        musicBrainzOffsets.forEach(function(offset) {
+          jobs.push(function(){ return ppAdminSearchMusicBrainzPage(variant, offset).catch(function(){ return []; }); });
+        });
+        // Fontes web complementares que já fazem parte do index principal.
+        jobs.push(function(){ return searchOpenWebLyricsSource(variant).catch(function(){ return []; }); });
+        jobs.push(function(){ return searchUniversalWebSource(variant).catch(function(){ return []; }); });
       });
       return jobs;
     }
@@ -8934,18 +8991,25 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const candidateKeys = new Set();
       const pending = [];
       const jobs = ppAdminBuildSearchJobs(query);
-      const candidateBudget = mode === 'single' ? maxResults * 14 : maxResults * 10;
-      let discovered = 0, checked = 0, activeLyrics = 0, nextJob = 0, jobsFinished = false, resolved = false;
+      // Para busca em massa NÃO existe teto artificial de candidatos:
+      // ela continua abrindo novas páginas/fontes enquanto houver consultas
+      // disponíveis, até atingir os 100 resultados realmente válidos.
+      const candidateBudget = mode === 'single' ? maxResults * 14 : Number.POSITIVE_INFINITY;
+      let discovered = 0, checked = 0, activeLyrics = 0, nextJob = 0, activeJobs = 0, jobsFinished = false, resolved = false;
+      const SEARCH_WORKERS = mode === 'bulk' ? 5 : 4;
 
       const update = (kind, tone='') => {
         const statusId = mode === 'single' ? 'ppAdminSingleStatus' : 'ppAdminBulkStatus';
         ppAdminSetStatus(statusId, `${kind} • ${checked} letras verificadas • ${accepted.length} válidas.`, tone);
       };
 
+      let pumpJobs;
+
       return new Promise(resolve => {
         const finish = () => {
           if (resolved) return;
-          if (accepted.length >= maxResults || (jobsFinished && pending.length === 0 && activeLyrics === 0)) {
+          const exhausted = jobsFinished && pending.length === 0 && activeLyrics === 0 && activeJobs === 0;
+          if (accepted.length >= maxResults || exhausted) {
             resolved = true;
             resolve();
           }
@@ -8992,6 +9056,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
               activeLyrics--;
               if (!resolved) {
                 maybeStartLyrics();
+                pumpJobs();
                 finish();
               }
             });
@@ -8999,30 +9064,47 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           finish();
         };
 
-        const pumpJobs = async () => {
-          while (!resolved && runId === ppAdmin.searchRunId && nextJob < jobs.length && accepted.length < maxResults) {
-            const jobIndex = nextJob++;
-            try {
-              const items = await jobs[jobIndex]();
-              if (runId !== ppAdmin.searchRunId) break;
-              for (const item of (Array.isArray(items) ? items : [])) {
-                if (candidateKeys.size >= candidateBudget) break;
-                const normalized = ppAdminSearchCandidateToNormalized(item);
-                if (!normalized || candidateKeys.has(normalized._key)) continue;
-                if (catalogKeys.has(normalized._key) || personalKeys.has(normalized._key)) continue;
-                candidateKeys.add(normalized._key);
-                pending.push(normalized);
-                discovered++;
-              }
-              update(`🔎 ${discovered} candidatos encontrados; validando progressivamente...`, '');
-              maybeStartLyrics();
-            } catch (_) {
-              update(`🔎 Pesquisando em outras fontes...`, '');
-            }
+        const acceptItems = items => {
+          for (const item of (Array.isArray(items) ? items : [])) {
             if (candidateKeys.size >= candidateBudget) break;
+            const normalized = ppAdminSearchCandidateToNormalized(item);
+            if (!normalized || candidateKeys.has(normalized._key)) continue;
+            if (catalogKeys.has(normalized._key) || personalKeys.has(normalized._key)) continue;
+            candidateKeys.add(normalized._key);
+            pending.push(normalized);
+            discovered++;
           }
-          jobsFinished = true;
-          maybeStartLyrics();
+        };
+
+        const runJob = async (jobIndex) => {
+          activeJobs++;
+          try {
+            const items = await jobs[jobIndex]();
+            if (runId === ppAdmin.searchRunId) {
+              acceptItems(items);
+              update(`🔎 ${discovered} candidatos encontrados; validando em paralelo...`, '');
+              maybeStartLyrics();
+            }
+          } catch (_) {
+            if (runId === ppAdmin.searchRunId) update('🔎 Uma fonte não respondeu; continuando nas demais...', '');
+          } finally {
+            activeJobs--;
+            if (!resolved && runId === ppAdmin.searchRunId) {
+              if (nextJob >= jobs.length) jobsFinished = true;
+              pumpJobs();
+              maybeStartLyrics();
+              finish();
+            }
+          }
+        };
+
+        pumpJobs = async function pumpJobs() {
+          if (resolved || runId !== ppAdmin.searchRunId || accepted.length >= maxResults) return;
+          while (activeJobs < SEARCH_WORKERS && nextJob < jobs.length && accepted.length < maxResults) {
+            const idx = nextJob++;
+            runJob(idx);
+          }
+          if (nextJob >= jobs.length && activeJobs === 0) jobsFinished = true;
           finish();
         };
 
@@ -9056,7 +9138,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       ppAdmin.bulkSelected.clear();
       ppAdminRenderBulk();
       if ($pp('ppAdminBulkProgress')) $pp('ppAdminBulkProgress').style.width='0%';
-      ppAdminSetStatus('ppAdminBulkStatus', '🔎 Procurando até 100 músicas válidas, com validação progressiva...', '');
+      ppAdminSetStatus('ppAdminBulkStatus', '🔎 Procurando 100 músicas válidas; consultando continuamente todas as fontes disponíveis...', '');
       try {
         await ppAdminLoadCatalog();
         await ppAdminProgressiveSearch(query, 'bulk', PP_ADMIN_MAX_BULK_RESULTS, runId);
