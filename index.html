@@ -8816,6 +8816,75 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       if (/\.{3,}|…|letra não encontrada|lyrics? unavailable|lyrics? not found|instrumental|karaoke/i.test(plain)) return false;
       return true;
     }
+    function ppAdminBrazilianMusicValid(lyrics, candidate) {
+      // Regra exclusiva da busca EM MASSA: aceitar apenas letras em
+      // português brasileiro e descartar letras predominantemente em outro
+      // idioma antes de transformá-las em resultado válido.
+      const raw = String(lyrics || '').replace(/\[[^\]]*\]/g, ' ').trim();
+      if (!raw) return false;
+
+      // Caracteres de outros sistemas de escrita (japonês, coreano, árabe,
+      // cirílico, hebraico etc.) eliminam o candidato.
+      const alpha = (raw.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/g) || []).length;
+      const nonLatin = (raw.match(/[^\sA-Za-zÀ-ÖØ-öø-ÿ0-9.,!?;:'"()\[\]{}\-–—…/\n]/g) || []).length;
+      if (alpha >= 80 && nonLatin > Math.max(5, Math.floor(alpha * 0.06))) return false;
+
+      const words = (raw.toLocaleLowerCase('pt-BR').match(/[a-zà-ÿ]+/gi) || []);
+      const normalizedWords = words.map(w => w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+      const set = new Set(normalizedWords);
+
+      const ptStrong = new Set([
+        'voce','voces','nao','pra','pro','entao','tambem','ninguem','alguem',
+        'saudade','coracao','paixao','jeito','agora','comigo','contigo','daqui',
+        'aqui','embora','amanha','porque','porquem','mesmo','mesma','nosso','nossa',
+        'nossos','nossas','minha','meu','minhas','meus','seu','sua','seus','suas',
+        'estou','estamos','vamos','sabe','sabes','diz','dizer','quero','queremos',
+        'vou','vai','vem','venha','lembro','lembrar','feito','fazer','temos','tenho',
+        'tudo','nada','muito','muita','muitas','muitos','onde','quando','como','assim',
+        'amor','beijo','beijos','noite','dia','vida','canto','cantar','musica'
+      ]);
+
+      const foreign = {
+        en: new Set(['the','and','you','your','yours','with','without','from','this','that','these','those','love','baby','girl','boy','want','wanna','gonna','dont','cant','isnt','wasnt','are','were','have','has','had','will','would','could','should','know','need','make','take','come','go','going','back','night','forever']),
+        es: new Set(['el','los','las','del','una','uno','unos','unas','yo','tu','usted','ustedes','quiero','quieres','quieres','eres','soy','estoy','estas','tengo','tienes','puedo','puedes','donde','cuando','pero','nunca','hasta','ella','ellos','ellas','porque','por','como','tambien']),
+        fr: new Set(['je','tu','vous','nous','avec','dans','pour','une','des','pas','suis','sommes','etes','sont','mais','avec','chez','sans','quoi','qui','mon','ma','mes']),
+        it: new Set(['io','tu','lui','lei','noi','voi','che','non','sono','sei','siete','una','uno','per','con','della','delle','degli','amore','cuore','questo','questa','dove','quando']),
+        de: new Set(['der','die','das','und','nicht','ich','du','wir','ihr','mit','ein','eine','ist','sind','war','haben','habe','dein','deine','mein','meine','nicht'])
+      };
+
+      let ptHits = 0;
+      ptStrong.forEach(w => { if (set.has(w)) ptHits++; });
+      // Marcadores que aparecem de forma muito característica no português
+      // brasileiro. Mantemos a forma original para preservar sinais como ã/ç.
+      const accentSignals = (raw.match(/(?:[ãõç]|ões\b|ção\b|ções\b|nh|lh)/gi) || []).length;
+      const ptFunction = normalizedWords.filter(w => ['eu','me','te','se','de','da','do','dos','das','em','no','na','nos','nas','que','e','a','o','os','as','um','uma','para','por','com'].includes(w)).length;
+
+      const foreignScores = {};
+      Object.keys(foreign).forEach(lang => {
+        let score = 0;
+        foreign[lang].forEach(w => { if (set.has(w)) score++; });
+        foreignScores[lang] = score;
+      });
+      const foreignMax = Math.max.apply(null, Object.values(foreignScores));
+      const foreignTotal = Object.values(foreignScores).reduce((a,b) => a + b, 0);
+
+      // Evidência textual de português: pelo menos dois marcadores fortes ou
+      // um marcador forte + sinais ortográficos/gramaticais suficientes.
+      const clearlyPortuguese = ptHits >= 2 || (ptHits >= 1 && accentSignals >= 2) || (ptFunction >= 5 && accentSignals >= 1);
+      if (!clearlyPortuguese) return false;
+
+      // Evita espanhol/inglês/etc. quando os marcadores estrangeiros dominam
+      // os sinais do português. Um candidato de fonte .com.br recebe apenas
+      // uma pequena tolerância, nunca uma aprovação automática.
+      const source = String(candidate?.source || '');
+      const brazilianSource = /cifra club|ouvir música|uk[eê] cifras/i.test(source);
+      if (foreignMax >= 3 && foreignMax > ptHits + 1) return false;
+      if (foreignTotal >= 5 && foreignTotal > (ptHits + accentSignals + 2)) return false;
+      if (!brazilianSource && foreignMax >= 2 && foreignMax >= ptHits + 1 && accentSignals === 0) return false;
+
+      return true;
+    }
+
 
     function ppAdminBuildSearchVariants(query) {
       const clean = String(query || '').trim();
@@ -9027,7 +9096,9 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
               const artist = String(candidate.artistName || candidate.artist || '').trim();
               const key = ppAdminSongIdentity(title, artist);
               const formatted = ppAdminFormatValidatedLyrics(lyrics || '');
-              const eligible = !!key && !catalogKeys.has(key) && !personalKeys.has(key) && !acceptedKeys.has(key) && ppAdminLyricsValid(formatted);
+              const lyricsValid = ppAdminLyricsValid(formatted);
+              const brazilianValid = mode !== 'bulk' || ppAdminBrazilianMusicValid(formatted, candidate);
+              const eligible = !!key && !catalogKeys.has(key) && !personalKeys.has(key) && !acceptedKeys.has(key) && lyricsValid && brazilianValid;
               if (eligible) {
                 acceptedKeys.add(key);
                 const style = mapExternalGenreToRhythm(candidate.primaryGenreName || '') || String(candidate.style || '').trim() || 'Música brasileira';
