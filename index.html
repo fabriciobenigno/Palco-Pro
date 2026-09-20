@@ -2328,6 +2328,23 @@
     @media(max-width:760px){.pp-admin-root{padding:10px}.pp-admin-topbar{align-items:flex-start;flex-direction:column}.pp-admin-top-actions{width:100%}.pp-admin-top-actions .pp-admin-btn{flex:1}.pp-admin-stats{grid-template-columns:repeat(2,1fr)}.pp-admin-panel-grid,.pp-admin-two{grid-template-columns:1fr}.pp-admin-song{grid-template-columns:18px minmax(0,1fr)}.pp-admin-song-actions{grid-column:2;justify-content:flex-start}.pp-admin-card{padding:14px;border-radius:23px}.pp-admin-toolbar .pp-admin-btn{flex:1 1 140px}.pp-admin-result{grid-template-columns:20px minmax(0,1fr)}}
     @media(max-width:430px){.pp-admin-search{flex-basis:100%}.pp-admin-stat strong{font-size:20px}.pp-admin-card-head{flex-direction:column}}
 
+
+    /* Camada independente: o ADM só abre quando o usuário toca em Acesso de ADM. */
+    .pp-admin-root{position:fixed!important;inset:0!important;z-index:2000!important;display:none!important;overflow:auto!important;background:
+      radial-gradient(circle at 12% 0%,rgba(100,175,255,.12),transparent 26%),
+      radial-gradient(circle at 88% 4%,rgba(91,110,255,.11),transparent 22%),
+      linear-gradient(180deg,#03060c,#07101c 38%,#04070d)!important;}
+    .pp-admin-root.pp-admin-open{display:block!important;}
+    .pp-admin-access{margin-top:2px;}
+    .pp-admin-access .pp-admin-btn{width:100%;}
+    .pp-admin-register-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;}
+    .pp-admin-single-note,.pp-admin-bulk-note{color:#91a0b8;font-size:11px;line-height:1.55;margin-top:7px;}
+    .pp-admin-result-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;margin-top:10px;}
+    .pp-admin-progress{height:7px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden;margin-top:10px;border:1px solid rgba(255,255,255,.06);}
+    .pp-admin-progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#75c7ff,#4b7dff);transition:width .18s ease;}
+    .pp-admin-limit{font-size:10px;color:#91a0b8;}
+    @media(max-width:860px){.pp-admin-register-grid{grid-template-columns:1fr;}}
+
 </style>
 </head>
 <body>
@@ -2627,7 +2644,7 @@
           <div class="panel-note">Os controles de teclado e botões Bluetooth continuam aceitando setas, espaço e Enter para ajudar no uso ao vivo.</div>
         </div>
 
-        <button class="ghost-btn" id="supportContactBtn" type="button">🔐 Suporte / Administração</button>
+        <button class="ghost-btn" id="supportContactBtn" type="button">🛠️ Suporte / Contato</button>
 
       </div>
     </div>
@@ -2708,245 +2725,194 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     </div>
 
     <div class="fullscreen-screen support-contact-panel" id="supportContactPanel">
-      <div class="pp-admin-root" id="ppAdminRoot">
-        <section class="pp-admin-login" id="ppAdminLogin">
-          <div class="pp-admin-login-card">
-            <div class="pp-admin-brand">
-              <div class="pp-admin-brand-mark">🎵</div>
-              <div>
-                <h1>Palco Pro Admin</h1>
-                <p>Área administrativa integrada ao Palco Pro</p>
-              </div>
-            </div>
-            <div class="pp-admin-form-grid">
-              <div class="pp-admin-field">
-                <label for="ppAdminLoginUser">Usuário</label>
-                <input id="ppAdminLoginUser" type="text" autocomplete="username" value="fabricio" />
-              </div>
-              <div class="pp-admin-field">
-                <label for="ppAdminLoginPass">Senha</label>
-                <input id="ppAdminLoginPass" type="password" autocomplete="current-password" />
-              </div>
-              <button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminLoginBtn" type="button">Entrar</button>
-              <button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminLoginCloseBtn" type="button">Voltar ao Palco Pro</button>
-              <div class="pp-admin-status" id="ppAdminLoginStatus"></div>
-            </div>
+      <div class="fullscreen-shell" id="supportContactView">
+        <div class="fullscreen-header">
+          <div class="fullscreen-title-wrap">
+            <h2 class="fullscreen-title">Suporte / Contato</h2>
+            <p class="fullscreen-subtitle">Entre em contato ou confira a versão atual do Palco Pro.</p>
           </div>
-        </section>
-
-        <section class="pp-admin-app hidden" id="ppAdminApp">
-          <div class="pp-admin-shell">
-            <header class="pp-admin-topbar">
-              <div class="pp-admin-brand">
-                <div class="pp-admin-brand-mark">🎵</div>
-                <div>
-                  <h1>Palco Pro Admin</h1>
-                  <p>Catálogo público • Cadastro em massa • Cadastros recebidos</p>
-                </div>
-              </div>
-              <div class="pp-admin-top-actions">
-                <button class="pp-admin-btn pp-admin-btn-small" id="ppAdminRefreshBtn" type="button">↻ Atualizar</button>
-                <button class="pp-admin-btn pp-admin-btn-small" id="ppAdminLogoutBtn" type="button">Sair</button>
-                <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" id="ppAdminCloseBtn" type="button">✕ Fechar</button>
-              </div>
-            </header>
-
-            <nav class="pp-admin-tabs" aria-label="Navegação administrativa">
-              <button class="pp-admin-tab active" data-pp-admin-tab="catalog" type="button">🎵 Catálogo</button>
-              <button class="pp-admin-tab" data-pp-admin-tab="bulk" type="button">📚 Cadastro em massa</button>
-              <button class="pp-admin-tab" data-pp-admin-tab="received" type="button">📥 Cadastros recebidos</button>
-              <button class="pp-admin-tab" data-pp-admin-tab="project" type="button">ℹ️ Projeto</button>
-            </nav>
-
-            <main class="pp-admin-content">
-              <section class="pp-admin-page active" data-pp-admin-page="catalog">
-                <div class="pp-admin-card">
-                  <div class="pp-admin-card-head">
-                    <div>
-                      <h2>Catálogo atual</h2>
-                      <p>Visualize e administre exatamente a lista disponibilizada em Sugestões.</p>
-                    </div>
-                    <span class="pp-admin-badge" id="ppAdminCatalogCounter">0 músicas</span>
-                  </div>
-
-                  <div class="pp-admin-stats">
-                    <div class="pp-admin-stat"><div>Total</div><strong id="ppAdminStatTotal">0</strong></div>
-                    <div class="pp-admin-stat"><div>Ativas</div><strong id="ppAdminStatActive">0</strong></div>
-                    <div class="pp-admin-stat"><div>Inativas</div><strong id="ppAdminStatInactive">0</strong></div>
-                    <div class="pp-admin-stat"><div>Provisório</div><strong id="ppAdminStatProvisional">0</strong></div>
-                  </div>
-
-                  <div class="pp-admin-toolbar">
-                    <div class="pp-admin-search">
-                      <input id="ppAdminCatalogSearch" type="search" placeholder="Buscar por música, artista, estilo ou letra..." autocomplete="off" />
-                      <span id="ppAdminCatalogSearchCount">0 resultados</span>
-                    </div>
-                    <button class="pp-admin-btn pp-admin-btn-secondary pp-admin-btn-small" id="ppAdminCatalogRefreshBtn" type="button">↻ Atualizar catálogo</button>
-                    <button class="pp-admin-btn pp-admin-btn-primary pp-admin-btn-small" id="ppAdminNewSongBtn" type="button">+ Nova música</button>
-                    <button class="pp-admin-btn pp-admin-btn-danger pp-admin-btn-small" id="ppAdminRemoveDuplicatesBtn" type="button">🧹 Remover copiadas</button>
-                    <button class="pp-admin-btn pp-admin-btn-secondary pp-admin-btn-small" id="ppAdminDownloadCatalogBtn" type="button">⇩ Baixar JSON</button>
-                  </div>
-
-                  <div class="pp-admin-filters">
-                    <button class="pp-admin-filter active" data-pp-admin-filter="all" type="button">Todas</button>
-                    <button class="pp-admin-filter" data-pp-admin-filter="active" type="button">Ativas</button>
-                    <button class="pp-admin-filter" data-pp-admin-filter="inactive" type="button">Inativas</button>
-                  </div>
-
-                  <div class="pp-admin-bulkbar" id="ppAdminCatalogBulkBar">
-                    <span id="ppAdminCatalogBulkCount">0 selecionadas</span>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminSelectAllBtn" type="button">Selecionar todas</button>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminClearSelectionBtn" type="button">Limpar seleção</button>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" id="ppAdminChangeStyleBtn" type="button">✏️ Editar estilo</button>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" id="ppAdminDeleteSelectedBtn" type="button">🗑 Excluir selecionadas</button>
-                  </div>
-
-                  <div class="pp-admin-list" id="ppAdminCatalogList"></div>
-                  <div class="pp-admin-status" id="ppAdminCatalogStatus"></div>
-                </div>
-              </section>
-
-              <section class="pp-admin-page" data-pp-admin-page="bulk">
-                <div class="pp-admin-card">
-                  <div class="pp-admin-card-head">
-                    <div>
-                      <h2>📚 Cadastro de músicas em massa</h2>
-                      <p>Pesquisa real em fontes públicas, com deduplicação antes da publicação.</p>
-                    </div>
-                    <span class="pp-admin-badge pp-admin-badge-green">Sem PDF automático</span>
-                  </div>
-
-                  <div class="pp-admin-search-panel">
-                    <strong>🎵 Descobrir músicas</strong>
-                    <div class="pp-admin-note">A pesquisa usa iTunes para descobrir gravações e LRCLIB para buscar letras. Os resultados já existentes no catálogo são bloqueados.</div>
-                    <div class="pp-admin-toolbar">
-                      <div class="pp-admin-search">
-                        <input id="ppAdminBulkQuery" type="search" placeholder="Ex.: MPB, Djavan, pagode, forró..." autocomplete="off" />
-                      </div>
-                      <button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminBulkSearchBtn" type="button">🔎 Pesquisar</button>
-                      <button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminBulkClearBtn" type="button">Limpar</button>
-                    </div>
-                    <div class="pp-admin-status" id="ppAdminBulkStatus">Pronto para pesquisar.</div>
-                    <div class="pp-admin-bulkbar active" id="ppAdminBulkSelectionBar">
-                      <span id="ppAdminBulkSelectionCount">0 selecionadas</span>
-                      <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminBulkSelectAllBtn" type="button">Selecionar todas</button>
-                      <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminBulkClearSelectionBtn" type="button">Limpar seleção</button>
-                      <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" id="ppAdminBulkAddBtn" type="button">✅ Cadastrar selecionadas</button>
-                    </div>
-                    <div class="pp-admin-list pp-admin-results" id="ppAdminBulkResults"></div>
-                  </div>
-
-                  <div class="pp-admin-panel-grid">
-                    <div class="pp-admin-card pp-admin-card-inner">
-                      <div class="pp-admin-card-head">
-                        <div><h2>Cadastro manual / edição</h2><p>A mesma estrutura de título, artista, estilo, tom e letra.</p></div>
-                        <span class="pp-admin-badge" id="ppAdminEditingBadge">Novo</span>
-                      </div>
-                      <div class="pp-admin-form-grid">
-                        <div class="pp-admin-field"><label for="ppAdminFormTitle">Título</label><input id="ppAdminFormTitle" type="text" /></div>
-                        <div class="pp-admin-two">
-                          <div class="pp-admin-field"><label for="ppAdminFormArtist">Artista</label><input id="ppAdminFormArtist" type="text" /></div>
-                          <div class="pp-admin-field"><label for="ppAdminFormStyle">Estilo</label><input id="ppAdminFormStyle" type="text" /></div>
-                        </div>
-                        <div class="pp-admin-field"><label for="ppAdminFormKey">Tom</label><input id="ppAdminFormKey" type="text" maxlength="20" /></div>
-                        <div class="pp-admin-field"><label for="ppAdminFormLyrics">Letra completa</label><textarea id="ppAdminFormLyrics"></textarea></div>
-                        <div class="pp-admin-toolbar">
-                          <button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminSaveManualBtn" type="button">Salvar música</button>
-                          <button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminClearManualBtn" type="button">Limpar</button>
-                        </div>
-                        <div class="pp-admin-status" id="ppAdminManualStatus"></div>
-                      </div>
-                    </div>
-
-                    <div class="pp-admin-card pp-admin-card-inner">
-                      <div class="pp-admin-card-head"><div><h2>Regras</h2><p>Proteções aplicadas ao fluxo.</p></div></div>
-                      <div class="pp-admin-note">
-                        <strong>1.</strong> Título, artista, estilo e letra são obrigatórios.<br><br>
-                        <strong>2.</strong> A duplicidade principal considera título + artista.<br><br>
-                        <strong>3.</strong> A comparação ignora acentos, caixa e espaços repetidos.<br><br>
-                        <strong>4.</strong> Cadastro em massa valida novamente no servidor.<br><br>
-                        <strong>5.</strong> A publicação do catálogo principal é feita pelo Apps Script.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="pp-admin-page" data-pp-admin-page="received">
-                <div class="pp-admin-card">
-                  <div class="pp-admin-card-head">
-                    <div>
-                      <h2>📥 Cadastros recebidos</h2>
-                      <p>Cadastros enviados pelo Palco Pro principal. Eles ficam pendentes até sua aprovação.</p>
-                    </div>
-                    <span class="pp-admin-badge" id="ppAdminReceivedCounter">0 cadastros</span>
-                  </div>
-
-                  <div class="pp-admin-stats">
-                    <div class="pp-admin-stat"><div>Pendentes</div><strong id="ppAdminReceivedStat">0</strong></div>
-                    <div class="pp-admin-stat"><div>No provisório</div><strong id="ppAdminReceivedProvisionalStat">0</strong></div>
-                  </div>
-
-                  <div class="pp-admin-toolbar">
-                    <button class="pp-admin-btn pp-admin-btn-primary pp-admin-btn-small" id="ppAdminRefreshReceivedBtn" type="button">↻ Atualizar cadastros</button>
-                    <button class="pp-admin-btn pp-admin-btn-secondary pp-admin-btn-small" id="ppAdminRefreshProvisionalBtn" type="button">↻ Atualizar provisório</button>
-                  </div>
-
-                  <div class="pp-admin-bulkbar" id="ppAdminReceivedBulkBar">
-                    <span id="ppAdminReceivedBulkCount">0 selecionadas</span>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminReceivedSelectAllBtn" type="button">Selecionar todas</button>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminReceivedClearSelectionBtn" type="button">Limpar seleção</button>
-                    <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" id="ppAdminReceivedApproveBtn" type="button">✅ Adicionar selecionadas ao catálogo</button>
-                  </div>
-
-                  <div class="pp-admin-note">Excluir nesta aba remove apenas o cadastro recebido/provisório. Não altera uma música que já esteja no catálogo público.</div>
-                  <div class="pp-admin-list" id="ppAdminReceivedList"></div>
-                  <div class="pp-admin-status" id="ppAdminReceivedStatus"></div>
-                </div>
-              </section>
-
-              <section class="pp-admin-page" data-pp-admin-page="project">
-                <div class="pp-admin-card">
-                  <div class="pp-admin-card-head">
-                    <div><h2>ℹ️ Projeto</h2><p>Integração do antigo ADM ao mesmo index do Palco Pro.</p></div>
-                    <span class="pp-admin-badge">Integrado</span>
-                  </div>
-                  <div class="pp-admin-panel-grid">
-                    <div class="pp-admin-note">
-                      <strong>Catálogo público</strong><br><br>
-                      Continua no repositório principal e é lido pela aba Sugestões do Palco Pro.
-                      <br><br>
-                      <strong>Catálogo provisório</strong><br><br>
-                      Registra os novos cadastros aguardando análise. Ele não é exibido aos usuários.
-                    </div>
-                    <div class="pp-admin-note">
-                      <strong>Fluxo</strong><br><br>
-                      Usuário → Apps Script → planilha + e-mail + provisório → Admin → validação → catálogo principal.
-                      <br><br>
-                      <strong>Segurança operacional</strong><br><br>
-                      Não existe aqui uma ação para apagar o catálogo inteiro.
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </main>
-
-            <div class="pp-admin-status" id="ppAdminGlobalStatus"></div>
+          <button class="mini-btn close-icon-btn" id="hideSupportContactPanelBtn" aria-label="Fechar"><img src="fechar.png" alt="Fechar" /></button>
+        </div>
+        <div class="fullscreen-card support-contact-card">
+          <a class="ghost-btn support-instagram-btn" href="https://instagram.com/fabricio_benigno" target="_blank" rel="noopener noreferrer">
+            <img src="instagram.ico" alt="Instagram" />
+            <span>Contato via Instagram</span>
+          </a>
+          <div class="support-version-card">
+            <span>Versão do aplicativo</span>
+            <strong id="appVersionValue">v1.17.0</strong>
           </div>
-        </section>
-
-        <div class="pp-admin-modal" id="ppAdminModal">
-          <div class="pp-admin-modal-card">
-            <div class="pp-admin-modal-head">
-              <h3 id="ppAdminModalTitle">Ação</h3>
-              <button class="pp-admin-icon-btn" id="ppAdminModalCloseBtn" type="button">✕</button>
-            </div>
-            <div class="pp-admin-modal-body" id="ppAdminModalBody"></div>
-            <div class="pp-admin-modal-foot" id="ppAdminModalFoot"></div>
+          <div class="pp-admin-access">
+            <button class="pp-admin-btn pp-admin-btn-primary" id="openPpAdminBtn" type="button">🔐 Acesso de ADM</button>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="pp-admin-root" id="ppAdminRoot" aria-hidden="true"><section class="pp-admin-login" id="ppAdminLogin">
+  <div class="pp-admin-login-card">
+    <div class="pp-admin-brand">
+      <div class="pp-admin-brand-mark">🎵</div>
+      <div><h1>Palco Pro Admin</h1><p>Área administrativa integrada ao Palco Pro</p></div>
+    </div>
+    <div class="pp-admin-form-grid">
+      <div class="pp-admin-field"><label for="ppAdminLoginUser">Usuário</label><input id="ppAdminLoginUser" type="text" autocomplete="username" value="fabricio" /></div>
+      <div class="pp-admin-field"><label for="ppAdminLoginPass">Senha</label><input id="ppAdminLoginPass" type="password" autocomplete="current-password" /></div>
+      <button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminLoginBtn" type="button">Entrar</button>
+      <button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminLoginCloseBtn" type="button">Voltar ao suporte</button>
+      <div class="pp-admin-status" id="ppAdminLoginStatus"></div>
+    </div>
+  </div>
+</section>
+
+<section class="pp-admin-app hidden" id="ppAdminApp">
+  <div class="pp-admin-shell">
+    <header class="pp-admin-topbar">
+      <div class="pp-admin-brand">
+        <div class="pp-admin-brand-mark">🎵</div>
+        <div><h1>Palco Pro Admin</h1><p>Catálogo público • Cadastro • Cadastros recebidos</p></div>
+      </div>
+      <div class="pp-admin-top-actions">
+        <button class="pp-admin-btn pp-admin-btn-small" id="ppAdminRefreshBtn" type="button">↻ Atualizar</button>
+        <button class="pp-admin-btn pp-admin-btn-small" id="ppAdminLogoutBtn" type="button">Sair</button>
+        <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" id="ppAdminCloseBtn" type="button">✕ Voltar ao suporte</button>
+      </div>
+    </header>
+
+    <nav class="pp-admin-tabs" aria-label="Navegação administrativa">
+      <button class="pp-admin-tab active" data-pp-admin-tab="catalog" type="button">🎵 Catálogo</button>
+      <button class="pp-admin-tab" data-pp-admin-tab="register" type="button">✚ Cadastrar</button>
+      <button class="pp-admin-tab" data-pp-admin-tab="received" type="button">📥 Cadastros recebidos</button>
+      <button class="pp-admin-tab" data-pp-admin-tab="project" type="button">ℹ️ Projeto</button>
+    </nav>
+
+    <main class="pp-admin-content">
+      <section class="pp-admin-page active" data-pp-admin-page="catalog">
+        <div class="pp-admin-card">
+          <div class="pp-admin-card-head"><div><h2>Catálogo principal</h2><p>Esta é a lista real lida pelo Palco Pro principal: <b>fabriciobenigno/Palco-Pro/catalogo.json</b>.</p></div><span class="pp-admin-badge" id="ppAdminCatalogCounter">0 músicas</span></div>
+          <div class="pp-admin-stats">
+            <div class="pp-admin-stat"><div>Total</div><strong id="ppAdminStatTotal">0</strong></div>
+            <div class="pp-admin-stat"><div>Ativas</div><strong id="ppAdminStatActive">0</strong></div>
+            <div class="pp-admin-stat"><div>Inativas</div><strong id="ppAdminStatInactive">0</strong></div>
+          </div>
+          <div class="pp-admin-toolbar">
+            <div class="pp-admin-search"><input id="ppAdminCatalogSearch" type="search" placeholder="Buscar por música, artista, estilo ou letra..." autocomplete="off" /><span id="ppAdminCatalogSearchCount">0 resultados</span></div>
+            <button class="pp-admin-btn pp-admin-btn-secondary pp-admin-btn-small" id="ppAdminCatalogRefreshBtn" type="button">↻ Atualizar catálogo</button>
+            <button class="pp-admin-btn pp-admin-btn-primary pp-admin-btn-small" id="ppAdminNewSongBtn" type="button">+ Nova música</button>
+            <button class="pp-admin-btn pp-admin-btn-danger pp-admin-btn-small" id="ppAdminRemoveDuplicatesBtn" type="button">🧹 Remover cópias</button>
+            <button class="pp-admin-btn pp-admin-btn-secondary pp-admin-btn-small" id="ppAdminDownloadCatalogBtn" type="button">⇩ Baixar JSON</button>
+          </div>
+          <div class="pp-admin-filters">
+            <button class="pp-admin-filter active" data-pp-admin-filter="all" type="button">Todas</button>
+            <button class="pp-admin-filter" data-pp-admin-filter="active" type="button">Ativas</button>
+            <button class="pp-admin-filter" data-pp-admin-filter="inactive" type="button">Inativas</button>
+          </div>
+          <div class="pp-admin-bulkbar" id="ppAdminCatalogBulkBar">
+            <span id="ppAdminCatalogBulkCount">0 selecionadas</span>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminSelectAllBtn" type="button">Selecionar todas</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminClearSelectionBtn" type="button">Limpar seleção</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" id="ppAdminChangeStyleBtn" type="button">✏️ Editar estilo</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" id="ppAdminDeleteSelectedBtn" type="button">🗑 Excluir selecionadas</button>
+          </div>
+          <div class="pp-admin-list" id="ppAdminCatalogList"></div>
+          <div class="pp-admin-status" id="ppAdminCatalogStatus"></div>
+        </div>
+      </section>
+
+      <section class="pp-admin-page" data-pp-admin-page="register">
+        <div class="pp-admin-card">
+          <div class="pp-admin-card-head"><div><h2>✚ Cadastrar músicas</h2><p>Busca validada antes da aceitação e cadastro direto no catálogo principal.</p></div><span class="pp-admin-badge pp-admin-badge-green">Até 15 / 100</span></div>
+          <div class="pp-admin-register-grid">
+            <div class="pp-admin-card pp-admin-card-inner">
+              <div class="pp-admin-card-head"><div><h2>🔎 Busca individual</h2><p>Até 15 resultados válidos por pesquisa.</p></div><span class="pp-admin-limit">Somente resultados aceitos aparecem.</span></div>
+              <div class="pp-admin-search-panel">
+                <div class="pp-admin-search"><input id="ppAdminSingleQuery" type="search" placeholder="Título, artista, título + artista ou trecho da letra..." autocomplete="off" /></div>
+                <div class="pp-admin-single-note">A consulta é flexível e combina fontes musicais; só entra na lista o que tiver título, artista, letra utilizável e não existir no catálogo nem no seu repertório pessoal.</div>
+                <div class="pp-admin-toolbar"><button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminSingleSearchBtn" type="button">🔎 Pesquisar</button><button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminSingleClearBtn" type="button">Limpar</button></div>
+                <div class="pp-admin-status" id="ppAdminSingleStatus">Pronto para pesquisar.</div>
+                <div class="pp-admin-list pp-admin-results" id="ppAdminSingleResults"></div>
+              </div>
+            </div>
+
+            <div class="pp-admin-card pp-admin-card-inner">
+              <div class="pp-admin-card-head"><div><h2>📚 Cadastro em massa</h2><p>Até 100 músicas válidas, encontradas e verificadas progressivamente.</p></div><span class="pp-admin-limit">Limite rígido: 100</span></div>
+              <div class="pp-admin-search-panel">
+                <div class="pp-admin-search"><input id="ppAdminBulkQuery" type="search" placeholder="Ex.: MPB, Djavan, pagode, forró..." autocomplete="off" /></div>
+                <div class="pp-admin-bulk-note">O sistema procura até chegar a 100 candidatas válidas. Versões como ao vivo, live, feat., acústico, remix, demo e equivalentes são convertidas/rejeitadas para manter o título-base.</div>
+                <div class="pp-admin-toolbar"><button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminBulkSearchBtn" type="button">🔎 Pesquisar até 100</button><button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminBulkClearBtn" type="button">Limpar</button></div>
+                <div class="pp-admin-progress"><span id="ppAdminBulkProgress"></span></div>
+                <div class="pp-admin-status" id="ppAdminBulkStatus">Pronto para pesquisar.</div>
+                <div class="pp-admin-bulkbar active" id="ppAdminBulkSelectionBar">
+                  <span id="ppAdminBulkSelectionCount">0 selecionadas</span>
+                  <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminBulkSelectAllBtn" type="button">Selecionar todas</button>
+                  <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminBulkClearSelectionBtn" type="button">Limpar seleção</button>
+                  <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" id="ppAdminBulkAddBtn" type="button">✅ Cadastrar selecionadas</button>
+                </div>
+                <div class="pp-admin-list pp-admin-results" id="ppAdminBulkResults"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pp-admin-panel-grid" style="margin-top:14px;">
+            <div class="pp-admin-card pp-admin-card-inner">
+              <div class="pp-admin-card-head"><div><h2>Cadastro manual / edição</h2><p>Mesmo fluxo de manutenção do catálogo principal.</p></div><span class="pp-admin-badge" id="ppAdminEditingBadge">Novo</span></div>
+              <div class="pp-admin-form-grid">
+                <div class="pp-admin-field"><label for="ppAdminFormTitle">Título</label><input id="ppAdminFormTitle" type="text" /></div>
+                <div class="pp-admin-two"><div class="pp-admin-field"><label for="ppAdminFormArtist">Artista</label><input id="ppAdminFormArtist" type="text" /></div><div class="pp-admin-field"><label for="ppAdminFormStyle">Estilo</label><input id="ppAdminFormStyle" type="text" /></div></div>
+                <div class="pp-admin-field"><label for="ppAdminFormKey">Tom</label><input id="ppAdminFormKey" type="text" maxlength="20" /></div>
+                <div class="pp-admin-field"><label for="ppAdminFormLyrics">Letra completa</label><textarea id="ppAdminFormLyrics"></textarea></div>
+                <div class="pp-admin-toolbar"><button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminSaveManualBtn" type="button">Salvar música</button><button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminClearManualBtn" type="button">Limpar</button></div>
+                <div class="pp-admin-status" id="ppAdminManualStatus"></div>
+              </div>
+            </div>
+            <div class="pp-admin-card pp-admin-card-inner">
+              <div class="pp-admin-card-head"><div><h2>Regras aplicadas</h2><p>As proteções valem antes e durante a publicação.</p></div></div>
+              <div class="pp-admin-note">
+                <strong>1.</strong> Resultado só aparece com título, artista e letra utilizável.<br><br>
+                <strong>2.</strong> Duplicidade = título + artista, ignorando acentos, caixa e espaços repetidos.<br><br>
+                <strong>3.</strong> Mesma letra com artistas diferentes continua permitida.<br><br>
+                <strong>4.</strong> Resultados já presentes no catálogo principal ou no repertório pessoal são ocultados.<br><br>
+                <strong>5.</strong> Cadastro em massa aceita no máximo 100 e o servidor revalida tudo antes de publicar.<br><br>
+                <strong>6.</strong> Não existe ação de apagar o catálogo inteiro.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pp-admin-page" data-pp-admin-page="received">
+        <div class="pp-admin-card">
+          <div class="pp-admin-card-head"><div><h2>📥 Cadastros recebidos</h2><p>Cadastros enviados pelo Palco Pro principal. A aprovação publica no catálogo real.</p></div><span class="pp-admin-badge" id="ppAdminReceivedCounter">0 cadastros</span></div>
+          <div class="pp-admin-stats"><div class="pp-admin-stat"><div>Pendentes</div><strong id="ppAdminReceivedStat">0</strong></div></div>
+          <div class="pp-admin-toolbar"><button class="pp-admin-btn pp-admin-btn-primary pp-admin-btn-small" id="ppAdminRefreshReceivedBtn" type="button">↻ Atualizar cadastros</button></div>
+          <div class="pp-admin-bulkbar" id="ppAdminReceivedBulkBar"><span id="ppAdminReceivedBulkCount">0 selecionadas</span><button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminReceivedSelectAllBtn" type="button">Selecionar todas</button><button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" id="ppAdminReceivedClearSelectionBtn" type="button">Limpar seleção</button><button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" id="ppAdminReceivedApproveBtn" type="button">✅ Adicionar selecionadas ao catálogo</button></div>
+          <div class="pp-admin-note">Excluir nesta aba remove somente o cadastro recebido. Nunca exclui uma música do catálogo público.</div>
+          <div class="pp-admin-list" id="ppAdminReceivedList"></div>
+          <div class="pp-admin-status" id="ppAdminReceivedStatus"></div>
+        </div>
+      </section>
+
+      <section class="pp-admin-page" data-pp-admin-page="project">
+        <div class="pp-admin-card">
+          <div class="pp-admin-card-head"><div><h2>ℹ️ Projeto</h2><p>ADM integrado no mesmo index do Palco Pro.</p></div><span class="pp-admin-badge">Integrado</span></div>
+          <div class="pp-admin-panel-grid">
+            <div class="pp-admin-note"><strong>Catálogo principal</strong><br><br>O ADM consulta e altera o <b>catalogo.json</b> do repositório <b>fabriciobenigno/Palco-Pro</b>. Não há catálogo independente do Admin.</div>
+            <div class="pp-admin-note"><strong>Cadastros recebidos</strong><br><br>Continuam passando pelo Apps Script, planilha e e-mail. A aprovação revalida título + artista antes de publicar.<br><br><strong>Proteção</strong><br><br>Não existe limpeza global do catálogo.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div class="pp-admin-status" id="ppAdminGlobalStatus"></div>
+  </div>
+</section>
+
+<div class="pp-admin-modal" id="ppAdminModal">
+  <div class="pp-admin-modal-card">
+    <div class="pp-admin-modal-head"><h3 id="ppAdminModalTitle">Ação</h3><button class="pp-admin-icon-btn" id="ppAdminModalCloseBtn" type="button">✕</button></div>
+    <div class="pp-admin-modal-body" id="ppAdminModalBody"></div>
+    <div class="pp-admin-modal-foot" id="ppAdminModalFoot"></div>
+  </div>
+</div></div>
 
     <div class="fullscreen-screen main-music-search-panel" id="musicSearchPanel">
       <div class="fullscreen-shell">
@@ -7545,987 +7511,16 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       if (musicSearchPanel) musicSearchPanel.classList.remove('open');
       if (searchMusicOnlineSubmitBtn) { searchMusicOnlineSubmitBtn.disabled = false; searchMusicOnlineSubmitBtn.textContent = '🔎 Pesquisar'; }
     }
-
-    /* === ADMIN INTEGRADO — UI E OPERAÇÕES REAIS === */
-    const ppAdmin = {
-      initialized: false,
-      logged: false,
-      tab: 'catalog',
-      filter: 'all',
-      catalog: [],
-      provisional: [],
-      received: [],
-      selected: new Set(),
-      receivedSelected: new Set(),
-      bulkResults: [],
-      bulkSelected: new Set(),
-      editingCatalogId: '',
-      editingManualMode: false,
-      receivedEditingIndex: -1,
-      requestBusy: false
-    };
-
-    const PP_ADMIN_LOGIN_USER = 'fabricio';
-    const PP_ADMIN_LOGIN_PASS = 'fabricio';
-    const PP_ADMIN_SESSION_KEY = 'palco-pro-admin-session-v1';
-
-    const $pp = (id) => document.getElementById(id);
-
-    function ppAdminNormalize(value) {
-      return String(value == null ? '' : value)
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .toLowerCase();
-    }
-
-    function ppAdminEscape(value) {
-      return String(value == null ? '' : value)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function ppAdminSetStatus(id, message, type) {
-      const el = $pp(id);
-      if (!el) return;
-      el.textContent = message || '';
-      el.className = 'pp-admin-status' + (type ? ' ' + type : '');
-    }
-
-    function ppAdminUrl() {
-      return APPS_SCRIPT_URL;
-    }
-
-    async function ppAdminRequest(action, payload = null, options = {}) {
-      const method = options.method || (payload ? 'POST' : 'GET');
-      let url = ppAdminUrl();
-      if (!url || url.indexOf('COLE_AQUI') >= 0) throw new Error('URL do Apps Script não configurada.');
-
-      if (method === 'GET') {
-        const query = new URLSearchParams({ action: String(action || ''), ts: String(Date.now()) });
-        const response = await fetch(url + '?' + query.toString(), {
-          method: 'GET', mode: 'cors', cache: 'no-store',
-          headers: { Accept: 'application/json' }
-        });
-        const textResponse = await response.text();
-        let data;
-        try { data = JSON.parse(textResponse); } catch (_) { throw new Error('Resposta inválida do Apps Script.'); }
-        if (!response.ok || data?.sucesso === false) throw new Error(data?.mensagem || ('HTTP ' + response.status));
-        return data;
-      }
-
-      const body = JSON.stringify(Object.assign({}, payload || {}, { action }));
-      const response = await fetch(url, {
-        method: 'POST', mode: 'cors', cache: 'no-store',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8', Accept: 'application/json' },
-        body
-      });
-      const textResponse = await response.text();
-      let data;
-      try { data = JSON.parse(textResponse); } catch (_) { throw new Error('Resposta inválida do Apps Script.'); }
-      if (!response.ok || data?.sucesso === false) throw new Error(data?.mensagem || ('HTTP ' + response.status));
-      return data;
-    }
-
-    function ppAdminNormalizeSong(song) {
-      const s = song || {};
-      return {
-        id: String(s.id || ('admin-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))),
-        title: String(s.title || s.song_title || s.musica || 'Sem título').trim(),
-        artist: String(s.artist || s.artista || '').trim(),
-        style: String(s.style || s.estilo || '').trim(),
-        note: String(s.note || s.tom || s.tone || s.key || '').trim(),
-        lyrics: sanitizeLyrics(String(s.lyrics || s.letra || '')),
-        active: s.active !== false,
-        pdfUrl: String(s.pdfUrl || '').trim(),
-        pdfFileName: String(s.pdfFileName || '').trim()
-      };
-    }
-
-    function ppAdminNormalizeReceived(item) {
-      const i = item || {};
-      const c = i.cadastroCompleto || {};
-      return {
-        id: String(i.id || c.id || ''),
-        title: String(i.musica || i.title || c.title || '').trim(),
-        artist: String(i.artista || i.artist || c.artist || '').trim(),
-        style: String(i.estilo || i.style || c.style || '').trim(),
-        note: String(i.tom || i.note || c.tom || c.note || '').trim(),
-        user: String(i.usuario || i.nome || c.usuario || c.nome || '').trim(),
-        lyrics: sanitizeLyrics(String(i.letra || i.lyrics || c.letra || c.lyrics || '')),
-        date: String(i.data || i.dataCadastro || c.dataCadastro || '').trim(),
-        pdfUrl: String(i.pdfUrl || c.pdfUrl || '').trim(),
-        pdfFileId: String(i.pdfDriveFileId || i.pdfFileId || c.pdfDriveFileId || c.pdfFileId || '').trim(),
-        pdfFileName: String(i.pdfFileName || c.pdfFileName || '').trim(),
-        original: i
-      };
-    }
-
-    function ppAdminIsDuplicate(a, b) {
-      return ppAdminNormalize(a?.title || a?.musica) === ppAdminNormalize(b?.title || b?.musica) &&
-             ppAdminNormalize(a?.artist || a?.artista) === ppAdminNormalize(b?.artist || b?.artista);
-    }
-
-    function ppAdminDuplicateInCatalog(song, ignoreId = '') {
-      return ppAdmin.catalog.find(item =>
-        String(item.id) !== String(ignoreId || '') &&
-        ppAdminIsDuplicate(item, song)
-      ) || null;
-    }
-
-    function ppAdminDuplicateInProvisional(song, ignoreId = '') {
-      return ppAdmin.provisional.find(item =>
-        String(item.id) !== String(ignoreId || '') &&
-        ppAdminIsDuplicate(item, song)
-      ) || null;
-    }
-
-    function ppAdminSwitchTab(tab) {
-      ppAdmin.tab = tab || 'catalog';
-      document.querySelectorAll('[data-pp-admin-tab]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.ppAdminTab === ppAdmin.tab);
-      });
-      document.querySelectorAll('[data-pp-admin-page]').forEach(page => {
-        page.classList.toggle('active', page.dataset.ppAdminPage === ppAdmin.tab);
-      });
-      if (ppAdmin.tab === 'catalog') ppAdminRenderCatalog();
-      if (ppAdmin.tab === 'received') ppAdminRenderReceived();
-      if (ppAdmin.tab === 'bulk') ppAdminRenderBulk();
-    }
-
-    function ppAdminFilteredCatalog() {
-      const query = ppAdminNormalize($pp('ppAdminCatalogSearch')?.value || '');
-      return ppAdmin.catalog.filter(song => {
-        const filterOk = ppAdmin.filter === 'all' ||
-          (ppAdmin.filter === 'active' ? song.active !== false : song.active === false);
-        if (!filterOk) return false;
-        if (!query) return true;
-        return [song.title, song.artist, song.style, song.lyrics].some(v => ppAdminNormalize(v).includes(query));
-      });
-    }
-
-    function ppAdminRenderCatalog() {
-      const list = ppAdminFilteredCatalog();
-      const root = $pp('ppAdminCatalogList');
-      if (!root) return;
-      root.innerHTML = '';
-      const active = ppAdmin.catalog.filter(s => s.active !== false).length;
-      const inactive = ppAdmin.catalog.length - active;
-      $pp('ppAdminCatalogCounter').textContent = `${ppAdmin.catalog.length} música${ppAdmin.catalog.length === 1 ? '' : 's'}`;
-      $pp('ppAdminStatTotal').textContent = String(ppAdmin.catalog.length);
-      $pp('ppAdminStatActive').textContent = String(active);
-      $pp('ppAdminStatInactive').textContent = String(inactive);
-      $pp('ppAdminStatProvisional').textContent = String(ppAdmin.provisional.length);
-      $pp('ppAdminCatalogSearchCount').textContent = `${list.length} resultado${list.length === 1 ? '' : 's'}`;
-      $pp('ppAdminCatalogBulkCount').textContent = `${ppAdmin.selected.size} selecionada${ppAdmin.selected.size === 1 ? '' : 's'}`;
-      $pp('ppAdminCatalogBulkBar').classList.toggle('active', ppAdmin.selected.size > 0);
-
-      if (!list.length) {
-        root.innerHTML = '<div class="pp-admin-empty">Nenhuma música encontrada neste filtro.</div>';
-        return;
-      }
-
-      list.forEach(song => {
-        const row = document.createElement('article');
-        row.className = 'pp-admin-song' + (ppAdmin.selected.has(String(song.id)) ? ' selected' : '');
-        const status = song.active === false ? 'Inativa' : 'Ativa';
-        row.innerHTML = `
-          <input type="checkbox" ${ppAdmin.selected.has(String(song.id)) ? 'checked' : ''} data-pp-admin-select="${ppAdminEscape(song.id)}" aria-label="Selecionar música">
-          <div class="pp-admin-song-main">
-            <div class="pp-admin-song-title">${ppAdminEscape(song.title)}</div>
-            <div class="pp-admin-song-meta">${ppAdminEscape(song.artist || 'Sem artista')}${song.style ? ' • ' + ppAdminEscape(song.style) : ''}${song.note ? ' • Tom: ' + ppAdminEscape(song.note) : ''}</div>
-            <div class="pp-admin-song-sub">${song.pdfUrl ? '📄 PDF vinculado • ' : ''}${status}</div>
-          </div>
-          <div class="pp-admin-song-actions">
-            <span class="pp-admin-badge ${song.active === false ? 'pp-admin-badge-amber' : 'pp-admin-badge-green'}">${status}</span>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-view="${ppAdminEscape(song.id)}" type="button">Ver</button>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-edit="${ppAdminEscape(song.id)}" type="button">Editar</button>
-            <button class="pp-admin-btn pp-admin-btn-small ${song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'}" data-pp-admin-toggle="${ppAdminEscape(song.id)}" type="button">${song.active === false ? 'Ativar' : 'Desativar'}</button>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-delete="${ppAdminEscape(song.id)}" type="button">Excluir</button>
-          </div>`;
-        root.appendChild(row);
-      });
-    }
-
-    function ppAdminSelectCatalog(id, checked) {
-      const key = String(id || '');
-      if (checked) ppAdmin.selected.add(key); else ppAdmin.selected.delete(key);
-      ppAdminRenderCatalog();
-    }
-
-    function ppAdminSelectAllCatalog() {
-      const visible = ppAdminFilteredCatalog();
-      const allSelected = visible.length && visible.every(song => ppAdmin.selected.has(String(song.id)));
-      if (allSelected) visible.forEach(song => ppAdmin.selected.delete(String(song.id)));
-      else visible.forEach(song => ppAdmin.selected.add(String(song.id)));
-      ppAdminRenderCatalog();
-    }
-
-    function ppAdminClearCatalogSelection() {
-      ppAdmin.selected.clear();
-      ppAdminRenderCatalog();
-    }
-
-    function ppAdminOpenModal(title, bodyHtml, actions = []) {
-      $pp('ppAdminModalTitle').textContent = title || 'Ação';
-      $pp('ppAdminModalBody').innerHTML = bodyHtml || '';
-      const foot = $pp('ppAdminModalFoot');
-      foot.innerHTML = '';
-      actions.forEach(item => {
-        const btn = document.createElement('button');
-        btn.className = 'pp-admin-btn ' + (item.cls || '');
-        btn.type = 'button';
-        btn.textContent = item.text;
-        btn.addEventListener('click', item.action);
-        foot.appendChild(btn);
-      });
-      $pp('ppAdminModal').classList.add('show');
-    }
-
-    function closeAdminModal() {
-      $pp('ppAdminModal')?.classList.remove('show');
-    }
-
-    function ppAdminConfirm(title, text, action, actionLabel = 'Confirmar', actionClass = 'pp-admin-btn-danger') {
-      ppAdminOpenModal(title, `<div class="pp-admin-detail"><div>${text}</div></div>`, [
-        { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-        { text: actionLabel, action, cls: actionClass }
-      ]);
-    }
-
-    function ppAdminViewCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminOpenModal('Detalhes da música', `
-        <div class="pp-admin-detail"><label>ID</label><div>${ppAdminEscape(song.id)}</div></div>
-        <div class="pp-admin-detail"><label>Título</label><div>${ppAdminEscape(song.title)}</div></div>
-        <div class="pp-admin-detail"><label>Artista</label><div>${ppAdminEscape(song.artist || 'Não informado')}</div></div>
-        <div class="pp-admin-detail"><label>Estilo / Tom</label><div>${ppAdminEscape(song.style || 'Não informado')} • ${ppAdminEscape(song.note || 'Não informado')}</div></div>
-        <div class="pp-admin-detail"><label>Status</label><div>${song.active === false ? 'Inativa' : 'Ativa'}</div></div>
-        <div class="pp-admin-detail"><label>Letra completa</label><div>${ppAdminEscape(song.lyrics || 'Sem letra')}</div></div>
-        <div class="pp-admin-detail"><label>PDF</label><div>${song.pdfUrl ? '📄 PDF cadastrado' : 'Nenhum PDF cadastrado'}</div></div>`,
-        [
-          { text: 'Fechar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-          { text: 'Editar', action: () => { closeAdminModal(); ppAdminBeginCatalogEdit(song.id); }, cls: 'pp-admin-btn-primary' }
-        ].concat(song.pdfUrl && typeof viewPdf === 'function' ? [{ text: 'Ver PDF', action: () => viewPdf(song.pdfUrl), cls: 'pp-admin-btn-secondary' }] : [])
-      );
-    }
-
-    async function ppAdminBeginCatalogEdit(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminSwitchTab('bulk');
-      ppAdmin.editingCatalogId = String(song.id);
-      ppAdmin.editingManualMode = false;
-      $pp('ppAdminEditingBadge').textContent = 'Editando';
-      $pp('ppAdminFormTitle').value = song.title;
-      $pp('ppAdminFormArtist').value = song.artist;
-      $pp('ppAdminFormStyle').value = song.style;
-      $pp('ppAdminFormKey').value = song.note;
-      $pp('ppAdminFormLyrics').value = song.lyrics;
-      $pp('ppAdminManualStatus').textContent = 'Editando diretamente o catálogo principal.';
-      document.querySelector('[data-pp-admin-page="bulk"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }
-
-    async function ppAdminToggleCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminConfirm(song.active === false ? 'Ativar música' : 'Desativar música',
-        `Alterar o status de <strong>${ppAdminEscape(song.title)}</strong> no catálogo público?`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminCatalogStatus', 'Salvando alteração no catálogo principal...', '');
-            const data = await ppAdminRequest('toggleCatalogSong', { id: String(song.id), active: song.active === false });
-            if (Array.isArray(data.catalogo)) ppAdmin.catalog = data.catalogo.map(ppAdminNormalizeSong);
-            else await ppAdminLoadCatalog();
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Status atualizado no catálogo principal.', 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        song.active === false ? 'Ativar' : 'Desativar',
-        song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'
-      );
-    }
-
-    async function ppAdminDeleteCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminConfirm('Excluir música',
-        `Excluir <strong>${ppAdminEscape(song.title)}</strong> do catálogo público?<br><br>Esta ação remove somente esta música.`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminCatalogStatus', 'Excluindo música do catálogo principal...', '');
-            const data = await ppAdminRequest('deleteCatalogSong', { id: String(song.id) });
-            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-            ppAdmin.selected.delete(String(song.id));
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Música excluída do catálogo principal.', 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        'Excluir'
-      );
-    }
-
-    async function ppAdminDeleteSelectedCatalog() {
-      const ids = Array.from(ppAdmin.selected);
-      if (!ids.length) return;
-      ppAdminConfirm('Excluir selecionadas',
-        `Excluir <strong>${ids.length}</strong> música(s) do catálogo público?`,
-        async () => {
-          closeAdminModal();
-          try {
-            const data = await ppAdminRequest('deleteCatalogSong', { ids });
-            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-            ppAdmin.selected.clear();
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${ids.length} música(s) excluída(s).`, 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        'Excluir'
-      );
-    }
-
-    async function ppAdminChangeStyle() {
-      const ids = Array.from(ppAdmin.selected);
-      if (!ids.length) return;
-      ppAdminOpenModal('Alterar nome do estilo',
-        `<div class="pp-admin-detail"><label>Músicas selecionadas</label><div>${ids.length}</div></div>
-         <div class="pp-admin-field"><label for="ppAdminModalStyle">Novo estilo</label><input id="ppAdminModalStyle" type="text" placeholder="Ex.: Sertanejo"></div>`,
-        [
-          { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-          { text: 'Aplicar', action: async () => {
-            const style = String($pp('ppAdminModalStyle')?.value || '').trim();
-            if (!style) { showToast('Informe o novo estilo.', 1800); return; }
-            try {
-              const data = await ppAdminRequest('updateCatalogStyle', { ids, style });
-              ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : ppAdmin.catalog;
-              ppAdmin.selected.clear();
-              closeAdminModal();
-              ppAdminRenderCatalog();
-              ppAdminSetStatus('ppAdminCatalogStatus', '✅ Estilo atualizado.', 'success');
-            } catch (error) {
-              ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-            }
-          }, cls: 'pp-admin-btn-primary' }
-        ]);
-    }
-
-    async function ppAdminRemoveDuplicates() {
-      const source = ppAdmin.catalog.slice();
-      const seen = new Map();
-      const dupIds = [];
-      source.forEach(song => {
-        const key = ppAdminNormalize(song.title) + '||' + ppAdminNormalize(song.artist);
-        if (seen.has(key)) dupIds.push(String(song.id)); else seen.set(key, String(song.id));
-      });
-      if (!dupIds.length) {
-        ppAdminSetStatus('ppAdminCatalogStatus', 'Nenhuma duplicata por título + artista foi encontrada.', 'success');
-        return;
-      }
-      ppAdminConfirm('Remover músicas copiadas',
-        `Foram encontradas <strong>${dupIds.length}</strong> duplicata(s). Remover somente as cópias e manter a primeira ocorrência?`,
-        async () => {
-          closeAdminModal();
-          try {
-            const data = await ppAdminRequest('deleteCatalogSong', { ids: dupIds });
-            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-            ppAdmin.selected.clear();
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${dupIds.length} duplicata(s) removida(s).`, 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        }, 'Remover'
-      );
-    }
-
-    async function ppAdminLoadCatalog() {
-      ppAdminSetStatus('ppAdminCatalogStatus', 'Carregando o catálogo principal...', '');
-      const data = await ppAdminRequest('getCatalog');
-      ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-      ppAdmin.selected = new Set([...ppAdmin.selected].filter(id => ppAdmin.catalog.some(song => String(song.id) === String(id))));
-      ppAdminRenderCatalog();
-      return ppAdmin.catalog;
-    }
-
-    async function ppAdminLoadProvisional() {
-      try {
-        const data = await ppAdminRequest('getProvisionalCatalog');
-        ppAdmin.provisional = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeReceived) : [];
-      } catch (error) {
-        ppAdmin.provisional = [];
-        console.warn('Não foi possível carregar catálogo provisório:', error);
-      }
-      $pp('ppAdminStatProvisional').textContent = String(ppAdmin.provisional.length);
-      $pp('ppAdminReceivedProvisionalStat').textContent = String(ppAdmin.provisional.length);
-      return ppAdmin.provisional;
-    }
-
-    async function ppAdminLoadReceived() {
-      ppAdminSetStatus('ppAdminReceivedStatus', 'Consultando cadastros recebidos...', '');
-      const data = await ppAdminRequest('listCadastros');
-      ppAdmin.received = Array.isArray(data.cadastros) ? data.cadastros.map(ppAdminNormalizeReceived) : [];
-      ppAdmin.receivedSelected.clear();
-      ppAdminRenderReceived();
-      return ppAdmin.received;
-    }
-
-    async function ppAdminRefreshAll() {
-      if (ppAdmin.requestBusy) return;
-      ppAdmin.requestBusy = true;
-      ppAdminSetStatus('ppAdminGlobalStatus', 'Sincronizando dados administrativos...', '');
-      try {
-        await Promise.all([ppAdminLoadCatalog(), ppAdminLoadProvisional()]);
-        if (ppAdmin.tab === 'received') await ppAdminLoadReceived();
-        ppAdminSetStatus('ppAdminGlobalStatus', `✅ Sincronizado em ${new Date().toLocaleString('pt-BR')}.`, 'success');
-      } catch (error) {
-        ppAdminSetStatus('ppAdminGlobalStatus', '❌ ' + error.message, 'error');
-      } finally {
-        ppAdmin.requestBusy = false;
-      }
-    }
-
-    function ppAdminProvisionalForReceived(item) {
-      return ppAdmin.provisional.find(p => String(p.id) === String(item.id)) ||
-        ppAdmin.provisional.find(p => ppAdminIsDuplicate(p, item));
-    }
-
-    function ppAdminRenderReceived() {
-      const root = $pp('ppAdminReceivedList');
-      if (!root) return;
-      root.innerHTML = '';
-      $pp('ppAdminReceivedCounter').textContent = `${ppAdmin.received.length} cadastro${ppAdmin.received.length === 1 ? '' : 's'}`;
-      $pp('ppAdminReceivedStat').textContent = String(ppAdmin.received.length);
-      $pp('ppAdminReceivedProvisionalStat').textContent = String(ppAdmin.provisional.length);
-      $pp('ppAdminReceivedBulkCount').textContent = `${ppAdmin.receivedSelected.size} selecionada${ppAdmin.receivedSelected.size === 1 ? '' : 's'}`;
-      $pp('ppAdminReceivedBulkBar').classList.toggle('active', ppAdmin.receivedSelected.size > 0);
-
-      if (!ppAdmin.received.length) {
-        root.innerHTML = '<div class="pp-admin-empty">Nenhum cadastro manual recebido ainda.</div>';
-        return;
-      }
-
-      ppAdmin.received.forEach((item, index) => {
-        const exists = ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item));
-        const provisional = ppAdminProvisionalForReceived(item);
-        const row = document.createElement('article');
-        row.className = 'pp-admin-received';
-        row.innerHTML = `
-          <div class="pp-admin-received-top">
-            <div style="min-width:0">
-              <div class="pp-admin-received-title">${ppAdminEscape(item.title || 'Sem título')}</div>
-              <div class="pp-admin-received-meta">${ppAdminEscape(item.artist || 'Sem artista')} • ${ppAdminEscape(item.style || 'Sem estilo')} • Usuário: ${ppAdminEscape(item.user || 'Não informado')} • ${ppAdminEscape(item.date || 'Sem data')}</div>
-            </div>
-            <span class="pp-admin-badge ${exists ? 'pp-admin-badge-amber' : (provisional ? 'pp-admin-badge-amber' : 'pp-admin-badge-green')}">${exists ? 'Já no catálogo' : (provisional ? 'Pendente' : 'Novo')}</span>
-          </div>
-          <div class="pp-admin-note" style="margin-top:8px">${provisional ? '📦 Registro presente no catálogo provisório do repositório.' : '⚠️ O registro não foi localizado no provisório. Atualize para sincronizar.'}</div>
-          <div class="pp-admin-received-actions">
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-received-view="${index}" type="button">👁 Ver</button>
-            ${item.pdfUrl || item.pdfFileId ? '<button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-received-pdf="'+index+'" type="button">📄 PDF</button>' : ''}
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-received-edit="${index}" type="button">✏️ Editar</button>
-            ${exists ? '' : '<button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" data-pp-admin-received-approve="'+index+'" type="button">✅ Aprovar</button>'}
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-received-delete="${index}" type="button">🗑 Excluir</button>
-          </div>`;
-        root.appendChild(row);
-      });
-    }
-
-    function ppAdminViewReceived(index) {
-      const item = ppAdmin.received[index];
-      if (!item) return;
-      ppAdminOpenModal('Detalhes do cadastro recebido', `
-        <div class="pp-admin-detail"><label>Música</label><div>${ppAdminEscape(item.title)}</div></div>
-        <div class="pp-admin-detail"><label>Artista</label><div>${ppAdminEscape(item.artist)}</div></div>
-        <div class="pp-admin-detail"><label>Estilo / Tom</label><div>${ppAdminEscape(item.style || 'Não informado')} • ${ppAdminEscape(item.note || 'Não informado')}</div></div>
-        <div class="pp-admin-detail"><label>Usuário</label><div>${ppAdminEscape(item.user || 'Não informado')}</div></div>
-        <div class="pp-admin-detail"><label>Data</label><div>${ppAdminEscape(item.date || 'Não informada')}</div></div>
-        <div class="pp-admin-detail"><label>Letra completa</label><div>${ppAdminEscape(item.lyrics || 'Sem letra')}</div></div>
-        <div class="pp-admin-detail"><label>Provisório</label><div>${ppAdminProvisionalForReceived(item) ? '✅ Registrado' : '⚠️ Não localizado'}</div></div>`,
-        [
-          { text: 'Fechar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-          { text: 'Editar', action: () => { closeAdminModal(); ppAdminOpenReceivedEditor(index); }, cls: 'pp-admin-btn-primary' }
-        ]);
-    }
-
-    function ppAdminOpenReceivedEditor(index) {
-      const item = ppAdmin.received[index];
-      if (!item) return;
-      ppAdmin.receivedEditingIndex = index;
-      ppAdminOpenModal('Editar cadastro recebido', `
-        <div class="pp-admin-field"><label for="ppAdminReceivedTitle">Música</label><input id="ppAdminReceivedTitle" type="text" value="${ppAdminEscape(item.title)}"></div>
-        <div class="pp-admin-field"><label for="ppAdminReceivedArtist">Artista</label><input id="ppAdminReceivedArtist" type="text" value="${ppAdminEscape(item.artist)}"></div>
-        <div class="pp-admin-two">
-          <div class="pp-admin-field"><label for="ppAdminReceivedStyle">Estilo</label><input id="ppAdminReceivedStyle" type="text" value="${ppAdminEscape(item.style)}"></div>
-          <div class="pp-admin-field"><label for="ppAdminReceivedNote">Tom</label><input id="ppAdminReceivedNote" type="text" value="${ppAdminEscape(item.note)}" maxlength="20"></div>
-        </div>
-        <div class="pp-admin-field"><label for="ppAdminReceivedUser">Usuário</label><input id="ppAdminReceivedUser" type="text" value="${ppAdminEscape(item.user)}"></div>
-        <div class="pp-admin-field"><label for="ppAdminReceivedLyrics">Letra completa</label><textarea id="ppAdminReceivedLyrics">${ppAdminEscape(item.lyrics)}</textarea></div>
-        <div class="pp-admin-note">${item.pdfUrl || item.pdfFileId ? '📄 Este cadastro possui PDF recebido.' : 'Nenhum PDF recebido.'}</div>`,
-        [
-          { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-          { text: 'Salvar alterações', action: ppAdminSaveReceivedEdit, cls: 'pp-admin-btn-primary' }
-        ]);
-    }
-
-    async function ppAdminSaveReceivedEdit() {
-      const item = ppAdmin.received[ppAdmin.receivedEditingIndex];
-      if (!item) return;
-      const title = String($pp('ppAdminReceivedTitle')?.value || '').trim();
-      const artist = String($pp('ppAdminReceivedArtist')?.value || '').trim();
-      const style = String($pp('ppAdminReceivedStyle')?.value || '').trim();
-      const note = String($pp('ppAdminReceivedNote')?.value || '').trim();
-      const user = String($pp('ppAdminReceivedUser')?.value || '').trim();
-      const lyrics = sanitizeLyrics($pp('ppAdminReceivedLyrics')?.value || '');
-      if (!title || !artist || !style || !user || !lyrics) {
-        showToast('Preencha música, artista, estilo, usuário e letra.', 2200);
-        return;
-      }
-      try {
-        closeAdminModal();
-        ppAdminSetStatus('ppAdminReceivedStatus', 'Salvando alterações...', '');
-        await ppAdminRequest('updateCadastro', {
-          id: String(item.id), musica: title, artista: artist, estilo: style,
-          tom: note, usuario: user, letra: lyrics,
-          cadastroCompleto: {
-            id: String(item.id), title, artist, style, note, tom: note, usuario: user, lyrics
-          }
-        });
-        await Promise.all([ppAdminLoadReceived(), ppAdminLoadProvisional()]);
-        ppAdminSetStatus('ppAdminReceivedStatus', '✅ Cadastro atualizado também no provisório.', 'success');
-      } catch (error) {
-        ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
-      }
-    }
-
-    async function ppAdminDeleteReceived(index) {
-      const item = ppAdmin.received[index];
-      if (!item) return;
-      ppAdminConfirm('Excluir cadastro recebido',
-        `Remover <strong>${ppAdminEscape(item.title)}</strong> da fila de cadastros recebidos?<br><br><strong>O catálogo público não será alterado.</strong>`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminReceivedStatus', 'Excluindo cadastro e provisório...', '');
-            await ppAdminRequest('deleteCadastro', { id: String(item.id), musica: item.title, usuario: item.user });
-            await Promise.all([ppAdminLoadReceived(), ppAdminLoadProvisional()]);
-            ppAdminSetStatus('ppAdminReceivedStatus', '✅ Cadastro removido apenas dos pendentes.', 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        'Excluir'
-      );
-    }
-
-    async function ppAdminApproveReceived(index) {
-      const item = ppAdmin.received[index];
-      if (!item) return;
-      if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item))) {
-        ppAdminSetStatus('ppAdminReceivedStatus', '⚠️ Esta música já existe no catálogo principal.', 'warn');
-        return;
-      }
-      ppAdminConfirm('Adicionar ao catálogo principal',
-        `Publicar <strong>${ppAdminEscape(item.title)}</strong> de <strong>${ppAdminEscape(item.artist)}</strong> no catálogo de Sugestões?<br><br>O cadastro será removido dos pendentes após a publicação.`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminReceivedStatus', 'Publicando no catálogo principal...', '');
-            const data = await ppAdminRequest('approveCadastro', {
-              cadastroCompleto: {
-                id: String(item.id), title: item.title, artist: item.artist, style: item.style,
-                note: item.note, tom: item.note, lyrics: item.lyrics, usuario: item.user,
-                dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
-              }
-            });
-            await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived(), ppAdminLoadProvisional()]);
-            ppAdminSetStatus('ppAdminReceivedStatus', '✅ Música publicada no catálogo principal.', 'success');
-            ppAdminSetStatus('ppAdminGlobalStatus', `✅ ${item.title} aprovado.`, 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
-          }
-        }, 'Aprovar', 'pp-admin-btn-success'
-      );
-    }
-
-    async function ppAdminApproveSelectedReceived() {
-      const indices = Array.from(ppAdmin.receivedSelected).map(Number).sort((a,b) => b-a);
-      if (!indices.length) return;
-      ppAdminConfirm('Aprovar selecionadas',
-        `Processar <strong>${indices.length}</strong> cadastros recebidos?<br><br>As músicas já existentes no catálogo serão ignoradas.`,
-        async () => {
-          closeAdminModal();
-          let ok = 0, skipped = 0;
-          try {
-            for (const index of indices) {
-              const item = ppAdmin.received[index];
-              if (!item) continue;
-              if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item))) { skipped++; continue; }
-              try {
-                await ppAdminRequest('approveCadastro', {
-                  cadastroCompleto: {
-                    id: String(item.id), title: item.title, artist: item.artist, style: item.style,
-                    note: item.note, tom: item.note, lyrics: item.lyrics, usuario: item.user,
-                    dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
-                  }
-                });
-                ok++;
-              } catch (_) {}
-            }
-            ppAdmin.receivedSelected.clear();
-            await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived(), ppAdminLoadProvisional()]);
-            ppAdminSetStatus('ppAdminReceivedStatus', `✅ ${ok} publicado(s)${skipped ? ` • ${skipped} já existente(s)` : ''}.`, 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
-          }
-        }, 'Aprovar', 'pp-admin-btn-success'
-      );
-    }
-
-    function ppAdminSelectAllReceived() {
-      const all = ppAdmin.received.length && ppAdmin.received.every((_, index) => ppAdmin.receivedSelected.has(index));
-      ppAdmin.receivedSelected = all ? new Set() : new Set(ppAdmin.received.map((_, index) => index));
-      ppAdminRenderReceived();
-    }
-
-    function ppAdminClearReceivedSelection() {
-      ppAdmin.receivedSelected.clear();
-      ppAdminRenderReceived();
-    }
-
-    async function ppAdminSaveCatalogForm() {
-      const title = String($pp('ppAdminFormTitle')?.value || '').trim();
-      const artist = String($pp('ppAdminFormArtist')?.value || '').trim();
-      const style = String($pp('ppAdminFormStyle')?.value || '').trim();
-      const note = String($pp('ppAdminFormKey')?.value || '').trim();
-      const lyrics = sanitizeLyrics($pp('ppAdminFormLyrics')?.value || '');
-      if (!title || !artist || !style || !lyrics) {
-        ppAdminSetStatus('ppAdminManualStatus', 'Informe título, artista, estilo e letra completa.', 'error');
-        return;
-      }
-      if (ppAdmin.requestBusy) return;
-      ppAdmin.requestBusy = true;
-      const editing = !!ppAdmin.editingCatalogId;
-      try {
-        const duplicate = ppAdminDuplicateInCatalog({ title, artist }, editing ? ppAdmin.editingCatalogId : '');
-        if (duplicate) throw new Error('Esta música já existe no catálogo para este artista.');
-
-        ppAdminSetStatus('ppAdminManualStatus', editing ? 'Salvando alterações...' : 'Cadastrando música...', '');
-        const data = editing
-          ? await ppAdminRequest('updateCatalogSong', { id: String(ppAdmin.editingCatalogId), title, artist, style, note, lyrics })
-          : await ppAdminRequest('addCatalogSong', { id: 'admin-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), title, artist, style, note, lyrics });
-        ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : await ppAdminLoadCatalog();
-        ppAdminClearManualForm();
-        ppAdminSwitchTab('catalog');
-        ppAdminSetStatus('ppAdminCatalogStatus', editing ? '✅ Música atualizada no catálogo principal.' : '✅ Música adicionada ao catálogo principal.', 'success');
-      } catch (error) {
-        ppAdminSetStatus('ppAdminManualStatus', '❌ ' + error.message, 'error');
-      } finally {
-        ppAdmin.requestBusy = false;
-      }
-    }
-
-    function ppAdminClearManualForm() {
-      ppAdmin.editingCatalogId = '';
-      $pp('ppAdminEditingBadge').textContent = 'Novo';
-      ['ppAdminFormTitle','ppAdminFormArtist','ppAdminFormStyle','ppAdminFormKey','ppAdminFormLyrics'].forEach(id => { const el=$pp(id); if(el) el.value=''; });
-      ppAdminSetStatus('ppAdminManualStatus', '', '');
-    }
-
-    async function ppAdminBulkSearch() {
-      const query = String($pp('ppAdminBulkQuery')?.value || '').trim();
-      if (query.length < 2) {
-        ppAdminSetStatus('ppAdminBulkStatus', 'Digite pelo menos 2 caracteres para pesquisar.', 'warn');
-        return;
-      }
-      if (ppAdmin.requestBusy) return;
-      ppAdmin.requestBusy = true;
-      ppAdmin.bulkResults = [];
-      ppAdmin.bulkSelected.clear();
-      ppAdminRenderBulk();
-      ppAdminSetStatus('ppAdminBulkStatus', '🔎 Descobrindo músicas e buscando letras...', '');
-      try {
-        const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(query) + '&media=music&entity=song&limit=35&country=BR';
-        const data = await requestInternetJson(url, { timeoutMs: 8000 });
-        const rows = Array.isArray(data?.results) ? data.results : [];
-        const candidates = [];
-        const seen = new Set();
-        for (const item of rows) {
-          const title = String(item?.trackName || '').trim();
-          const artist = String(item?.artistName || '').trim();
-          if (!title || !artist) continue;
-          const key = ppAdminNormalize(title) + '|' + ppAdminNormalize(artist);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, {title, artist}))) continue;
-          candidates.push({
-            id: 'bulk-' + (item.trackId || Date.now() + Math.random().toString(36).slice(2,7)),
-            title, artist,
-            style: mapExternalGenreToRhythm(String(item.primaryGenreName || '')) || String(item.primaryGenreName || 'Música brasileira'),
-            lyrics: '', source: 'iTunes'
-          });
-        }
-        const limited = candidates.slice(0, 25);
-        let checked = 0;
-        for (const candidate of limited) {
-          try {
-            candidate.lyrics = await fetchInternetLyrics(candidate.title, candidate.artist);
-          } catch (_) {}
-          checked++;
-          ppAdminSetStatus('ppAdminBulkStatus', `🔎 Verificando letras... ${checked}/${limited.length}`, '');
-        }
-        ppAdmin.bulkResults = limited.filter(item => item.lyrics);
-        ppAdminSetStatus('ppAdminBulkStatus', `${ppAdmin.bulkResults.length} resultado(s) com título, artista e letra.`, 'success');
-        ppAdminRenderBulk();
-      } catch (error) {
-        ppAdminSetStatus('ppAdminBulkStatus', '❌ ' + error.message, 'error');
-      } finally {
-        ppAdmin.requestBusy = false;
-      }
-    }
-
-    function ppAdminRenderBulk() {
-      const root = $pp('ppAdminBulkResults');
-      if (!root) return;
-      root.innerHTML = '';
-      $pp('ppAdminBulkSelectionCount').textContent = `${ppAdmin.bulkSelected.size} selecionada${ppAdmin.bulkSelected.size === 1 ? '' : 's'}`;
-      if (!ppAdmin.bulkResults.length) {
-        root.innerHTML = '<div class="pp-admin-empty">Nenhum resultado válido com letra encontrado.</div>';
-        return;
-      }
-      ppAdmin.bulkResults.forEach(item => {
-        const exists = ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item));
-        const row = document.createElement('div');
-        row.className = 'pp-admin-result' + (ppAdmin.bulkSelected.has(String(item.id)) ? ' selected' : '');
-        row.innerHTML = `
-          <input type="checkbox" ${ppAdmin.bulkSelected.has(String(item.id)) ? 'checked' : ''} data-pp-admin-bulk-select="${ppAdminEscape(item.id)}" ${exists ? 'disabled' : ''}>
-          <div>
-            <div class="pp-admin-result-title">${ppAdminEscape(item.title)}</div>
-            <div class="pp-admin-result-meta">${ppAdminEscape(item.artist)} • ${ppAdminEscape(item.style || 'Música brasileira')}</div>
-            <div class="pp-admin-result-lyrics">${ppAdminEscape(item.lyrics || '')}</div>
-          </div>
-          <div class="pp-admin-result-source">${ppAdminEscape(item.source || '')}</div>`;
-        root.appendChild(row);
-      });
-    }
-
-    function ppAdminSelectAllBulk() {
-      const all = ppAdmin.bulkResults.length && ppAdmin.bulkResults.every(item => ppAdmin.bulkSelected.has(String(item.id)));
-      if (all) ppAdmin.bulkSelected.clear();
-      else ppAdmin.bulkResults.forEach(item => ppAdmin.bulkSelected.add(String(item.id)));
-      ppAdminRenderBulk();
-    }
-
-    async function ppAdminAddSelectedBulk() {
-      const chosen = ppAdmin.bulkResults.filter(item => ppAdmin.bulkSelected.has(String(item.id)));
-      if (!chosen.length) {
-        ppAdminSetStatus('ppAdminBulkStatus', 'Selecione pelo menos uma música.', 'warn');
-        return;
-      }
-      try {
-        ppAdminSetStatus('ppAdminBulkStatus', 'Enviando músicas selecionadas ao catálogo principal...', '');
-        const data = await ppAdminRequest('addBulkCatalogSongs', {
-          musicas: chosen.map(item => ({
-            id: String(item.id), title: item.title, artist: item.artist,
-            style: item.style || 'Música brasileira', note: '', lyrics: item.lyrics
-          }))
-        });
-        ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : await ppAdminLoadCatalog();
-        ppAdmin.bulkSelected.clear();
-        ppAdminRenderBulk();
-        ppAdminRenderCatalog();
-        ppAdminSetStatus('ppAdminBulkStatus', `✅ ${Number(data.adicionadas || chosen.length)} música(s) cadastrada(s).`, 'success');
-      } catch (error) {
-        ppAdminSetStatus('ppAdminBulkStatus', '❌ ' + error.message, 'error');
-      }
-    }
-
-    function ppAdminDownloadCatalog() {
-      const blob = new Blob([JSON.stringify(ppAdmin.catalog, null, 2)], { type: 'application/json;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'catalogo.json'; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
-
-    function ppAdminLogin() {
-      const user = String($pp('ppAdminLoginUser')?.value || '').trim();
-      const pass = String($pp('ppAdminLoginPass')?.value || '');
-      if (user !== PP_ADMIN_LOGIN_USER || pass !== PP_ADMIN_LOGIN_PASS) {
-        ppAdminSetStatus('ppAdminLoginStatus', 'Usuário ou senha inválidos.', 'error');
-        return;
-      }
-      ppAdmin.logged = true;
-      try { sessionStorage.setItem(PP_ADMIN_SESSION_KEY, '1'); } catch (_) {}
-      ppAdminOpenApp();
-    }
-
-    function ppAdminOpenApp() {
-      $pp('ppAdminLogin')?.classList.add('hidden');
-      $pp('ppAdminApp')?.classList.remove('hidden');
-      ppAdminSwitchTab('catalog');
-      ppAdminRefreshAll().catch(error => ppAdminSetStatus('ppAdminGlobalStatus', '❌ ' + error.message, 'error'));
-    }
-
-    function ppAdminLogout() {
-      ppAdmin.logged = false;
-      try { sessionStorage.removeItem(PP_ADMIN_SESSION_KEY); } catch (_) {}
-      ppAdmin.selected.clear();
-      ppAdmin.receivedSelected.clear();
-      ppAdmin.bulkSelected.clear();
-      $pp('ppAdminApp')?.classList.add('hidden');
-      $pp('ppAdminLogin')?.classList.remove('hidden');
-      $pp('ppAdminLoginPass').value = '';
-      ppAdminSetStatus('ppAdminLoginStatus', '', '');
-    }
-
-    function ppAdminInitializeEvents() {
-      if (ppAdmin.initialized) return;
-      ppAdmin.initialized = true;
-
-      $pp('ppAdminLoginBtn')?.addEventListener('click', ppAdminLogin);
-      $pp('ppAdminLoginPass')?.addEventListener('keydown', event => { if (event.key === 'Enter') ppAdminLogin(); });
-      $pp('ppAdminModalCloseBtn')?.addEventListener('click', closeAdminModal);
-      $pp('ppAdminModal')?.addEventListener('click', event => { if (event.target.id === 'ppAdminModal') closeAdminModal(); });
-
-      document.querySelectorAll('[data-pp-admin-tab]').forEach(btn => btn.addEventListener('click', () => ppAdminSwitchTab(btn.dataset.ppAdminTab)));
-      document.querySelectorAll('[data-pp-admin-filter]').forEach(btn => btn.addEventListener('click', () => {
-        ppAdmin.filter = btn.dataset.ppAdminFilter || 'all';
-        document.querySelectorAll('[data-pp-admin-filter]').forEach(b => b.classList.toggle('active', b === btn));
-        ppAdminRenderCatalog();
-      }));
-
-      $pp('ppAdminRefreshBtn')?.addEventListener('click', ppAdminRefreshAll);
-      $pp('ppAdminLogoutBtn')?.addEventListener('click', ppAdminLogout);
-      $pp('ppAdminCloseBtn')?.addEventListener('click', hideSupportContactPanel);
-      $pp('ppAdminLoginCloseBtn')?.addEventListener('click', hideSupportContactPanel);
-      $pp('ppAdminCatalogRefreshBtn')?.addEventListener('click', () => ppAdminLoadCatalog().catch(e => ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + e.message, 'error')));
-      $pp('ppAdminRefreshReceivedBtn')?.addEventListener('click', () => Promise.all([ppAdminLoadReceived(), ppAdminLoadProvisional()]));
-      $pp('ppAdminRefreshProvisionalBtn')?.addEventListener('click', ppAdminLoadProvisional);
-      $pp('ppAdminNewSongBtn')?.addEventListener('click', () => { ppAdminSwitchTab('bulk'); ppAdminClearManualForm(); $pp('ppAdminFormTitle').focus(); });
-      $pp('ppAdminRemoveDuplicatesBtn')?.addEventListener('click', ppAdminRemoveDuplicates);
-      $pp('ppAdminDownloadCatalogBtn')?.addEventListener('click', ppAdminDownloadCatalog);
-      $pp('ppAdminSelectAllBtn')?.addEventListener('click', ppAdminSelectAllCatalog);
-      $pp('ppAdminClearSelectionBtn')?.addEventListener('click', ppAdminClearCatalogSelection);
-      $pp('ppAdminChangeStyleBtn')?.addEventListener('click', ppAdminChangeStyle);
-      $pp('ppAdminDeleteSelectedBtn')?.addEventListener('click', ppAdminDeleteSelectedCatalog);
-      $pp('ppAdminCatalogSearch')?.addEventListener('input', ppAdminRenderCatalog);
-      $pp('ppAdminBulkSearchBtn')?.addEventListener('click', ppAdminBulkSearch);
-      $pp('ppAdminBulkQuery')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); ppAdminBulkSearch(); }});
-      $pp('ppAdminBulkClearBtn')?.addEventListener('click', () => { ppAdmin.bulkResults=[]; ppAdmin.bulkSelected.clear(); $pp('ppAdminBulkQuery').value=''; ppAdminRenderBulk(); ppAdminSetStatus('ppAdminBulkStatus','Resultados limpos.',''); });
-      $pp('ppAdminBulkSelectAllBtn')?.addEventListener('click', ppAdminSelectAllBulk);
-      $pp('ppAdminBulkClearSelectionBtn')?.addEventListener('click', () => { ppAdmin.bulkSelected.clear(); ppAdminRenderBulk(); });
-      $pp('ppAdminBulkAddBtn')?.addEventListener('click', ppAdminAddSelectedBulk);
-      $pp('ppAdminSaveManualBtn')?.addEventListener('click', ppAdminSaveCatalogForm);
-      $pp('ppAdminClearManualBtn')?.addEventListener('click', ppAdminClearManualForm);
-      $pp('ppAdminReceivedSelectAllBtn')?.addEventListener('click', ppAdminSelectAllReceived);
-      $pp('ppAdminReceivedClearSelectionBtn')?.addEventListener('click', ppAdminClearReceivedSelection);
-      $pp('ppAdminReceivedApproveBtn')?.addEventListener('click', ppAdminApproveSelectedReceived);
-
-      $pp('ppAdminCatalogList')?.addEventListener('click', event => {
-        const view = event.target.closest('[data-pp-admin-view]');
-        const edit = event.target.closest('[data-pp-admin-edit]');
-        const toggle = event.target.closest('[data-pp-admin-toggle]');
-        const del = event.target.closest('[data-pp-admin-delete]');
-        const checkbox = event.target.closest('[data-pp-admin-select]');
-        if (checkbox) { ppAdminSelectCatalog(checkbox.dataset.ppAdminSelect, checkbox.checked); return; }
-        if (view) { ppAdminViewCatalog(view.dataset.ppAdminView); return; }
-        if (edit) { ppAdminBeginCatalogEdit(edit.dataset.ppAdminEdit); return; }
-        if (toggle) { ppAdminToggleCatalog(toggle.dataset.ppAdminToggle); return; }
-        if (del) { ppAdminDeleteCatalog(del.dataset.ppAdminDelete); return; }
-      });
-
-      $pp('ppAdminBulkResults')?.addEventListener('change', event => {
-        const checkbox = event.target.closest('[data-pp-admin-bulk-select]');
-        if (!checkbox) return;
-        const id = String(checkbox.dataset.ppAdminBulkSelect);
-        if (checkbox.checked) ppAdmin.bulkSelected.add(id); else ppAdmin.bulkSelected.delete(id);
-        ppAdminRenderBulk();
-      });
-
-      $pp('ppAdminReceivedList')?.addEventListener('click', event => {
-        const view = event.target.closest('[data-pp-admin-received-view]');
-        const pdf = event.target.closest('[data-pp-admin-received-pdf]');
-        const edit = event.target.closest('[data-pp-admin-received-edit]');
-        const approve = event.target.closest('[data-pp-admin-received-approve]');
-        const del = event.target.closest('[data-pp-admin-received-delete]');
-        if (view) { ppAdminViewReceived(Number(view.dataset.ppAdminReceivedView)); return; }
-        if (pdf) {
-          const item = ppAdmin.received[Number(pdf.dataset.ppAdminReceivedPdf)];
-          const url = item?.pdfUrl || (item?.pdfFileId ? ('https://drive.google.com/file/d/' + encodeURIComponent(item.pdfFileId) + '/view') : '');
-          if (url && typeof viewPdf === 'function') viewPdf(url); else showToast('PDF não disponível para visualização.', 1800);
-          return;
-        }
-        if (edit) { ppAdminOpenReceivedEditor(Number(edit.dataset.ppAdminReceivedEdit)); return; }
-        if (approve) { ppAdminApproveReceived(Number(approve.dataset.ppAdminReceivedApprove)); return; }
-        if (del) { ppAdminDeleteReceived(Number(del.dataset.ppAdminReceivedDelete)); return; }
-      });
-
-      $pp('ppAdminReceivedList')?.addEventListener('change', event => {
-        const cb = event.target.closest('.pp-admin-received input[type="checkbox"]');
-        if (!cb) return;
-        const index = Number(cb.dataset.ppAdminReceivedSelect);
-        if (cb.checked) ppAdmin.receivedSelected.add(index); else ppAdmin.receivedSelected.delete(index);
-        ppAdminRenderReceived();
-      });
-    }
-
-    function ppAdminInjectReceivedSelection() {
-      // Mantém a seleção de recebidos na mesma linha, sem alterar o visual principal.
-      $pp('ppAdminReceivedList')?.querySelectorAll('.pp-admin-received').forEach((row, index) => {
-        if (row.querySelector('[data-pp-admin-received-select]')) return;
-        const top = row.querySelector('.pp-admin-received-top');
-        if (!top) return;
-        const titleBlock = top.firstElementChild;
-        if (!titleBlock) return;
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.className = 'pp-admin-received-select';
-        cb.dataset.ppAdminReceivedSelect = String(index);
-        cb.checked = ppAdmin.receivedSelected.has(index);
-        cb.style.cssText = 'margin-right:8px;vertical-align:middle;accent-color:#72c6ff;';
-        titleBlock.prepend(cb);
-      });
-    }
-
-    const _ppAdminOriginalRenderReceived = ppAdminRenderReceived;
-    ppAdminRenderReceived = function() {
-      _ppAdminOriginalRenderReceived();
-      ppAdminInjectReceivedSelection();
-    };
-
-    function initializeIntegratedAdmin() {
-      ppAdminInitializeEvents();
-      let persisted = false;
-      try { persisted = sessionStorage.getItem(PP_ADMIN_SESSION_KEY) === '1'; } catch (_) {}
-      if (persisted) {
-        ppAdmin.logged = true;
-        ppAdminOpenApp();
-      } else {
-        $pp('ppAdminApp')?.classList.add('hidden');
-        $pp('ppAdminLogin')?.classList.remove('hidden');
-        $pp('ppAdminLoginUser')?.focus();
-      }
-    }
-
     function openSupportContactPanel() {
       hidePanel();
       hideMusicSearchPanel();
       if (supportContactPanel) supportContactPanel.classList.add('open');
       if (appVersionValue) appVersionValue.textContent = 'v' + APP_VERSION;
-      initializeIntegratedAdmin();
+      closeIntegratedAdminToSupport();
     }
     function hideSupportContactPanel() {
+      closeIntegratedAdminToSupport();
       if (supportContactPanel) supportContactPanel.classList.remove('open');
-      closeAdminModal();
     }
     async function fetchInternetLyrics(title, artist) {
       const cleanTitle = normalizeExternalMusicText(title), cleanArtist = normalizeExternalMusicText(artist);
@@ -8965,6 +7960,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
     function bindExternalMusicAndSupportEvents() {
       if (supportContactBtn) supportContactBtn.addEventListener('click', openSupportContactPanel);
+      const openPpAdminBtn = $('openPpAdminBtn');
+      if (openPpAdminBtn) openPpAdminBtn.addEventListener('click', openIntegratedAdmin);
       if (hideSupportContactPanelBtn) hideSupportContactPanelBtn.addEventListener('click', hideSupportContactPanel);
       if (hideMusicSearchPanelBtn) hideMusicSearchPanelBtn.addEventListener('click', hideMusicSearchPanel);
       if (searchMusicOnlineSubmitBtn) {
@@ -9047,6 +8044,1271 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       enqueueMissingRepertoirePdfs();
     }
     init();
-  </script>
+  
+
+    /* === PALCO PRO — ADM INTEGRADO FINAL === */
+    const ppAdmin = {
+      initialized: false,
+      logged: false,
+      tab: 'catalog',
+      filter: 'all',
+      catalog: [],
+      provisional: [],
+      singleResults: [],
+      bulkResults: [],
+      searchRunId: 0,
+      singleSearchBusy: false,
+      bulkSearchBusy: false,
+      received: [],
+      selected: new Set(),
+      receivedSelected: new Set(),
+      bulkSelected: new Set(),
+      editingCatalogId: '',
+      editingManualMode: false,
+      receivedEditingIndex: -1,
+      requestBusy: false
+    };
+
+    const PP_ADMIN_LOGIN_USER = 'fabricio';
+    const PP_ADMIN_LOGIN_PASS = 'fabricio';
+    const PP_ADMIN_SESSION_KEY = 'palco-pro-admin-session-v1';
+    const PP_ADMIN_RAW_CATALOG_URL = 'https://raw.githubusercontent.com/fabriciobenigno/Palco-Pro/main/catalogo.json';
+    const PP_ADMIN_PUBLIC_CATALOG_URL = 'https://fabriciobenigno.github.io/Palco-Pro/catalogo.json';
+    const PP_ADMIN_CDN_CATALOG_URL = 'https://cdn.jsdelivr.net/gh/fabriciobenigno/Palco-Pro@main/catalogo.json';
+    const PP_ADMIN_MAX_SINGLE_RESULTS = 15;
+    const PP_ADMIN_MAX_BULK_RESULTS = 100;
+    const PP_ADMIN_LYRIC_WORKERS = 6;
+
+    const $pp = (id) => document.getElementById(id);
+
+    function ppAdminNormalize(value) {
+      return String(value == null ? '' : value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+
+    function ppAdminEscape(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function ppAdminSetStatus(id, message, type) {
+      const el = $pp(id);
+      if (!el) return;
+      el.textContent = message || '';
+      el.className = 'pp-admin-status' + (type ? ' ' + type : '');
+    }
+
+    function ppAdminUrl() {
+      return APPS_SCRIPT_URL;
+    }
+
+    async function ppAdminRequest(action, payload = null, options = {}) {
+      const method = options.method || (payload ? 'POST' : 'GET');
+      let url = ppAdminUrl();
+      if (!url || url.indexOf('COLE_AQUI') >= 0) throw new Error('URL do Apps Script não configurada.');
+
+      if (method === 'GET') {
+        const query = new URLSearchParams({ action: String(action || ''), ts: String(Date.now()) });
+        const response = await fetch(url + '?' + query.toString(), {
+          method: 'GET', mode: 'cors', cache: 'no-store',
+          headers: { Accept: 'application/json' }
+        });
+        const textResponse = await response.text();
+        let data;
+        try { data = JSON.parse(textResponse); } catch (_) { throw new Error('Resposta inválida do Apps Script.'); }
+        if (!response.ok || data?.sucesso === false) throw new Error(data?.mensagem || ('HTTP ' + response.status));
+        return data;
+      }
+
+      const body = JSON.stringify(Object.assign({}, payload || {}, { action }));
+      const response = await fetch(url, {
+        method: 'POST', mode: 'cors', cache: 'no-store',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8', Accept: 'application/json' },
+        body
+      });
+      const textResponse = await response.text();
+      let data;
+      try { data = JSON.parse(textResponse); } catch (_) { throw new Error('Resposta inválida do Apps Script.'); }
+      if (!response.ok || data?.sucesso === false) throw new Error(data?.mensagem || ('HTTP ' + response.status));
+      return data;
+    }
+
+    function ppAdminNormalizeSong(song) {
+      const s = song || {};
+      return {
+        id: String(s.id || ('admin-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8))),
+        title: String(s.title || s.song_title || s.musica || 'Sem título').trim(),
+        artist: String(s.artist || s.artista || '').trim(),
+        style: String(s.style || s.estilo || '').trim(),
+        note: String(s.note || s.tom || s.tone || s.key || '').trim(),
+        lyrics: sanitizeLyrics(String(s.lyrics || s.letra || '')),
+        active: s.active !== false,
+        pdfUrl: String(s.pdfUrl || '').trim(),
+        pdfFileName: String(s.pdfFileName || '').trim()
+      };
+    }
+
+    function ppAdminNormalizeReceived(item) {
+      const i = item || {};
+      const c = i.cadastroCompleto || {};
+      return {
+        id: String(i.id || c.id || ''),
+        title: String(i.musica || i.title || c.title || '').trim(),
+        artist: String(i.artista || i.artist || c.artist || '').trim(),
+        style: String(i.estilo || i.style || c.style || '').trim(),
+        note: String(i.tom || i.note || c.tom || c.note || '').trim(),
+        user: String(i.usuario || i.nome || c.usuario || c.nome || '').trim(),
+        lyrics: sanitizeLyrics(String(i.letra || i.lyrics || c.letra || c.lyrics || '')),
+        date: String(i.data || i.dataCadastro || c.dataCadastro || '').trim(),
+        pdfUrl: String(i.pdfUrl || c.pdfUrl || '').trim(),
+        pdfFileId: String(i.pdfDriveFileId || i.pdfFileId || c.pdfDriveFileId || c.pdfFileId || '').trim(),
+        pdfFileName: String(i.pdfFileName || c.pdfFileName || '').trim(),
+        original: i
+      };
+    }
+
+    function ppAdminIsDuplicate(a, b) {
+      return ppAdminNormalize(a?.title || a?.musica) === ppAdminNormalize(b?.title || b?.musica) &&
+             ppAdminNormalize(a?.artist || a?.artista) === ppAdminNormalize(b?.artist || b?.artista);
+    }
+
+    function ppAdminDuplicateInCatalog(song, ignoreId = '') {
+      return ppAdmin.catalog.find(item =>
+        String(item.id) !== String(ignoreId || '') &&
+        ppAdminIsDuplicate(item, song)
+      ) || null;
+    }
+
+    function ppAdminDuplicateInProvisional(song, ignoreId = '') {
+      return ppAdmin.provisional.find(item =>
+        String(item.id) !== String(ignoreId || '') &&
+        ppAdminIsDuplicate(item, song)
+      ) || null;
+    }
+
+    function ppAdminSwitchTab(tab) {
+      ppAdmin.tab = tab || 'catalog';
+      document.querySelectorAll('[data-pp-admin-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.ppAdminTab === ppAdmin.tab);
+      });
+      document.querySelectorAll('[data-pp-admin-page]').forEach(page => {
+        page.classList.toggle('active', page.dataset.ppAdminPage === ppAdmin.tab);
+      });
+      if (ppAdmin.tab === 'catalog') ppAdminRenderCatalog();
+      if (ppAdmin.tab === 'received') ppAdminRenderReceived();
+      if (ppAdmin.tab === 'register') ppAdminRenderBulk();
+    }
+
+    function ppAdminFilteredCatalog() {
+      const query = ppAdminNormalize($pp('ppAdminCatalogSearch')?.value || '');
+      return ppAdmin.catalog.filter(song => {
+        const filterOk = ppAdmin.filter === 'all' ||
+          (ppAdmin.filter === 'active' ? song.active !== false : song.active === false);
+        if (!filterOk) return false;
+        if (!query) return true;
+        return [song.title, song.artist, song.style, song.lyrics].some(v => ppAdminNormalize(v).includes(query));
+      });
+    }
+
+    function ppAdminRenderCatalog() {
+      const list = ppAdminFilteredCatalog();
+      const root = $pp('ppAdminCatalogList');
+      if (!root) return;
+      root.innerHTML = '';
+      const active = ppAdmin.catalog.filter(s => s.active !== false).length;
+      const inactive = ppAdmin.catalog.length - active;
+      $pp('ppAdminCatalogCounter').textContent = `${ppAdmin.catalog.length} música${ppAdmin.catalog.length === 1 ? '' : 's'}`;
+      $pp('ppAdminStatTotal').textContent = String(ppAdmin.catalog.length);
+      $pp('ppAdminStatActive').textContent = String(active);
+      $pp('ppAdminStatInactive').textContent = String(inactive);
+      $pp('ppAdminCatalogSearchCount').textContent = `${list.length} resultado${list.length === 1 ? '' : 's'}`;
+      $pp('ppAdminCatalogBulkCount').textContent = `${ppAdmin.selected.size} selecionada${ppAdmin.selected.size === 1 ? '' : 's'}`;
+      $pp('ppAdminCatalogBulkBar').classList.toggle('active', ppAdmin.selected.size > 0);
+
+      if (!list.length) {
+        root.innerHTML = '<div class="pp-admin-empty">Nenhuma música encontrada neste filtro.</div>';
+        return;
+      }
+
+      list.forEach(song => {
+        const row = document.createElement('article');
+        row.className = 'pp-admin-song' + (ppAdmin.selected.has(String(song.id)) ? ' selected' : '');
+        const status = song.active === false ? 'Inativa' : 'Ativa';
+        row.innerHTML = `
+          <input type="checkbox" ${ppAdmin.selected.has(String(song.id)) ? 'checked' : ''} data-pp-admin-select="${ppAdminEscape(song.id)}" aria-label="Selecionar música">
+          <div class="pp-admin-song-main">
+            <div class="pp-admin-song-title">${ppAdminEscape(song.title)}</div>
+            <div class="pp-admin-song-meta">${ppAdminEscape(song.artist || 'Sem artista')}${song.style ? ' • ' + ppAdminEscape(song.style) : ''}${song.note ? ' • Tom: ' + ppAdminEscape(song.note) : ''}</div>
+            <div class="pp-admin-song-sub">${song.pdfUrl ? '📄 PDF vinculado • ' : ''}${status}</div>
+          </div>
+          <div class="pp-admin-song-actions">
+            <span class="pp-admin-badge ${song.active === false ? 'pp-admin-badge-amber' : 'pp-admin-badge-green'}">${status}</span>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-view="${ppAdminEscape(song.id)}" type="button">Ver</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-edit="${ppAdminEscape(song.id)}" type="button">Editar</button>
+            <button class="pp-admin-btn pp-admin-btn-small ${song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'}" data-pp-admin-toggle="${ppAdminEscape(song.id)}" type="button">${song.active === false ? 'Ativar' : 'Desativar'}</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-delete="${ppAdminEscape(song.id)}" type="button">Excluir</button>
+          </div>`;
+        root.appendChild(row);
+      });
+    }
+
+    function ppAdminSelectCatalog(id, checked) {
+      const key = String(id || '');
+      if (checked) ppAdmin.selected.add(key); else ppAdmin.selected.delete(key);
+      ppAdminRenderCatalog();
+    }
+
+    function ppAdminSelectAllCatalog() {
+      const visible = ppAdminFilteredCatalog();
+      const allSelected = visible.length && visible.every(song => ppAdmin.selected.has(String(song.id)));
+      if (allSelected) visible.forEach(song => ppAdmin.selected.delete(String(song.id)));
+      else visible.forEach(song => ppAdmin.selected.add(String(song.id)));
+      ppAdminRenderCatalog();
+    }
+
+    function ppAdminClearCatalogSelection() {
+      ppAdmin.selected.clear();
+      ppAdminRenderCatalog();
+    }
+
+    function ppAdminOpenModal(title, bodyHtml, actions = []) {
+      $pp('ppAdminModalTitle').textContent = title || 'Ação';
+      $pp('ppAdminModalBody').innerHTML = bodyHtml || '';
+      const foot = $pp('ppAdminModalFoot');
+      foot.innerHTML = '';
+      actions.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'pp-admin-btn ' + (item.cls || '');
+        btn.type = 'button';
+        btn.textContent = item.text;
+        btn.addEventListener('click', item.action);
+        foot.appendChild(btn);
+      });
+      $pp('ppAdminModal').classList.add('show');
+    }
+
+    function closeAdminModal() {
+      $pp('ppAdminModal')?.classList.remove('show');
+    }
+
+    function ppAdminConfirm(title, text, action, actionLabel = 'Confirmar', actionClass = 'pp-admin-btn-danger') {
+      ppAdminOpenModal(title, `<div class="pp-admin-detail"><div>${text}</div></div>`, [
+        { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+        { text: actionLabel, action, cls: actionClass }
+      ]);
+    }
+
+    function ppAdminViewCatalog(id) {
+      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
+      if (!song) return;
+      ppAdminOpenModal('Detalhes da música', `
+        <div class="pp-admin-detail"><label>ID</label><div>${ppAdminEscape(song.id)}</div></div>
+        <div class="pp-admin-detail"><label>Título</label><div>${ppAdminEscape(song.title)}</div></div>
+        <div class="pp-admin-detail"><label>Artista</label><div>${ppAdminEscape(song.artist || 'Não informado')}</div></div>
+        <div class="pp-admin-detail"><label>Estilo / Tom</label><div>${ppAdminEscape(song.style || 'Não informado')} • ${ppAdminEscape(song.note || 'Não informado')}</div></div>
+        <div class="pp-admin-detail"><label>Status</label><div>${song.active === false ? 'Inativa' : 'Ativa'}</div></div>
+        <div class="pp-admin-detail"><label>Letra completa</label><div>${ppAdminEscape(song.lyrics || 'Sem letra')}</div></div>
+        <div class="pp-admin-detail"><label>PDF</label><div>${song.pdfUrl ? '📄 PDF cadastrado' : 'Nenhum PDF cadastrado'}</div></div>`,
+        [
+          { text: 'Fechar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+          { text: 'Editar', action: () => { closeAdminModal(); ppAdminBeginCatalogEdit(song.id); }, cls: 'pp-admin-btn-primary' }
+        ].concat(song.pdfUrl && typeof viewPdf === 'function' ? [{ text: 'Ver PDF', action: () => viewPdf(song.pdfUrl), cls: 'pp-admin-btn-secondary' }] : [])
+      );
+    }
+
+    async function ppAdminBeginCatalogEdit(id) {
+      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
+      if (!song) return;
+      ppAdminSwitchTab('register');
+      ppAdmin.editingCatalogId = String(song.id);
+      ppAdmin.editingManualMode = false;
+      $pp('ppAdminEditingBadge').textContent = 'Editando';
+      $pp('ppAdminFormTitle').value = song.title;
+      $pp('ppAdminFormArtist').value = song.artist;
+      $pp('ppAdminFormStyle').value = song.style;
+      $pp('ppAdminFormKey').value = song.note;
+      $pp('ppAdminFormLyrics').value = song.lyrics;
+      $pp('ppAdminManualStatus').textContent = 'Editando diretamente o catálogo principal.';
+      document.querySelector('[data-pp-admin-page="bulk"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+
+    async function ppAdminToggleCatalog(id) {
+      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
+      if (!song) return;
+      ppAdminConfirm(song.active === false ? 'Ativar música' : 'Desativar música',
+        `Alterar o status de <strong>${ppAdminEscape(song.title)}</strong> no catálogo público?`,
+        async () => {
+          closeAdminModal();
+          try {
+            ppAdminSetStatus('ppAdminCatalogStatus', 'Salvando alteração no catálogo principal...', '');
+            const data = await ppAdminRequest('toggleCatalogSong', { id: String(song.id), active: song.active === false });
+            if (Array.isArray(data.catalogo)) ppAdmin.catalog = data.catalogo.map(ppAdminNormalizeSong);
+            else await ppAdminLoadCatalog();
+            ppAdminRenderCatalog();
+            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Status atualizado no catálogo principal.', 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
+          }
+        },
+        song.active === false ? 'Ativar' : 'Desativar',
+        song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'
+      );
+    }
+
+    async function ppAdminDeleteCatalog(id) {
+      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
+      if (!song) return;
+      ppAdminConfirm('Excluir música',
+        `Excluir <strong>${ppAdminEscape(song.title)}</strong> do catálogo público?<br><br>Esta ação remove somente esta música.`,
+        async () => {
+          closeAdminModal();
+          try {
+            ppAdminSetStatus('ppAdminCatalogStatus', 'Excluindo música do catálogo principal...', '');
+            const data = await ppAdminRequest('deleteCatalogSong', { id: String(song.id) });
+            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
+            ppAdmin.selected.delete(String(song.id));
+            ppAdminRenderCatalog();
+            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Música excluída do catálogo principal.', 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
+          }
+        },
+        'Excluir'
+      );
+    }
+
+    async function ppAdminDeleteSelectedCatalog() {
+      const ids = Array.from(ppAdmin.selected);
+      if (!ids.length) return;
+      ppAdminConfirm('Excluir selecionadas',
+        `Excluir <strong>${ids.length}</strong> música(s) do catálogo público?`,
+        async () => {
+          closeAdminModal();
+          try {
+            const data = await ppAdminRequest('deleteCatalogSong', { ids });
+            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
+            ppAdmin.selected.clear();
+            ppAdminRenderCatalog();
+            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${ids.length} música(s) excluída(s).`, 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
+          }
+        },
+        'Excluir'
+      );
+    }
+
+    async function ppAdminChangeStyle() {
+      const ids = Array.from(ppAdmin.selected);
+      if (!ids.length) return;
+      ppAdminOpenModal('Alterar nome do estilo',
+        `<div class="pp-admin-detail"><label>Músicas selecionadas</label><div>${ids.length}</div></div>
+         <div class="pp-admin-field"><label for="ppAdminModalStyle">Novo estilo</label><input id="ppAdminModalStyle" type="text" placeholder="Ex.: Sertanejo"></div>`,
+        [
+          { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+          { text: 'Aplicar', action: async () => {
+            const style = String($pp('ppAdminModalStyle')?.value || '').trim();
+            if (!style) { showToast('Informe o novo estilo.', 1800); return; }
+            try {
+              const data = await ppAdminRequest('updateCatalogStyle', { ids, style });
+              ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : ppAdmin.catalog;
+              ppAdmin.selected.clear();
+              closeAdminModal();
+              ppAdminRenderCatalog();
+              ppAdminSetStatus('ppAdminCatalogStatus', '✅ Estilo atualizado.', 'success');
+            } catch (error) {
+              ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
+            }
+          }, cls: 'pp-admin-btn-primary' }
+        ]);
+    }
+
+    async function ppAdminRemoveDuplicates() {
+      const source = ppAdmin.catalog.slice();
+      const seen = new Map();
+      const dupIds = [];
+      source.forEach(song => {
+        const key = ppAdminNormalize(song.title) + '||' + ppAdminNormalize(song.artist);
+        if (seen.has(key)) dupIds.push(String(song.id)); else seen.set(key, String(song.id));
+      });
+      if (!dupIds.length) {
+        ppAdminSetStatus('ppAdminCatalogStatus', 'Nenhuma duplicata por título + artista foi encontrada.', 'success');
+        return;
+      }
+      ppAdminConfirm('Remover músicas copiadas',
+        `Foram encontradas <strong>${dupIds.length}</strong> duplicata(s). Remover somente as cópias e manter a primeira ocorrência?`,
+        async () => {
+          closeAdminModal();
+          try {
+            const data = await ppAdminRequest('deleteCatalogSong', { ids: dupIds });
+            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
+            ppAdmin.selected.clear();
+            ppAdminRenderCatalog();
+            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${dupIds.length} duplicata(s) removida(s).`, 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
+          }
+        }, 'Remover'
+      );
+    }
+
+    async function ppAdminFetchCatalogDirect(url) {
+      const response = await fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ts=' + Date.now(), { method:'GET', mode:'cors', cache:'no-store', credentials:'omit', headers:{Accept:'application/json'} });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const data = await response.json();
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.songs)) return data.songs;
+      throw new Error('catalogo.json não retornou uma lista válida.');
+    }
+
+    async function ppAdminLoadCatalog() {
+      ppAdminSetStatus('ppAdminCatalogStatus', 'Carregando o catálogo principal...', '');
+      const urls = [PP_ADMIN_PUBLIC_CATALOG_URL, PP_ADMIN_RAW_CATALOG_URL, PP_ADMIN_CDN_CATALOG_URL];
+      let lastError = null;
+      for (const url of urls) {
+        try {
+          const catalog = await ppAdminFetchCatalogDirect(url);
+          ppAdmin.catalog = catalog.map(ppAdminNormalizeSong);
+          ppAdmin.selected = new Set([...ppAdmin.selected].filter(id => ppAdmin.catalog.some(song => String(song.id) === String(id))));
+          ppAdminRenderCatalog();
+          ppAdminSetStatus('ppAdminCatalogStatus', `✅ Catálogo principal carregado: ${ppAdmin.catalog.length} músicas.`, 'success');
+          return ppAdmin.catalog;
+        } catch (error) { lastError = error; }
+      }
+      try {
+        const data = await ppAdminRequest('getCatalog');
+        ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
+        ppAdmin.selected = new Set([...ppAdmin.selected].filter(id => ppAdmin.catalog.some(song => String(song.id) === String(id))));
+        ppAdminRenderCatalog();
+        ppAdminSetStatus('ppAdminCatalogStatus', `✅ Catálogo principal carregado via Apps Script: ${ppAdmin.catalog.length} músicas.`, 'success');
+        return ppAdmin.catalog;
+      } catch (error) {
+        throw new Error('Não foi possível ler o catalogo.json principal. ' + (lastError ? lastError.message + ' / ' : '') + error.message);
+      }
+    }
+
+    async function ppAdminLoadProvisional() {
+      ppAdmin.provisional = [];
+      return ppAdmin.provisional;
+    }
+
+    async function ppAdminLoadReceived() {
+      ppAdminSetStatus('ppAdminReceivedStatus', 'Consultando cadastros recebidos...', '');
+      const data = await ppAdminRequest('listCadastros');
+      ppAdmin.received = Array.isArray(data.cadastros) ? data.cadastros.map(ppAdminNormalizeReceived) : [];
+      ppAdmin.receivedSelected.clear();
+      ppAdminRenderReceived();
+      return ppAdmin.received;
+    }
+
+    async function ppAdminRefreshAll() {
+      if (ppAdmin.requestBusy) return;
+      ppAdmin.requestBusy = true;
+      ppAdminSetStatus('ppAdminGlobalStatus', 'Sincronizando dados administrativos...', '');
+      try {
+        await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived()]);
+        if (ppAdmin.tab === 'received') await ppAdminLoadReceived();
+        ppAdminSetStatus('ppAdminGlobalStatus', `✅ Sincronizado em ${new Date().toLocaleString('pt-BR')}.`, 'success');
+      } catch (error) {
+        ppAdminSetStatus('ppAdminGlobalStatus', '❌ ' + error.message, 'error');
+      } finally {
+        ppAdmin.requestBusy = false;
+      }
+    }
+
+    function ppAdminRenderReceived() {
+      const root = $pp('ppAdminReceivedList');
+      if (!root) return;
+      root.innerHTML = '';
+      $pp('ppAdminReceivedCounter').textContent = `${ppAdmin.received.length} cadastro${ppAdmin.received.length === 1 ? '' : 's'}`;
+      $pp('ppAdminReceivedStat').textContent = String(ppAdmin.received.length);
+      $pp('ppAdminReceivedBulkCount').textContent = `${ppAdmin.receivedSelected.size} selecionada${ppAdmin.receivedSelected.size === 1 ? '' : 's'}`;
+      $pp('ppAdminReceivedBulkBar').classList.toggle('active', ppAdmin.receivedSelected.size > 0);
+      if (!ppAdmin.received.length) {
+        root.innerHTML = '<div class="pp-admin-empty">Nenhum cadastro manual recebido ainda.</div>';
+        return;
+      }
+      ppAdmin.received.forEach((item, index) => {
+        const exists = ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item));
+        const row = document.createElement('article');
+        row.className = 'pp-admin-received';
+        row.innerHTML = `
+          <div class="pp-admin-received-top">
+            <div style="min-width:0">
+              <div class="pp-admin-received-title">${ppAdminEscape(item.title || 'Sem título')}</div>
+              <div class="pp-admin-received-meta">${ppAdminEscape(item.artist || 'Sem artista')} • ${ppAdminEscape(item.style || 'Sem estilo')} • Usuário: ${ppAdminEscape(item.user || 'Não informado')} • ${ppAdminEscape(item.date || 'Sem data')}</div>
+            </div>
+            <span class="pp-admin-badge ${exists ? 'pp-admin-badge-amber' : 'pp-admin-badge-green'}">${exists ? 'Já no catálogo' : 'Novo'}</span>
+          </div>
+          <div class="pp-admin-received-actions">
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-received-view="${index}" type="button">👁 Ver</button>
+            ${item.pdfUrl || item.pdfFileId ? '<button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-received-pdf="'+index+'" type="button">📄 PDF</button>' : ''}
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-received-edit="${index}" type="button">✏️ Editar</button>
+            ${exists ? '' : '<button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-success" data-pp-admin-received-approve="'+index+'" type="button">✅ Aprovar</button>'}
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-received-delete="${index}" type="button">🗑 Excluir</button>
+          </div>`;
+        root.appendChild(row);
+      });
+    }
+
+    function ppAdminViewReceived(index) {
+      const item = ppAdmin.received[index];
+      if (!item) return;
+      ppAdminOpenModal('Detalhes do cadastro recebido', `
+        <div class="pp-admin-detail"><label>Música</label><div>${ppAdminEscape(item.title || 'Não informada')}</div></div>
+        <div class="pp-admin-detail"><label>Artista</label><div>${ppAdminEscape(item.artist || 'Não informado')}</div></div>
+        <div class="pp-admin-detail"><label>Estilo / Tom</label><div>${ppAdminEscape(item.style || 'Não informado')} • ${ppAdminEscape(item.note || 'Não informado')}</div></div>
+        <div class="pp-admin-detail"><label>Usuário</label><div>${ppAdminEscape(item.user || 'Não informado')}</div></div>
+        <div class="pp-admin-detail"><label>Data</label><div>${ppAdminEscape(item.date || 'Não informada')}</div></div>
+        <div class="pp-admin-detail"><label>Letra completa</label><div>${ppAdminEscape(item.lyrics || 'Sem letra')}</div></div>`,
+        [
+          { text: 'Fechar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+          { text: 'Editar', action: () => { closeAdminModal(); ppAdminOpenReceivedEditor(index); }, cls: 'pp-admin-btn-primary' }
+        ]
+      );
+    }
+
+    function ppAdminOpenReceivedEditor(index) {
+      const item = ppAdmin.received[index];
+      if (!item) return;
+      ppAdmin.receivedEditingIndex = index;
+      ppAdminOpenModal('Editar cadastro recebido', `
+        <div class="pp-admin-field"><label for="ppAdminReceivedTitle">Música</label><input id="ppAdminReceivedTitle" type="text" value="${ppAdminEscape(item.title || '')}"></div>
+        <div class="pp-admin-field"><label for="ppAdminReceivedArtist">Artista</label><input id="ppAdminReceivedArtist" type="text" value="${ppAdminEscape(item.artist || '')}"></div>
+        <div class="pp-admin-two">
+          <div class="pp-admin-field"><label for="ppAdminReceivedStyle">Estilo</label><input id="ppAdminReceivedStyle" type="text" value="${ppAdminEscape(item.style || '')}"></div>
+          <div class="pp-admin-field"><label for="ppAdminReceivedNote">Tom</label><input id="ppAdminReceivedNote" type="text" value="${ppAdminEscape(item.note || '')}" maxlength="20"></div>
+        </div>
+        <div class="pp-admin-field"><label for="ppAdminReceivedUser">Usuário</label><input id="ppAdminReceivedUser" type="text" value="${ppAdminEscape(item.user || '')}"></div>
+        <div class="pp-admin-field"><label for="ppAdminReceivedLyrics">Letra completa</label><textarea id="ppAdminReceivedLyrics">${ppAdminEscape(item.lyrics || '')}</textarea></div>
+        <div class="pp-admin-note">${item.pdfUrl || item.pdfFileId ? '📄 Este cadastro possui PDF recebido.' : 'Nenhum PDF recebido.'}</div>`,
+        [
+          { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+          { text: 'Salvar alterações', action: ppAdminSaveReceivedEdit, cls: 'pp-admin-btn-primary' }
+        ]
+      );
+    }
+
+    async function ppAdminSaveReceivedEdit() {
+      const item = ppAdmin.received[ppAdmin.receivedEditingIndex];
+      if (!item) return;
+      const title = String($pp('ppAdminReceivedTitle')?.value || '').trim();
+      const artist = String($pp('ppAdminReceivedArtist')?.value || '').trim();
+      const style = String($pp('ppAdminReceivedStyle')?.value || '').trim();
+      const note = String($pp('ppAdminReceivedNote')?.value || '').trim();
+      const user = String($pp('ppAdminReceivedUser')?.value || '').trim();
+      const lyrics = sanitizeLyrics($pp('ppAdminReceivedLyrics')?.value || '');
+      if (!title || !artist || !style || !user || !lyrics) {
+        showToast('Preencha música, artista, estilo, usuário e letra.', 2200);
+        return;
+      }
+      try {
+        closeAdminModal();
+        ppAdminSetStatus('ppAdminReceivedStatus', 'Salvando alterações...', '');
+        await ppAdminRequest('updateCadastro', {
+          id: String(item.id), musica: title, artista: artist, estilo: style,
+          tom: note, usuario: user, letra: lyrics,
+          cadastroCompleto: {
+            id: String(item.id), title, artist, style, note, tom: note, usuario: user, lyrics
+          }
+        });
+        await ppAdminLoadReceived();
+        ppAdminSetStatus('ppAdminReceivedStatus', '✅ Cadastro recebido atualizado.', 'success');
+      } catch (error) {
+        ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
+      }
+    }
+
+    async function ppAdminDeleteReceived(index) {
+      const item = ppAdmin.received[index];
+      if (!item) return;
+      ppAdminConfirm('Excluir cadastro recebido',
+        `Remover <strong>${ppAdminEscape(item.title)}</strong> da fila de cadastros recebidos?<br><br><strong>O catálogo público não será alterado.</strong>`,
+        async () => {
+          closeAdminModal();
+          try {
+            ppAdminSetStatus('ppAdminReceivedStatus', 'Excluindo cadastro recebido...', '');
+            await ppAdminRequest('deleteCadastro', { id: String(item.id), musica: item.title, usuario: item.user });
+            await ppAdminLoadReceived();
+            ppAdminSetStatus('ppAdminReceivedStatus', '✅ Cadastro removido apenas dos pendentes.', 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
+          }
+        },
+        'Excluir'
+      );
+    }
+
+    async function ppAdminApproveReceived(index) {
+      const item = ppAdmin.received[index];
+      if (!item) return;
+      if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item))) {
+        ppAdminSetStatus('ppAdminReceivedStatus', '⚠️ Esta música já existe no catálogo principal.', 'warn');
+        return;
+      }
+      ppAdminConfirm('Adicionar ao catálogo principal',
+        `Publicar <strong>${ppAdminEscape(item.title)}</strong> de <strong>${ppAdminEscape(item.artist)}</strong> no catálogo de Sugestões?<br><br>O cadastro será removido dos pendentes após a publicação.`,
+        async () => {
+          closeAdminModal();
+          try {
+            ppAdminSetStatus('ppAdminReceivedStatus', 'Publicando no catálogo principal...', '');
+            const data = await ppAdminRequest('approveCadastro', {
+              cadastroCompleto: {
+                id: String(item.id), title: item.title, artist: item.artist, style: item.style,
+                note: item.note, tom: item.note, lyrics: item.lyrics, usuario: item.user,
+                dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
+              }
+            });
+            await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived()]);
+            ppAdminSetStatus('ppAdminReceivedStatus', '✅ Música publicada no catálogo principal.', 'success');
+            ppAdminSetStatus('ppAdminGlobalStatus', `✅ ${item.title} aprovado.`, 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
+          }
+        }, 'Aprovar', 'pp-admin-btn-success'
+      );
+    }
+
+    async function ppAdminApproveSelectedReceived() {
+      const indices = Array.from(ppAdmin.receivedSelected).map(Number).sort((a,b) => b-a);
+      if (!indices.length) return;
+      ppAdminConfirm('Aprovar selecionadas',
+        `Processar <strong>${indices.length}</strong> cadastros recebidos?<br><br>As músicas já existentes no catálogo serão ignoradas.`,
+        async () => {
+          closeAdminModal();
+          let ok = 0, skipped = 0;
+          try {
+            for (const index of indices) {
+              const item = ppAdmin.received[index];
+              if (!item) continue;
+              if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item))) { skipped++; continue; }
+              try {
+                await ppAdminRequest('approveCadastro', {
+                  cadastroCompleto: {
+                    id: String(item.id), title: item.title, artist: item.artist, style: item.style,
+                    note: item.note, tom: item.note, lyrics: item.lyrics, usuario: item.user,
+                    dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
+                  }
+                });
+                ok++;
+              } catch (_) {}
+            }
+            ppAdmin.receivedSelected.clear();
+            await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived()]);
+            ppAdminSetStatus('ppAdminReceivedStatus', `✅ ${ok} publicado(s)${skipped ? ` • ${skipped} já existente(s)` : ''}.`, 'success');
+          } catch (error) {
+            ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
+          }
+        }, 'Aprovar', 'pp-admin-btn-success'
+      );
+    }
+
+    function ppAdminSelectAllReceived() {
+      const all = ppAdmin.received.length && ppAdmin.received.every((_, index) => ppAdmin.receivedSelected.has(index));
+      ppAdmin.receivedSelected = all ? new Set() : new Set(ppAdmin.received.map((_, index) => index));
+      ppAdminRenderReceived();
+    }
+
+    function ppAdminClearReceivedSelection() {
+      ppAdmin.receivedSelected.clear();
+      ppAdminRenderReceived();
+    }
+
+    async function ppAdminSaveCatalogForm() {
+      const titleRaw = String($pp('ppAdminFormTitle')?.value || '').trim();
+      const title = ppAdminCleanSearchTitle(titleRaw);
+      const artist = String($pp('ppAdminFormArtist')?.value || '').trim();
+      const style = String($pp('ppAdminFormStyle')?.value || '').trim();
+      const note = String($pp('ppAdminFormKey')?.value || '').trim();
+      const lyrics = ppAdminFormatValidatedLyrics($pp('ppAdminFormLyrics')?.value || '');
+      if (!title || !artist || !style || !lyrics) { ppAdminSetStatus('ppAdminManualStatus','Informe título, artista, estilo e letra completa.','error'); return; }
+      if (ppAdmin.requestBusy) return;
+      ppAdmin.requestBusy=true;
+      const editing=!!ppAdmin.editingCatalogId;
+      try {
+        await ppAdminLoadCatalog();
+        const duplicate=ppAdminDuplicateInCatalog({title,artist}, editing ? ppAdmin.editingCatalogId : '');
+        if (duplicate) throw new Error('Esta música já existe no catálogo para este artista.');
+        if (!editing && ppAdminPersonalKeys().has(ppAdminSongIdentity(title,artist))) throw new Error('Esta música já existe no seu repertório pessoal.');
+        ppAdminSetStatus('ppAdminManualStatus', editing ? 'Salvando alterações...' : 'Cadastrando música...', '');
+        const data=editing ? await ppAdminRequest('updateCatalogSong',{id:String(ppAdmin.editingCatalogId),title,artist,style,note,lyrics}) : await ppAdminRequest('addCatalogSong',{id:'admin-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),title,artist,style,note,lyrics});
+        await ppAdminLoadCatalog();
+        ppAdminClearManualForm();
+        ppAdminSwitchTab('catalog');
+        ppAdminSetStatus('ppAdminCatalogStatus', editing ? '✅ Música atualizada no catálogo principal.' : '✅ Música adicionada ao catálogo principal.', 'success');
+      } catch (error) { ppAdminSetStatus('ppAdminManualStatus','❌ '+error.message,'error'); }
+      finally { ppAdmin.requestBusy=false; }
+    }
+
+    function ppAdminClearManualForm() {
+      ppAdmin.editingCatalogId = '';
+      $pp('ppAdminEditingBadge').textContent = 'Novo';
+      ['ppAdminFormTitle','ppAdminFormArtist','ppAdminFormStyle','ppAdminFormKey','ppAdminFormLyrics'].forEach(id => { const el=$pp(id); if(el) el.value=''; });
+      ppAdminSetStatus('ppAdminManualStatus', '', '');
+    }
+
+    function ppAdminPersonalKeys() {
+      const keys = new Set();
+      const personal = Array.isArray(state?.songs) ? state.songs : [];
+      personal.forEach(song => { const k = ppAdminSongIdentity(song?.title, song?.artist); if (k) keys.add(k); });
+      return keys;
+    }
+
+    function ppAdminSongIdentity(title, artist) {
+      const t = ppAdminNormalize(title), a = ppAdminNormalize(artist);
+      return t && a ? t + '|' + a : '';
+    }
+
+    function ppAdminCleanSearchTitle(rawTitle) {
+      let title = String(rawTitle || '').replace(/\s+/g, ' ').trim();
+      if (!title) return '';
+      title = title
+        .replace(/[\(\[\{]\s*(?:ao\s+vivo|live|ac[úu]stico|acoustic|remix|demo|instrumental|karaok[eê]|radio\s+edit|radio\s+version|single\s+version|remaster(?:ed)?|version)\s*[\)\]\}]/gi, ' ')
+        .replace(/\s*(?:\||•)\s*(?:ao\s+vivo|live|ac[úu]stico|acoustic|remix|demo|instrumental|karaok[eê]|radio\s+edit|radio\s+version|single\s+version|remaster(?:ed)?|version)\s*$/i, '')
+        .replace(/\s*[-–—:]\s*(?:ao\s+vivo|live|ac[úu]stico|acoustic|remix|demo|instrumental|karaok[eê]|radio\s+edit|radio\s+version|single\s+version|remaster(?:ed)?|version)\s*$/i, '')
+        .replace(/\s+\b(?:ao\s+vivo|live|ac[úu]stico|acoustic|remix|demo|instrumental|karaok[eê]|radio\s+edit|radio\s+version|single\s+version|remaster(?:ed)?|version)\s*$/i, '');
+      title = title.replace(/\s*(?:[-–—|•:]\s*)?(?:feat(?:uring)?|ft)\.?\s+.*$/i, '');
+      title = title.replace(/\s{2,}/g, ' ').replace(/^[\-–—|•:]+|[\-–—|•:]+$/g, '').trim();
+      return title;
+    }
+
+    function ppAdminFormatValidatedLyrics(raw) {
+      let text = String(raw || '').replace(/\r/g, '\n')
+        .replace(/^\s*\[[^\]]+\]\s*/gm, '')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\u00a0/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+      if (!lines.length) return '';
+      const paragraphs = text.split(/\n\s*\n/).map(block => block.split('\n').map(x => x.trim()).filter(Boolean).join('\n')).filter(Boolean);
+      if (paragraphs.length > 1) return paragraphs.join('\n\n');
+      const grouped = [];
+      for (let i = 0; i < lines.length; i += 4) grouped.push(lines.slice(i, i + 4).join('\n'));
+      return grouped.join('\n\n').trim();
+    }
+
+    function ppAdminLyricsValid(lyrics) {
+      const text = String(lyrics || '').trim();
+      const plain = text.replace(/\s+/g, ' ').trim();
+      const lines = text.split('\n').filter(line => line.trim()).length;
+      const words = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
+      if (plain.length < 160 || words < 28 || lines < 8) return false;
+      if (/\.{3,}|…|letra não encontrada|lyrics? unavailable|lyrics? not found|instrumental|karaoke/i.test(plain)) return false;
+      return true;
+    }
+
+    function ppAdminBuildSearchVariants(query) {
+      const clean = String(query || '').trim();
+      const tokens = ppAdminNormalize(clean).split(/\s+/).filter(Boolean);
+      const variants = [];
+      const add = value => { const v = String(value || '').trim(); if (v && !variants.some(x => ppAdminNormalize(x) === ppAdminNormalize(v))) variants.push(v); };
+      add(clean);
+      if (tokens.length > 1) add(tokens.slice().reverse().join(' '));
+      if (tokens.length > 2) { add(tokens.slice(0, Math.ceil(tokens.length / 2)).join(' ')); add(tokens.slice(Math.floor(tokens.length / 2)).join(' ')); }
+      tokens.filter(t => t.length >= 3).slice(0, 3).forEach(add);
+      return variants.slice(0, 6);
+    }
+
+    async function ppAdminDiscoverCandidates(query, maxPool) {
+      const variants = ppAdminBuildSearchVariants(query);
+      const jobs = [];
+      variants.forEach((variant, idx) => {
+        jobs.push(searchItunesSource(variant).catch(() => []));
+        jobs.push(searchLrcLibSource(variant).catch(() => []));
+        if (idx < 3) jobs.push(searchDeezerSource(variant).catch(() => []));
+        if (idx < 2) jobs.push(searchMusicBrainzSource(variant, '').catch(() => []));
+      });
+      const settled = await Promise.all(jobs);
+      const unique = new Map();
+      settled.flat().forEach(item => {
+        const title = String(item?.trackName || item?.name || '').trim();
+        const artist = String(item?.artistName || item?.artist || '').trim();
+        if (!title || !artist) return;
+        const cleanTitle = ppAdminCleanSearchTitle(title);
+        const key = ppAdminSongIdentity(cleanTitle, artist);
+        if (!key || unique.has(key)) return;
+        unique.set(key, { ...item, trackName:title, artistName:artist, cleanTitle });
+      });
+      return Array.from(unique.values()).slice(0, Math.max(maxPool || 0, PP_ADMIN_MAX_BULK_RESULTS * 3));
+    }
+
+    async function ppAdminResolveCandidateLyrics(candidate) {
+      const direct = candidate?.plainLyrics || (candidate?.syncedLyrics ? String(candidate.syncedLyrics).split('\n').map(line => line.replace(/^\s*\[[^\]]+\]\s*/, '').trim()).filter(Boolean).join('\n') : '');
+      const formattedDirect = ppAdminFormatValidatedLyrics(direct);
+      if (ppAdminLyricsValid(formattedDirect)) return formattedDirect;
+      try {
+        const fetched = await fetchInternetLyrics(candidate.cleanTitle, candidate.artistName);
+        const formatted = ppAdminFormatValidatedLyrics(fetched);
+        return ppAdminLyricsValid(formatted) ? formatted : '';
+      } catch (_) { return ''; }
+    }
+
+    async function ppAdminProgressiveValidate(candidates, mode, maxResults, runId) {
+      const accepted = mode === 'single' ? ppAdmin.singleResults : ppAdmin.bulkResults;
+      const seen = new Set(accepted.map(item => ppAdminSongIdentity(item.title, item.artist)));
+      ppAdmin.catalog.forEach(song => { const key = ppAdminSongIdentity(song.title, song.artist); if (key) seen.add(key); });
+      const personalKeys = ppAdminPersonalKeys();
+      let next = 0, active = 0, checked = 0;
+      const total = candidates.length;
+      const addValidated = item => {
+        const title = ppAdminCleanSearchTitle(item.cleanTitle || item.trackName);
+        const artist = String(item.artistName || item.artist || '').trim();
+        const key = ppAdminSongIdentity(title, artist);
+        if (!title || !artist || !key || seen.has(key) || personalKeys.has(key)) return false;
+        const lyrics = ppAdminFormatValidatedLyrics(item._lyrics || '');
+        if (!ppAdminLyricsValid(lyrics)) return false;
+        const style = mapExternalGenreToRhythm(item.primaryGenreName || '') || String(item.style || '').trim() || 'Música brasileira';
+        const result = { id:'adm-' + mode + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,8), title, artist, style, lyrics, source:item.source || 'Internet' };
+        seen.add(key);
+        accepted.push(result);
+        if (mode === 'single') ppAdminRenderSingle(); else { ppAdminRenderBulk(); const progress=$pp('ppAdminBulkProgress'); if(progress) progress.style.width=Math.min(100,(accepted.length/PP_ADMIN_MAX_BULK_RESULTS)*100)+'%'; }
+        return true;
+      };
+      return await new Promise(resolve => {
+        const pump = () => {
+          if (runId !== ppAdmin.searchRunId || accepted.length >= maxResults) { resolve(); return; }
+          while (active < PP_ADMIN_LYRIC_WORKERS && next < total && accepted.length < maxResults) {
+            const candidate = candidates[next++]; active++;
+            ppAdminResolveCandidateLyrics(candidate).then(lyrics => {
+              if (runId !== ppAdmin.searchRunId) return;
+              checked++;
+              candidate._lyrics = lyrics;
+              const ok = addValidated(candidate);
+              const statusId = mode === 'single' ? 'ppAdminSingleStatus' : 'ppAdminBulkStatus';
+              ppAdminSetStatus(statusId, `${ok ? '✅' : '🔎'} Verificados ${checked}/${total} • ${accepted.length} válidos.`, ok ? 'success' : '');
+            }).finally(() => { active--; if (runId === ppAdmin.searchRunId && (accepted.length >= maxResults || (next >= total && active === 0))) resolve(); else pump(); });
+          }
+          if (next >= total && active === 0) resolve();
+        };
+        pump();
+      });
+    }
+
+    function ppAdminBuildSearchJobs(query) {
+      const variants = ppAdminBuildSearchVariants(query);
+      const jobs = [];
+      variants.forEach((variant, idx) => {
+        jobs.push(() => searchItunesSource(variant).catch(() => []));
+        jobs.push(() => searchLrcLibSource(variant).catch(() => []));
+        if (idx < 4) jobs.push(() => searchDeezerSource(variant).catch(() => []));
+        if (idx < 3) jobs.push(() => searchMusicBrainzSource(variant, '').catch(() => []));
+      });
+      return jobs;
+    }
+
+    function ppAdminSearchCandidateToNormalized(item) {
+      const titleRaw = String(item?.trackName || item?.name || item?.title || '').trim();
+      const artist = String(item?.artistName || item?.artist || '').trim();
+      if (!titleRaw || !artist) return null;
+      const title = ppAdminCleanSearchTitle(titleRaw);
+      const key = ppAdminSongIdentity(title, artist);
+      if (!title || !key) return null;
+      return { ...item, trackName:titleRaw, artistName:artist, cleanTitle:title, _key:key };
+    }
+
+    async function ppAdminProgressiveSearch(query, mode, maxResults, runId) {
+      const accepted = mode === 'single' ? ppAdmin.singleResults : ppAdmin.bulkResults;
+      const acceptedKeys = new Set();
+      const catalogKeys = new Set(ppAdmin.catalog.map(song => ppAdminSongIdentity(song.title, song.artist)).filter(Boolean));
+      const personalKeys = ppAdminPersonalKeys();
+      const candidateKeys = new Set();
+      const pending = [];
+      const jobs = ppAdminBuildSearchJobs(query);
+      const candidateBudget = mode === 'single' ? maxResults * 14 : maxResults * 10;
+      let discovered = 0, checked = 0, activeLyrics = 0, nextJob = 0, jobsFinished = false, resolved = false;
+
+      const update = (kind, tone='') => {
+        const statusId = mode === 'single' ? 'ppAdminSingleStatus' : 'ppAdminBulkStatus';
+        ppAdminSetStatus(statusId, `${kind} • ${checked} letras verificadas • ${accepted.length} válidas.`, tone);
+      };
+
+      return new Promise(resolve => {
+        const finish = () => {
+          if (resolved) return;
+          if (accepted.length >= maxResults || (jobsFinished && pending.length === 0 && activeLyrics === 0)) {
+            resolved = true;
+            resolve();
+          }
+        };
+
+        const maybeStartLyrics = () => {
+          if (resolved || runId !== ppAdmin.searchRunId) { finish(); return; }
+          while (activeLyrics < PP_ADMIN_LYRIC_WORKERS && pending.length && accepted.length < maxResults) {
+            const candidate = pending.shift();
+            activeLyrics++;
+            ppAdminResolveCandidateLyrics(candidate).then(lyrics => {
+              if (runId !== ppAdmin.searchRunId) return;
+              checked++;
+              const title = ppAdminCleanSearchTitle(candidate.cleanTitle || candidate.trackName);
+              const artist = String(candidate.artistName || candidate.artist || '').trim();
+              const key = ppAdminSongIdentity(title, artist);
+              const formatted = ppAdminFormatValidatedLyrics(lyrics || '');
+              const eligible = !!key && !catalogKeys.has(key) && !personalKeys.has(key) && !acceptedKeys.has(key) && ppAdminLyricsValid(formatted);
+              if (eligible) {
+                acceptedKeys.add(key);
+                const style = mapExternalGenreToRhythm(candidate.primaryGenreName || '') || String(candidate.style || '').trim() || 'Música brasileira';
+                accepted.push({
+                  id:'adm-' + mode + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),
+                  title,
+                  artist,
+                  style,
+                  lyrics:formatted,
+                  source:candidate.source || 'Internet'
+                });
+                if (mode === 'single') ppAdminRenderSingle();
+                else {
+                  ppAdminRenderBulk();
+                  const progress=$pp('ppAdminBulkProgress');
+                  if(progress) progress.style.width=Math.min(100,(accepted.length/PP_ADMIN_MAX_BULK_RESULTS)*100)+'%';
+                }
+                update('✅ Novo resultado válido encontrado.', 'success');
+              } else {
+                update('🔎 Validando resultados...', '');
+              }
+            }).catch(() => {
+              checked++;
+              update('🔎 Validando resultados...', '');
+            }).finally(() => {
+              activeLyrics--;
+              if (!resolved) {
+                maybeStartLyrics();
+                finish();
+              }
+            });
+          }
+          finish();
+        };
+
+        const pumpJobs = async () => {
+          while (!resolved && runId === ppAdmin.searchRunId && nextJob < jobs.length && accepted.length < maxResults) {
+            const jobIndex = nextJob++;
+            try {
+              const items = await jobs[jobIndex]();
+              if (runId !== ppAdmin.searchRunId) break;
+              for (const item of (Array.isArray(items) ? items : [])) {
+                if (candidateKeys.size >= candidateBudget) break;
+                const normalized = ppAdminSearchCandidateToNormalized(item);
+                if (!normalized || candidateKeys.has(normalized._key)) continue;
+                if (catalogKeys.has(normalized._key) || personalKeys.has(normalized._key)) continue;
+                candidateKeys.add(normalized._key);
+                pending.push(normalized);
+                discovered++;
+              }
+              update(`🔎 ${discovered} candidatos encontrados; validando progressivamente...`, '');
+              maybeStartLyrics();
+            } catch (_) {
+              update(`🔎 Pesquisando em outras fontes...`, '');
+            }
+            if (candidateKeys.size >= candidateBudget) break;
+          }
+          jobsFinished = true;
+          maybeStartLyrics();
+          finish();
+        };
+
+        pumpJobs().catch(() => { jobsFinished=true; maybeStartLyrics(); finish(); });
+      });
+    }
+
+    async function ppAdminSingleSearch() {
+      const query = String($pp('ppAdminSingleQuery')?.value || '').trim();
+      if (query.length < 2 || ppAdmin.singleSearchBusy || ppAdmin.bulkSearchBusy) return;
+      ppAdmin.singleSearchBusy = true;
+      const runId = ++ppAdmin.searchRunId;
+      ppAdmin.singleResults = [];
+      ppAdminRenderSingle();
+      ppAdminSetStatus('ppAdminSingleStatus', '🔎 Pesquisando e validando progressivamente...', '');
+      try {
+        await ppAdminLoadCatalog();
+        await ppAdminProgressiveSearch(query, 'single', PP_ADMIN_MAX_SINGLE_RESULTS, runId);
+        if (runId === ppAdmin.searchRunId) ppAdminSetStatus('ppAdminSingleStatus', ppAdmin.singleResults.length ? `✅ ${ppAdmin.singleResults.length} resultado(s) válidos encontrados.` : 'Nenhum resultado válido encontrado com todas as exigências.', ppAdmin.singleResults.length ? 'success' : 'warn');
+      } catch (error) {
+        if (runId === ppAdmin.searchRunId) ppAdminSetStatus('ppAdminSingleStatus', '❌ ' + error.message, 'error');
+      } finally { if (runId === ppAdmin.searchRunId) ppAdmin.singleSearchBusy = false; }
+    }
+
+    async function ppAdminBulkSearch() {
+      const query = String($pp('ppAdminBulkQuery')?.value || '').trim();
+      if (query.length < 2 || ppAdmin.singleSearchBusy || ppAdmin.bulkSearchBusy) return;
+      ppAdmin.bulkSearchBusy = true;
+      const runId = ++ppAdmin.searchRunId;
+      ppAdmin.bulkResults = [];
+      ppAdmin.bulkSelected.clear();
+      ppAdminRenderBulk();
+      if ($pp('ppAdminBulkProgress')) $pp('ppAdminBulkProgress').style.width='0%';
+      ppAdminSetStatus('ppAdminBulkStatus', '🔎 Procurando até 100 músicas válidas, com validação progressiva...', '');
+      try {
+        await ppAdminLoadCatalog();
+        await ppAdminProgressiveSearch(query, 'bulk', PP_ADMIN_MAX_BULK_RESULTS, runId);
+        if (runId === ppAdmin.searchRunId) ppAdminSetStatus('ppAdminBulkStatus', ppAdmin.bulkResults.length ? `✅ ${ppAdmin.bulkResults.length} resultado(s) válidos encontrados. Limite máximo: 100.` : 'Nenhuma música passou em todas as validações.', ppAdmin.bulkResults.length ? 'success' : 'warn');
+      } catch (error) {
+        if (runId === ppAdmin.searchRunId) ppAdminSetStatus('ppAdminBulkStatus', '❌ ' + error.message, 'error');
+      } finally { if (runId === ppAdmin.searchRunId) ppAdmin.bulkSearchBusy = false; }
+    }
+
+    function ppAdminRenderSingle() {
+      const root = $pp('ppAdminSingleResults'); if (!root) return;
+      root.innerHTML = '';
+      if (!ppAdmin.singleResults.length) { root.innerHTML = '<div class="pp-admin-empty">Nenhum resultado válido ainda.</div>'; return; }
+      ppAdmin.singleResults.slice(0, PP_ADMIN_MAX_SINGLE_RESULTS).forEach(item => {
+        const row = document.createElement('article'); row.className='pp-admin-result';
+        row.innerHTML = `<div><div class="pp-admin-result-title">${ppAdminEscape(item.title)}</div><div class="pp-admin-result-meta">${ppAdminEscape(item.artist)} • ${ppAdminEscape(item.style || 'Música brasileira')}</div><div class="pp-admin-result-lyrics">${ppAdminEscape(item.lyrics)}</div><div class="pp-admin-result-source">${ppAdminEscape(item.source || '')}</div></div><div class="pp-admin-result-actions"><button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-single-use="${ppAdminEscape(item.id)}" type="button">Usar no cadastro</button></div>`;
+        root.appendChild(row);
+      });
+    }
+
+    function ppAdminRenderBulk() {
+      const root = $pp('ppAdminBulkResults'); if (!root) return;
+      root.innerHTML='';
+      $pp('ppAdminBulkSelectionCount').textContent=`${ppAdmin.bulkSelected.size} selecionada${ppAdmin.bulkSelected.size===1?'':'s'}`;
+      if (!ppAdmin.bulkResults.length) { root.innerHTML='<div class="pp-admin-empty">Nenhum resultado válido ainda.</div>'; return; }
+      ppAdmin.bulkResults.slice(0, PP_ADMIN_MAX_BULK_RESULTS).forEach(item => {
+        const row=document.createElement('article'); row.className='pp-admin-result'+(ppAdmin.bulkSelected.has(String(item.id))?' selected':'');
+        row.innerHTML=`<input type="checkbox" ${ppAdmin.bulkSelected.has(String(item.id))?'checked':''} data-pp-admin-bulk-select="${ppAdminEscape(item.id)}" aria-label="Selecionar música"><div><div class="pp-admin-result-title">${ppAdminEscape(item.title)}</div><div class="pp-admin-result-meta">${ppAdminEscape(item.artist)} • ${ppAdminEscape(item.style || 'Música brasileira')}</div><div class="pp-admin-result-lyrics">${ppAdminEscape(item.lyrics)}</div><div class="pp-admin-result-source">${ppAdminEscape(item.source || '')}</div></div>`;
+        root.appendChild(row);
+      });
+    }
+
+    function ppAdminSelectAllBulk() {
+      const all = ppAdmin.bulkResults.length && ppAdmin.bulkResults.every(item => ppAdmin.bulkSelected.has(String(item.id)));
+      if (all) ppAdmin.bulkSelected.clear();
+      else ppAdmin.bulkResults.forEach(item => ppAdmin.bulkSelected.add(String(item.id)));
+      ppAdminRenderBulk();
+    }
+
+    async function ppAdminAddSelectedBulk() {
+      const chosen = ppAdmin.bulkResults.filter(item => ppAdmin.bulkSelected.has(String(item.id))).slice(0, PP_ADMIN_MAX_BULK_RESULTS);
+      if (!chosen.length) { ppAdminSetStatus('ppAdminBulkStatus','Selecione pelo menos uma música.','warn'); return; }
+      try {
+        await ppAdminLoadCatalog();
+        const personal = ppAdminPersonalKeys();
+        const freshSeen = new Set(ppAdmin.catalog.map(song => ppAdminSongIdentity(song.title, song.artist)).filter(Boolean));
+        const validated = chosen.filter(item => {
+          const key = ppAdminSongIdentity(ppAdminCleanSearchTitle(item.title), item.artist);
+          return key && !freshSeen.has(key) && !personal.has(key);
+        }).slice(0, PP_ADMIN_MAX_BULK_RESULTS);
+        if (!validated.length) { ppAdminSetStatus('ppAdminBulkStatus','Nenhuma das selecionadas continua disponível após a nova validação.','warn'); return; }
+        ppAdminSetStatus('ppAdminBulkStatus', `Enviando ${validated.length} música(s) ao catálogo principal...`, '');
+        const data = await ppAdminRequest('addBulkCatalogSongs', { musicas: validated.map(item => ({ id:String(item.id), title:ppAdminCleanSearchTitle(item.title), artist:item.artist, style:item.style || 'Música brasileira', note:'', lyrics:item.lyrics })) });
+        await ppAdminLoadCatalog();
+        ppAdmin.bulkSelected.clear();
+        ppAdminRenderBulk();
+        ppAdminSetStatus('ppAdminBulkStatus', `✅ ${Number(data.adicionadas || validated.length)} música(s) cadastrada(s) no catálogo principal.`, 'success');
+      } catch (error) { ppAdminSetStatus('ppAdminBulkStatus','❌ ' + error.message,'error'); }
+    }
+
+    function ppAdminUseSingleResult(id) {
+      const item = ppAdmin.singleResults.find(result => String(result.id) === String(id));
+      if (!item) return;
+      ppAdminSwitchTab('register');
+      ppAdmin.editingCatalogId='';
+      $pp('ppAdminEditingBadge').textContent='Novo';
+      $pp('ppAdminFormTitle').value=item.title;
+      $pp('ppAdminFormArtist').value=item.artist;
+      $pp('ppAdminFormStyle').value=item.style || 'Música brasileira';
+      $pp('ppAdminFormKey').value='';
+      $pp('ppAdminFormLyrics').value=item.lyrics;
+      ppAdminSetStatus('ppAdminManualStatus','✅ Dados válidos preenchidos no cadastro manual.','success');
+      $pp('ppAdminFormTitle')?.focus();
+    }
+
+    function ppAdminDownloadCatalog() {
+      const blob = new Blob([JSON.stringify(ppAdmin.catalog, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'catalogo.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function ppAdminLogin() {
+      const user = String($pp('ppAdminLoginUser')?.value || '').trim();
+      const pass = String($pp('ppAdminLoginPass')?.value || '');
+      if (user !== PP_ADMIN_LOGIN_USER || pass !== PP_ADMIN_LOGIN_PASS) {
+        ppAdminSetStatus('ppAdminLoginStatus', 'Usuário ou senha inválidos.', 'error');
+        return;
+      }
+      ppAdmin.logged = true;
+      try { sessionStorage.setItem(PP_ADMIN_SESSION_KEY, '1'); } catch (_) {}
+      ppAdminOpenApp();
+    }
+
+    function ppAdminOpenApp() {
+      $pp('ppAdminLogin')?.classList.add('hidden');
+      $pp('ppAdminApp')?.classList.remove('hidden');
+      ppAdminSwitchTab('catalog');
+      ppAdminRefreshAll().catch(error => ppAdminSetStatus('ppAdminGlobalStatus', '❌ ' + error.message, 'error'));
+    }
+
+    function ppAdminLogout() {
+      ppAdmin.logged = false;
+      try { sessionStorage.removeItem(PP_ADMIN_SESSION_KEY); } catch (_) {}
+      ppAdmin.selected.clear();
+      ppAdmin.receivedSelected.clear();
+      ppAdmin.bulkSelected.clear();
+      $pp('ppAdminApp')?.classList.add('hidden');
+      $pp('ppAdminLogin')?.classList.remove('hidden');
+      $pp('ppAdminLoginPass').value = '';
+      ppAdminSetStatus('ppAdminLoginStatus', '', '');
+    }
+
+    function ppAdminInitializeEvents() {
+      if (ppAdmin.initialized) return;
+      ppAdmin.initialized = true;
+
+      $pp('ppAdminLoginBtn')?.addEventListener('click', ppAdminLogin);
+      $pp('ppAdminLoginPass')?.addEventListener('keydown', event => { if (event.key === 'Enter') ppAdminLogin(); });
+      $pp('ppAdminModalCloseBtn')?.addEventListener('click', closeAdminModal);
+      $pp('ppAdminModal')?.addEventListener('click', event => { if (event.target.id === 'ppAdminModal') closeAdminModal(); });
+
+      document.querySelectorAll('[data-pp-admin-tab]').forEach(btn => btn.addEventListener('click', () => ppAdminSwitchTab(btn.dataset.ppAdminTab)));
+      document.querySelectorAll('[data-pp-admin-filter]').forEach(btn => btn.addEventListener('click', () => {
+        ppAdmin.filter = btn.dataset.ppAdminFilter || 'all';
+        document.querySelectorAll('[data-pp-admin-filter]').forEach(b => b.classList.toggle('active', b === btn));
+        ppAdminRenderCatalog();
+      }));
+
+      $pp('ppAdminRefreshBtn')?.addEventListener('click', ppAdminRefreshAll);
+      $pp('ppAdminLogoutBtn')?.addEventListener('click', ppAdminLogout);
+      $pp('ppAdminCloseBtn')?.addEventListener('click', closeIntegratedAdminToSupport);
+      $pp('ppAdminLoginCloseBtn')?.addEventListener('click', closeIntegratedAdminToSupport);
+      $pp('ppAdminCatalogRefreshBtn')?.addEventListener('click', () => ppAdminLoadCatalog().catch(e => ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + e.message, 'error')));
+      $pp('ppAdminRefreshReceivedBtn')?.addEventListener('click', ppAdminLoadReceived);
+      
+      $pp('ppAdminNewSongBtn')?.addEventListener('click', () => { ppAdminSwitchTab('register'); ppAdminClearManualForm(); $pp('ppAdminFormTitle').focus(); });
+      $pp('ppAdminRemoveDuplicatesBtn')?.addEventListener('click', ppAdminRemoveDuplicates);
+      $pp('ppAdminDownloadCatalogBtn')?.addEventListener('click', ppAdminDownloadCatalog);
+      $pp('ppAdminSelectAllBtn')?.addEventListener('click', ppAdminSelectAllCatalog);
+      $pp('ppAdminClearSelectionBtn')?.addEventListener('click', ppAdminClearCatalogSelection);
+      $pp('ppAdminChangeStyleBtn')?.addEventListener('click', ppAdminChangeStyle);
+      $pp('ppAdminDeleteSelectedBtn')?.addEventListener('click', ppAdminDeleteSelectedCatalog);
+      $pp('ppAdminCatalogSearch')?.addEventListener('input', ppAdminRenderCatalog);
+      $pp('ppAdminBulkSearchBtn')?.addEventListener('click', ppAdminBulkSearch);
+      $pp('ppAdminSingleSearchBtn')?.addEventListener('click', ppAdminSingleSearch);
+      $pp('ppAdminSingleQuery')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); ppAdminSingleSearch(); }});
+      $pp('ppAdminSingleClearBtn')?.addEventListener('click', () => { ppAdmin.singleResults=[]; $pp('ppAdminSingleQuery').value=''; ppAdminRenderSingle(); ppAdminSetStatus('ppAdminSingleStatus','Resultados limpos.',''); });
+      $pp('ppAdminBulkQuery')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); ppAdminBulkSearch(); }});
+      $pp('ppAdminBulkClearBtn')?.addEventListener('click', () => { ppAdmin.bulkResults=[]; ppAdmin.bulkSelected.clear(); $pp('ppAdminBulkQuery').value=''; ppAdminRenderBulk(); ppAdminSetStatus('ppAdminBulkStatus','Resultados limpos.',''); });
+      $pp('ppAdminBulkSelectAllBtn')?.addEventListener('click', ppAdminSelectAllBulk);
+      $pp('ppAdminBulkClearSelectionBtn')?.addEventListener('click', () => { ppAdmin.bulkSelected.clear(); ppAdminRenderBulk(); });
+      $pp('ppAdminBulkAddBtn')?.addEventListener('click', ppAdminAddSelectedBulk);
+      $pp('ppAdminSaveManualBtn')?.addEventListener('click', ppAdminSaveCatalogForm);
+      $pp('ppAdminClearManualBtn')?.addEventListener('click', ppAdminClearManualForm);
+      $pp('ppAdminReceivedSelectAllBtn')?.addEventListener('click', ppAdminSelectAllReceived);
+      $pp('ppAdminReceivedClearSelectionBtn')?.addEventListener('click', ppAdminClearReceivedSelection);
+      $pp('ppAdminReceivedApproveBtn')?.addEventListener('click', ppAdminApproveSelectedReceived);
+
+      $pp('ppAdminCatalogList')?.addEventListener('click', event => {
+        const view = event.target.closest('[data-pp-admin-view]');
+        const edit = event.target.closest('[data-pp-admin-edit]');
+        const toggle = event.target.closest('[data-pp-admin-toggle]');
+        const del = event.target.closest('[data-pp-admin-delete]');
+        const checkbox = event.target.closest('[data-pp-admin-select]');
+        if (checkbox) { ppAdminSelectCatalog(checkbox.dataset.ppAdminSelect, checkbox.checked); return; }
+        if (view) { ppAdminViewCatalog(view.dataset.ppAdminView); return; }
+        if (edit) { ppAdminBeginCatalogEdit(edit.dataset.ppAdminEdit); return; }
+        if (toggle) { ppAdminToggleCatalog(toggle.dataset.ppAdminToggle); return; }
+        if (del) { ppAdminDeleteCatalog(del.dataset.ppAdminDelete); return; }
+      });
+
+      $pp('ppAdminSingleResults')?.addEventListener('click', event => {
+        const use = event.target.closest('[data-pp-admin-single-use]');
+        if (use) ppAdminUseSingleResult(use.dataset.ppAdminSingleUse);
+      });
+
+      $pp('ppAdminBulkResults')?.addEventListener('change', event => {
+        const checkbox = event.target.closest('[data-pp-admin-bulk-select]');
+        if (!checkbox) return;
+        const id = String(checkbox.dataset.ppAdminBulkSelect);
+        if (checkbox.checked) ppAdmin.bulkSelected.add(id); else ppAdmin.bulkSelected.delete(id);
+        ppAdminRenderBulk();
+      });
+
+      $pp('ppAdminReceivedList')?.addEventListener('click', event => {
+        const view = event.target.closest('[data-pp-admin-received-view]');
+        const pdf = event.target.closest('[data-pp-admin-received-pdf]');
+        const edit = event.target.closest('[data-pp-admin-received-edit]');
+        const approve = event.target.closest('[data-pp-admin-received-approve]');
+        const del = event.target.closest('[data-pp-admin-received-delete]');
+        if (view) { ppAdminViewReceived(Number(view.dataset.ppAdminReceivedView)); return; }
+        if (pdf) {
+          const item = ppAdmin.received[Number(pdf.dataset.ppAdminReceivedPdf)];
+          const url = item?.pdfUrl || (item?.pdfFileId ? ('https://drive.google.com/file/d/' + encodeURIComponent(item.pdfFileId) + '/view') : '');
+          if (url && typeof viewPdf === 'function') viewPdf(url); else showToast('PDF não disponível para visualização.', 1800);
+          return;
+        }
+        if (edit) { ppAdminOpenReceivedEditor(Number(edit.dataset.ppAdminReceivedEdit)); return; }
+        if (approve) { ppAdminApproveReceived(Number(approve.dataset.ppAdminReceivedApprove)); return; }
+        if (del) { ppAdminDeleteReceived(Number(del.dataset.ppAdminReceivedDelete)); return; }
+      });
+
+      $pp('ppAdminReceivedList')?.addEventListener('change', event => {
+        const cb = event.target.closest('.pp-admin-received input[type="checkbox"]');
+        if (!cb) return;
+        const index = Number(cb.dataset.ppAdminReceivedSelect);
+        if (cb.checked) ppAdmin.receivedSelected.add(index); else ppAdmin.receivedSelected.delete(index);
+        ppAdminRenderReceived();
+      });
+    }
+
+    function ppAdminInjectReceivedSelection() {
+      // Mantém a seleção de recebidos na mesma linha, sem alterar o visual principal.
+      $pp('ppAdminReceivedList')?.querySelectorAll('.pp-admin-received').forEach((row, index) => {
+        if (row.querySelector('[data-pp-admin-received-select]')) return;
+        const top = row.querySelector('.pp-admin-received-top');
+        if (!top) return;
+        const titleBlock = top.firstElementChild;
+        if (!titleBlock) return;
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'pp-admin-received-select';
+        cb.dataset.ppAdminReceivedSelect = String(index);
+        cb.checked = ppAdmin.receivedSelected.has(index);
+        cb.style.cssText = 'margin-right:8px;vertical-align:middle;accent-color:#72c6ff;';
+        titleBlock.prepend(cb);
+      });
+    }
+
+    const _ppAdminOriginalRenderReceived = ppAdminRenderReceived;
+    ppAdminRenderReceived = function() {
+      _ppAdminOriginalRenderReceived();
+      ppAdminInjectReceivedSelection();
+    };
+
+    function initializeIntegratedAdmin() {
+      ppAdminInitializeEvents();
+      let persisted=false;
+      try { persisted=sessionStorage.getItem(PP_ADMIN_SESSION_KEY)==='1'; } catch (_) {}
+      if (persisted) { ppAdmin.logged=true; ppAdminOpenApp(); }
+      else { $pp('ppAdminApp')?.classList.add('hidden'); $pp('ppAdminLogin')?.classList.remove('hidden'); $pp('ppAdminLoginUser')?.focus(); }
+    }
+
+    function openIntegratedAdmin() {
+      hidePanel();
+      hideMusicSearchPanel();
+      if (supportContactPanel) supportContactPanel.classList.add('open');
+      if (appVersionValue) appVersionValue.textContent = 'v' + APP_VERSION;
+      const root=$pp('ppAdminRoot');
+      const supportView=$pp('supportContactView');
+      if (supportView) supportView.style.display='none';
+      if (root) { root.classList.add('pp-admin-open'); root.setAttribute('aria-hidden','false'); }
+      initializeIntegratedAdmin();
+    }
+
+    function closeIntegratedAdminToSupport() {
+      closeAdminModal();
+      const root=$pp('ppAdminRoot');
+      const supportView=$pp('supportContactView');
+      if (root) { root.classList.remove('pp-admin-open'); root.setAttribute('aria-hidden','true'); }
+      if (supportView) supportView.style.display='block';
+    }
+
+
+</script>
 </body>
 </html>
