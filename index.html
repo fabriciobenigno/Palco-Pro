@@ -8138,27 +8138,37 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       return data;
     }
 
-    function ppAdminStableLegacyId(title, artist) {
-      const key = ppAdminSongIdentity(title, artist) || 'sem-identidade';
-      return 'legacy-' + encodeURIComponent(key).replace(/%/g, '_').slice(0, 180);
-    }
-
     function ppAdminNormalizeSong(song) {
       const s = song || {};
-      const title = String(s.title || s.song_title || s.musica || 'Sem título').trim();
-      const artist = String(s.artist || s.artista || '').trim();
-      const suppliedId = String(s.id == null ? '' : s.id).trim();
       return {
-        id: suppliedId || ppAdminStableLegacyId(title, artist),
-        title,
-        artist,
+        id: String(s.id || '').trim(),
+        title: String(s.title || s.song_title || s.musica || 'Sem título').trim(),
+        artist: String(s.artist || s.artista || '').trim(),
         style: String(s.style || s.estilo || '').trim(),
         note: String(s.note || s.tom || s.tone || s.key || '').trim(),
         lyrics: sanitizeLyrics(String(s.lyrics || s.letra || '')),
         active: s.active !== false,
         pdfUrl: String(s.pdfUrl || '').trim(),
-        pdfFileName: String(s.pdfFileName || '').trim()
+        pdfFileName: String(s.pdfFileName || '').trim(),
+        pdfFileId: String(s.pdfFileId || s.pdfDriveFileId || '').trim()
       };
+    }
+
+    function ppAdminCatalogRef(song) {
+      const id = String(song?.id || '').trim();
+      if (id) return 'id:' + id;
+      return 'ta:' + ppAdminSongIdentity(song?.title, song?.artist);
+    }
+
+    function ppAdminFindCatalogSong(ref) {
+      const key = String(ref || '');
+      if (key.indexOf('id:') === 0) return ppAdmin.catalog.find(song => String(song.id || '') === key.slice(3)) || null;
+      if (key.indexOf('ta:') === 0) return ppAdmin.catalog.find(song => ppAdminSongIdentity(song.title, song.artist) === key.slice(3)) || null;
+      return ppAdmin.catalog.find(song => String(song.id || '') === key) || null;
+    }
+
+    function ppAdminCatalogLocator(song) {
+      return { id:String(song?.id || '').trim(), title:String(song?.title || '').trim(), artist:String(song?.artist || '').trim() };
     }
 
     function ppAdminNormalizeReceived(item) {
@@ -8237,18 +8247,15 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       $pp('ppAdminCatalogSearchCount').textContent = `${list.length} resultado${list.length === 1 ? '' : 's'}`;
       $pp('ppAdminCatalogBulkCount').textContent = `${ppAdmin.selected.size} selecionada${ppAdmin.selected.size === 1 ? '' : 's'}`;
       $pp('ppAdminCatalogBulkBar').classList.toggle('active', ppAdmin.selected.size > 0);
-
-      if (!list.length) {
-        root.innerHTML = '<div class="pp-admin-empty">Nenhuma música encontrada neste filtro.</div>';
-        return;
-      }
-
+      if (!list.length) { root.innerHTML = '<div class="pp-admin-empty">Nenhuma música encontrada neste filtro.</div>'; return; }
       list.forEach(song => {
+        const ref = ppAdminCatalogRef(song);
+        const selected = ppAdmin.selected.has(ref);
         const row = document.createElement('article');
-        row.className = 'pp-admin-song' + (ppAdmin.selected.has(String(song.id)) ? ' selected' : '');
+        row.className = 'pp-admin-song' + (selected ? ' selected' : '');
         const status = song.active === false ? 'Inativa' : 'Ativa';
         row.innerHTML = `
-          <input type="checkbox" ${ppAdmin.selected.has(String(song.id)) ? 'checked' : ''} data-pp-admin-select="${ppAdminEscape(song.id)}" aria-label="Selecionar música">
+          <input type="checkbox" ${selected ? 'checked' : ''} data-pp-admin-select="${ppAdminEscape(ref)}" aria-label="Selecionar música">
           <div class="pp-admin-song-main">
             <div class="pp-admin-song-title">${ppAdminEscape(song.title)}</div>
             <div class="pp-admin-song-meta">${ppAdminEscape(song.artist || 'Sem artista')}${song.style ? ' • ' + ppAdminEscape(song.style) : ''}${song.note ? ' • Tom: ' + ppAdminEscape(song.note) : ''}</div>
@@ -8256,26 +8263,26 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           </div>
           <div class="pp-admin-song-actions">
             <span class="pp-admin-badge ${song.active === false ? 'pp-admin-badge-amber' : 'pp-admin-badge-green'}">${status}</span>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-view="${ppAdminEscape(song.id)}" type="button">Ver</button>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-edit="${ppAdminEscape(song.id)}" type="button">Editar</button>
-            <button class="pp-admin-btn pp-admin-btn-small ${song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'}" data-pp-admin-toggle="${ppAdminEscape(song.id)}" type="button">${song.active === false ? 'Ativar' : 'Desativar'}</button>
-            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-delete="${ppAdminEscape(song.id)}" type="button">Excluir</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-secondary" data-pp-admin-view="${ppAdminEscape(ref)}" type="button">Ver</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-edit="${ppAdminEscape(ref)}" type="button">Editar</button>
+            <button class="pp-admin-btn pp-admin-btn-small ${song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'}" data-pp-admin-toggle="${ppAdminEscape(ref)}" type="button">${song.active === false ? 'Ativar' : 'Desativar'}</button>
+            <button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-danger" data-pp-admin-delete="${ppAdminEscape(ref)}" type="button">Excluir</button>
           </div>`;
         root.appendChild(row);
       });
     }
 
-    function ppAdminSelectCatalog(id, checked) {
-      const key = String(id || '');
+    function ppAdminSelectCatalog(ref, checked) {
+      const key = String(ref || '');
       if (checked) ppAdmin.selected.add(key); else ppAdmin.selected.delete(key);
       ppAdminRenderCatalog();
     }
 
     function ppAdminSelectAllCatalog() {
       const visible = ppAdminFilteredCatalog();
-      const allSelected = visible.length && visible.every(song => ppAdmin.selected.has(String(song.id)));
-      if (allSelected) visible.forEach(song => ppAdmin.selected.delete(String(song.id)));
-      else visible.forEach(song => ppAdmin.selected.add(String(song.id)));
+      const allSelected = visible.length && visible.every(song => ppAdmin.selected.has(ppAdminCatalogRef(song)));
+      if (allSelected) visible.forEach(song => ppAdmin.selected.delete(ppAdminCatalogRef(song)));
+      else visible.forEach(song => ppAdmin.selected.add(ppAdminCatalogRef(song)));
       ppAdminRenderCatalog();
     }
 
@@ -8311,185 +8318,121 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       ]);
     }
 
-    function ppAdminViewCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
+    function ppAdminViewCatalog(ref) {
+      const song = ppAdminFindCatalogSong(ref);
+      if (!song) { ppAdminSetStatus('ppAdminCatalogStatus', 'A música não está mais no catálogo carregado. Atualize o catálogo.', 'warn'); return; }
       ppAdminOpenModal('Detalhes da música', `
-        <div class="pp-admin-detail"><label>ID</label><div>${ppAdminEscape(song.id)}</div></div>
+        <div class="pp-admin-detail"><label>ID</label><div>${ppAdminEscape(song.id || 'Sem ID')}</div></div>
         <div class="pp-admin-detail"><label>Título</label><div>${ppAdminEscape(song.title)}</div></div>
         <div class="pp-admin-detail"><label>Artista</label><div>${ppAdminEscape(song.artist || 'Não informado')}</div></div>
         <div class="pp-admin-detail"><label>Estilo / Tom</label><div>${ppAdminEscape(song.style || 'Não informado')} • ${ppAdminEscape(song.note || 'Não informado')}</div></div>
         <div class="pp-admin-detail"><label>Status</label><div>${song.active === false ? 'Inativa' : 'Ativa'}</div></div>
-        <div class="pp-admin-detail"><label>Letra completa</label><div>${ppAdminEscape(song.lyrics || 'Sem letra')}</div></div>
+        <div class="pp-admin-detail"><label>Letra completa</label><div style="white-space:pre-wrap">${ppAdminEscape(song.lyrics || 'Sem letra')}</div></div>
         <div class="pp-admin-detail"><label>PDF</label><div>${song.pdfUrl ? '📄 PDF cadastrado' : 'Nenhum PDF cadastrado'}</div></div>`,
         [
           { text: 'Fechar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-          { text: 'Editar', action: () => { closeAdminModal(); ppAdminBeginCatalogEdit(song.id); }, cls: 'pp-admin-btn-primary' }
+          { text: 'Editar', action: () => { closeAdminModal(); ppAdminBeginCatalogEdit(ppAdminCatalogRef(song)); }, cls: 'pp-admin-btn-primary' }
         ].concat(song.pdfUrl && typeof viewPdf === 'function' ? [{ text: 'Ver PDF', action: () => viewPdf(song.pdfUrl), cls: 'pp-admin-btn-secondary' }] : [])
       );
     }
 
-    async function ppAdminBeginCatalogEdit(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-
-      // Edição do catálogo acontece dentro do próprio painel do catálogo.
-      // Não troca de aba e não reutiliza o formulário de cadastro.
-      const body = `
-        <div class="pp-admin-form-grid" style="display:grid;gap:12px;">
-          <div class="pp-admin-field"><label for="ppAdminEditModalTitle">Título</label><input id="ppAdminEditModalTitle" type="text" value="${ppAdminEscape(song.title)}" /></div>
-          <div class="pp-admin-two"><div class="pp-admin-field"><label for="ppAdminEditModalArtist">Artista</label><input id="ppAdminEditModalArtist" type="text" value="${ppAdminEscape(song.artist)}" /></div><div class="pp-admin-field"><label for="ppAdminEditModalStyle">Estilo</label><input id="ppAdminEditModalStyle" type="text" value="${ppAdminEscape(song.style)}" /></div></div>
-          <div class="pp-admin-field"><label for="ppAdminEditModalKey">Tom</label><input id="ppAdminEditModalKey" type="text" maxlength="20" value="${ppAdminEscape(song.note)}" /></div>
-          <div class="pp-admin-field"><label for="ppAdminEditModalLyrics">Letra completa</label><textarea id="ppAdminEditModalLyrics" style="min-height:280px;">${ppAdminEscape(song.lyrics)}</textarea></div>
-          <div class="pp-admin-detail"><label>Registro</label><div>ID: ${ppAdminEscape(song.id)}<br>Artista: ${ppAdminEscape(song.artist || 'Não informado')}</div></div>
-        </div>`;
-
-      ppAdminOpenModal('Editar música do catálogo principal', body, [
-        { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
-        { text: 'Salvar alterações', action: () => ppAdminSaveCatalogModalEdit(song), cls: 'pp-admin-btn-primary' }
-      ]);
-      setTimeout(() => $pp('ppAdminEditModalTitle')?.focus(), 0);
+    function ppAdminBeginCatalogEdit(ref) {
+      const song = ppAdminFindCatalogSong(ref);
+      if (!song) { ppAdminSetStatus('ppAdminCatalogStatus', 'A música não foi encontrada no catálogo carregado. Atualize e tente novamente.', 'error'); return; }
+      const editRef = ppAdminCatalogRef(song);
+      ppAdminOpenModal('Editar música', `
+        <div class="pp-admin-edit-grid">
+          <div class="pp-admin-field"><label for="ppAdminEditTitle">Título</label><input id="ppAdminEditTitle" type="text" value="${ppAdminEscape(song.title)}"></div>
+          <div class="pp-admin-field"><label for="ppAdminEditArtist">Artista</label><input id="ppAdminEditArtist" type="text" value="${ppAdminEscape(song.artist)}"></div>
+          <div class="pp-admin-field"><label for="ppAdminEditStyle">Estilo</label><input id="ppAdminEditStyle" type="text" value="${ppAdminEscape(song.style)}"></div>
+          <div class="pp-admin-field"><label for="ppAdminEditKey">Tom</label><input id="ppAdminEditKey" type="text" value="${ppAdminEscape(song.note)}"></div>
+          <div class="pp-admin-field pp-admin-edit-full"><label for="ppAdminEditLyrics">Letra completa</label><textarea id="ppAdminEditLyrics" rows="15">${ppAdminEscape(song.lyrics)}</textarea></div>
+          <div class="pp-admin-status pp-admin-edit-full" id="ppAdminEditStatus"></div>
+        </div>`,
+        [
+          { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
+          { text: 'Salvar alterações', action: async () => {
+              const title = ppAdminCleanSearchTitle($pp('ppAdminEditTitle')?.value || '');
+              const artist = String($pp('ppAdminEditArtist')?.value || '').trim();
+              const style = String($pp('ppAdminEditStyle')?.value || '').trim();
+              const note = String($pp('ppAdminEditKey')?.value || '').trim();
+              const lyrics = ppAdminFormatValidatedLyrics($pp('ppAdminEditLyrics')?.value || '');
+              const status = $pp('ppAdminEditStatus');
+              if (!title || !artist || !style || !lyrics) { if(status){status.textContent='Informe título, artista, estilo e letra completa.';status.className='pp-admin-status error';} return; }
+              const identity = ppAdminSongIdentity(title, artist);
+              const duplicate = ppAdmin.catalog.find(item => ppAdminSongIdentity(item.title,item.artist)===identity && ppAdminCatalogRef(item)!==editRef);
+              if (duplicate) { if(status){status.textContent='Esta música já existe no catálogo para este artista.';status.className='pp-admin-status error';} return; }
+              if(status){status.textContent='Salvando diretamente no catalogo.json principal...';status.className='pp-admin-status';}
+              try {
+                const data=await ppAdminRequest('updateCatalogSong',{id:String(song.id||''),lookupTitle:String(song.title||''),lookupArtist:String(song.artist||''),title,artist,style,note,lyrics});
+                ppAdmin.catalog=Array.isArray(data.catalogo)?data.catalogo.map(ppAdminNormalizeSong):[];
+                ppAdmin.selected.clear(); closeAdminModal(); ppAdminRenderCatalog();
+                ppAdminSetStatus('ppAdminCatalogStatus','✅ Música editada diretamente no catálogo principal.','success');
+              } catch(error) { if(status){status.textContent='❌ '+error.message;status.className='pp-admin-status error';} }
+            }, cls: 'pp-admin-btn-primary' }
+        ]
+      );
     }
 
-    async function ppAdminSaveCatalogModalEdit(originalSong) {
-      if (!originalSong || ppAdmin.requestBusy) return;
-      const title = ppAdminCleanSearchTitle(String($pp('ppAdminEditModalTitle')?.value || '').trim());
-      const artist = String($pp('ppAdminEditModalArtist')?.value || '').trim();
-      const style = String($pp('ppAdminEditModalStyle')?.value || '').trim();
-      const note = String($pp('ppAdminEditModalKey')?.value || '').trim();
-      const lyrics = ppAdminFormatValidatedLyrics($pp('ppAdminEditModalLyrics')?.value || '');
-      if (!title || !artist || !style || !lyrics) {
-        ppAdminSetStatus('ppAdminCatalogStatus', 'Informe título, artista, estilo e letra completa.', 'error');
-        return;
-      }
-
-      const originalId = String(originalSong.id || '');
-      const originalTitle = String(originalSong.title || '');
-      const originalArtist = String(originalSong.artist || '');
-      const editingSameRecord = (item) => {
-        if (!item) return false;
-        if (originalId && !String(originalId).startsWith('legacy-') && String(item.id) === originalId) return true;
-        return ppAdminSongIdentity(item.title, item.artist) === ppAdminSongIdentity(originalTitle, originalArtist);
-      };
-
-      ppAdmin.requestBusy = true;
-      try {
+    async function ppAdminToggleCatalog(ref) {
+      const song=ppAdminFindCatalogSong(ref); if(!song)return;
+      ppAdminConfirm(song.active===false?'Ativar música':'Desativar música',`Alterar o status de <strong>${ppAdminEscape(song.title)}</strong> no catálogo público?`,async()=>{
         closeAdminModal();
-        ppAdminSetStatus('ppAdminCatalogStatus', 'Salvando alterações no catálogo principal...', '');
-        await ppAdminLoadCatalog();
-        const remoteSame = ppAdmin.catalog.find(editingSameRecord);
-        if (!remoteSame) {
-          throw new Error('A música selecionada não está mais no catálogo remoto. Atualize o catálogo e tente novamente.');
-        }
-        const duplicate = ppAdmin.catalog.find(item => !editingSameRecord(item) && ppAdminIsDuplicate(item, { title, artist }));
-        if (duplicate) throw new Error('Esta música já existe no catálogo para este artista.');
-
-        const data = await ppAdminRequest('updateCatalogSong', {
-          id: originalId,
-          originalTitle,
-          originalArtist,
-          title,
-          artist,
-          style,
-          note,
-          lyrics
-        });
-
-        if (Array.isArray(data.catalogo)) ppAdmin.catalog = data.catalogo.map(ppAdminNormalizeSong);
-        else await ppAdminLoadCatalog();
-        ppAdminRenderCatalog();
-        ppAdminSetStatus('ppAdminCatalogStatus', '✅ Música atualizada no catálogo principal.', 'success');
-      } catch (error) {
-        ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-      } finally {
-        ppAdmin.requestBusy = false;
-      }
+        try{
+          ppAdminSetStatus('ppAdminCatalogStatus','Salvando alteração no catálogo principal...','');
+          const data=await ppAdminRequest('toggleCatalogSong',{id:String(song.id||''),title:String(song.title||''),artist:String(song.artist||''),active:song.active===false});
+          ppAdmin.catalog=Array.isArray(data.catalogo)?data.catalogo.map(ppAdminNormalizeSong):await ppAdminLoadCatalog();
+          ppAdmin.selected.clear(); ppAdminRenderCatalog(); ppAdminSetStatus('ppAdminCatalogStatus','✅ Status atualizado no catálogo principal.','success');
+        }catch(error){ppAdminSetStatus('ppAdminCatalogStatus','❌ '+error.message,'error');}
+      },song.active===false?'Ativar':'Desativar',song.active===false?'pp-admin-btn-success':'pp-admin-btn-amber');
     }
 
-    async function ppAdminToggleCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminConfirm(song.active === false ? 'Ativar música' : 'Desativar música',
-        `Alterar o status de <strong>${ppAdminEscape(song.title)}</strong> no catálogo público?`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminCatalogStatus', 'Salvando alteração no catálogo principal...', '');
-            const data = await ppAdminRequest('toggleCatalogSong', { id: String(song.id), originalTitle: String(song.title || ''), originalArtist: String(song.artist || ''), active: song.active === false });
-            if (Array.isArray(data.catalogo)) ppAdmin.catalog = data.catalogo.map(ppAdminNormalizeSong);
-            else await ppAdminLoadCatalog();
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Status atualizado no catálogo principal.', 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        song.active === false ? 'Ativar' : 'Desativar',
-        song.active === false ? 'pp-admin-btn-success' : 'pp-admin-btn-amber'
-      );
-    }
-
-    async function ppAdminDeleteCatalog(id) {
-      const song = ppAdmin.catalog.find(s => String(s.id) === String(id));
-      if (!song) return;
-      ppAdminConfirm('Excluir música',
-        `Excluir <strong>${ppAdminEscape(song.title)}</strong> do catálogo público?<br><br>Esta ação remove somente esta música.`,
-        async () => {
-          closeAdminModal();
-          try {
-            ppAdminSetStatus('ppAdminCatalogStatus', 'Excluindo música do catálogo principal...', '');
-            const data = await ppAdminRequest('deleteCatalogSong', { id: String(song.id), originalTitle: String(song.title || ''), originalArtist: String(song.artist || '') });
-            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-            ppAdmin.selected.delete(String(song.id));
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', '✅ Música excluída do catálogo principal.', 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        'Excluir'
-      );
+    async function ppAdminDeleteCatalog(ref) {
+      const song=ppAdminFindCatalogSong(ref); if(!song)return;
+      ppAdminConfirm('Excluir música',`Excluir <strong>${ppAdminEscape(song.title)}</strong> do catálogo público?<br><br>Esta ação remove somente esta música.`,async()=>{
+        closeAdminModal();
+        try{
+          ppAdminSetStatus('ppAdminCatalogStatus','Excluindo música do catálogo principal...','');
+          const data=await ppAdminRequest('deleteCatalogSong',{id:String(song.id||''),title:String(song.title||''),artist:String(song.artist||'')});
+          ppAdmin.catalog=Array.isArray(data.catalogo)?data.catalogo.map(ppAdminNormalizeSong):await ppAdminLoadCatalog();
+          ppAdmin.selected.delete(ppAdminCatalogRef(song)); ppAdminRenderCatalog(); ppAdminSetStatus('ppAdminCatalogStatus','✅ Música excluída do catálogo principal.','success');
+        }catch(error){ppAdminSetStatus('ppAdminCatalogStatus','❌ '+error.message,'error');}
+      },'Excluir');
     }
 
     async function ppAdminDeleteSelectedCatalog() {
-      const ids = Array.from(ppAdmin.selected);
-      if (!ids.length) return;
-      ppAdminConfirm('Excluir selecionadas',
-        `Excluir <strong>${ids.length}</strong> música(s) do catálogo público?`,
-        async () => {
-          closeAdminModal();
-          try {
-            const data = await ppAdminRequest('deleteCatalogSong', { ids });
-            ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
-            ppAdmin.selected.clear();
-            ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${ids.length} música(s) excluída(s).`, 'success');
-          } catch (error) {
-            ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
-          }
-        },
-        'Excluir'
-      );
+      const refs=Array.from(ppAdmin.selected); if(!refs.length)return;
+      const locators=refs.map(ref=>ppAdminFindCatalogSong(ref)).filter(Boolean).map(ppAdminCatalogLocator); if(!locators.length)return;
+      ppAdminConfirm('Excluir selecionadas',`Excluir <strong>${locators.length}</strong> música(s) do catálogo público?`,async()=>{
+        closeAdminModal();
+        try{
+          const data=await ppAdminRequest('deleteCatalogSong',{musicas:locators});
+          ppAdmin.catalog=Array.isArray(data.catalogo)?data.catalogo.map(ppAdminNormalizeSong):[];
+          ppAdmin.selected.clear(); ppAdminRenderCatalog();
+          ppAdminSetStatus('ppAdminCatalogStatus',`✅ ${Number(data.excluidas||locators.length)} música(s) excluída(s).`,'success');
+        }catch(error){ppAdminSetStatus('ppAdminCatalogStatus','❌ '+error.message,'error');}
+      },'Excluir');
     }
 
     async function ppAdminChangeStyle() {
-      const ids = Array.from(ppAdmin.selected);
-      if (!ids.length) return;
+      const refs = Array.from(ppAdmin.selected);
+      const locators = refs.map(ref => ppAdminFindCatalogSong(ref)).filter(Boolean).map(ppAdminCatalogLocator);
+      if (!locators.length) return;
       ppAdminOpenModal('Alterar nome do estilo',
-        `<div class="pp-admin-detail"><label>Músicas selecionadas</label><div>${ids.length}</div></div>
+        `<div class="pp-admin-detail"><label>Músicas selecionadas</label><div>${locators.length}</div></div>
          <div class="pp-admin-field"><label for="ppAdminModalStyle">Novo estilo</label><input id="ppAdminModalStyle" type="text" placeholder="Ex.: Sertanejo"></div>`,
         [
           { text: 'Cancelar', action: closeAdminModal, cls: 'pp-admin-btn-secondary' },
           { text: 'Aplicar', action: async () => {
             const style = String($pp('ppAdminModalStyle')?.value || '').trim();
-            if (!style) { showToast('Informe o novo estilo.', 1800); return; }
+            if (!style) { ppAdminSetStatus('ppAdminCatalogStatus', 'Informe o novo estilo.', 'warn'); return; }
             try {
-              const data = await ppAdminRequest('updateCatalogStyle', { ids, style });
+              const data = await ppAdminRequest('updateCatalogStyle', { musicas: locators, style });
               ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : ppAdmin.catalog;
               ppAdmin.selected.clear();
               closeAdminModal();
               ppAdminRenderCatalog();
-              ppAdminSetStatus('ppAdminCatalogStatus', '✅ Estilo atualizado.', 'success');
+              ppAdminSetStatus('ppAdminCatalogStatus', '✅ Estilo atualizado no catálogo principal.', 'success');
             } catch (error) {
               ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
             }
@@ -8499,26 +8442,28 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
     async function ppAdminRemoveDuplicates() {
       const source = ppAdmin.catalog.slice();
-      const seen = new Map();
-      const dupIds = [];
+      const seen = new Set();
+      const locators = [];
       source.forEach(song => {
-        const key = ppAdminNormalize(song.title) + '||' + ppAdminNormalize(song.artist);
-        if (seen.has(key)) dupIds.push(String(song.id)); else seen.set(key, String(song.id));
+        const key = ppAdminSongIdentity(song.title, song.artist);
+        if (!key) return;
+        if (seen.has(key)) locators.push(ppAdminCatalogLocator(song));
+        else seen.add(key);
       });
-      if (!dupIds.length) {
+      if (!locators.length) {
         ppAdminSetStatus('ppAdminCatalogStatus', 'Nenhuma duplicata por título + artista foi encontrada.', 'success');
         return;
       }
       ppAdminConfirm('Remover músicas copiadas',
-        `Foram encontradas <strong>${dupIds.length}</strong> duplicata(s). Remover somente as cópias e manter a primeira ocorrência?`,
+        `Foram encontradas <strong>${locators.length}</strong> duplicata(s). Remover somente as cópias e manter a primeira ocorrência?`,
         async () => {
           closeAdminModal();
           try {
-            const data = await ppAdminRequest('deleteCatalogSong', { ids: dupIds });
+            const data = await ppAdminRequest('deleteCatalogSong', { musicas: locators });
             ppAdmin.catalog = Array.isArray(data.catalogo) ? data.catalogo.map(ppAdminNormalizeSong) : [];
             ppAdmin.selected.clear();
             ppAdminRenderCatalog();
-            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${dupIds.length} duplicata(s) removida(s).`, 'success');
+            ppAdminSetStatus('ppAdminCatalogStatus', `✅ ${Number(data.excluidas || locators.length)} duplicata(s) removida(s).`, 'success');
           } catch (error) {
             ppAdminSetStatus('ppAdminCatalogStatus', '❌ ' + error.message, 'error');
           }
