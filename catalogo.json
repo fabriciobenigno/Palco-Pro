@@ -11,5 +11,18 @@
     "pdfFileName": "",
     "pdfMimeType": "application/pdf",
     "active": true
+  },
+  {
+    "id": "1c863580-944e-4a39-a317-796f4ffffefd",
+    "title": "Menino bonito",
+    "artist": "Chico",
+    "style": "Mpb",
+    "note": "",
+    "tom": "",
+    "lyrics": "Lindo\nE eu me sinto enfeitiçada, é\nCorrendo perigo\nSeu olhar é simplesmente lindo\nMas também não diz mais nada, é\nMenino bonito\nE então, quero olhar você\nE depois ir embora\n(Ah)\nSem dizer o porquê\nEu sou cigana\n(Ah)\nBasta olhar pra você",
+    "pdfUrl": "",
+    "pdfFileName": "",
+    "pdfMimeType": "application/pdf",
+    "active": true
   }
 ]
