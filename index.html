@@ -704,26 +704,21 @@
       position: fixed; inset: 0; z-index: 30; display: none;
       background: var(--screen-bg); overflow: hidden;
       padding: var(--safe-top) 0 var(--safe-bottom);
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .pdf-viewer-screen.open { display: flex; align-items: center; justify-content: center; }
     .pdf-viewer-page-wrap {
       position: relative;
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       overflow: hidden; background: rgba(0,0,0,0.12);
-    }
-    .pdf-search-all-pages {
-      position: absolute; inset: 0; z-index: 4; display: none; flex-direction: column; align-items: center; gap: 16px;
-      overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-      touch-action: pan-y; padding: 74px 8px 86px; box-sizing: border-box;
-      background: rgba(0,0,0,0.12);
-    }
-    .pdf-search-all-pages.active { display: flex; }
-    .pdf-search-all-pages canvas {
-      display: block; width: min(100%, 595px); height: auto; max-width: 100%; flex: 0 0 auto;
-      background: #fff; box-shadow: 0 14px 40px rgba(0,0,0,0.30);
+      touch-action: none;
+      overscroll-behavior: none;
     }
     .pdf-search-preview-active .pdf-viewer-canvas,
-    .pdf-search-preview-active .page-swipe-preview { display: none !important; }
+    .pdf-search-preview-active .page-swipe-preview { display: block; }
     .pdf-viewer-canvas {
       position: relative; z-index: 2;
       display: block; background: #fff; max-width: 100%; max-height: 100%;
@@ -731,6 +726,9 @@
       transform: translate3d(var(--page-swipe-x, 0px), 0, 0);
       transition: transform 0.28s cubic-bezier(.22,.8,.26,1);
       will-change: transform;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .page-swipe-active .script-inner,
     .page-swipe-active .pdf-viewer-canvas {
@@ -5742,9 +5740,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           target.addEventListener('pointermove', (e) => {
             if (gesture) {
               const p = move(target, e);
+              if (gesture?.axis === 'horizontal' && gesture?.mode === 'pdf') e.preventDefault();
               if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; });
             }
-          });
+          }, { passive: false });
           target.addEventListener('pointerup', (e) => settle(target, e));
           target.addEventListener('pointercancel', (e) => settle(target, e, true));
           return;
@@ -5767,8 +5766,9 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         target.addEventListener('touchmove', (e) => {
           if (!gesture || !e.touches || !e.touches[0]) return;
           const p = move(target, makeTouchEvent(e.touches[0]));
+          if (gesture?.axis === 'horizontal' && gesture?.mode === 'pdf') e.preventDefault();
           if (p?.then) p.then(() => { if (gesture) gesture.previewReady = true; });
-        }, { passive: true });
+        }, { passive: false });
         target.addEventListener('touchend', (e) => {
           if (!gesture) return;
           const touch = e.changedTouches && e.changedTouches[0];
@@ -7629,7 +7629,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     }
     function clearSearchPdfAllPages() {
       const wrap = document.getElementById('pdfSearchAllPages');
-      if (wrap) { wrap.innerHTML = ''; wrap.classList.remove('active'); }
+      if (wrap) wrap.remove();
       pdfViewerPageWrap?.classList.remove('pdf-search-preview-active');
     }
     async function fetchLyricsFromWebSource(sourceUrl) {
@@ -7659,6 +7659,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
 
         closePdfViewer();
+        clearSearchPdfAllPages();
         state.pdfSongId = '__search_preview__';
         state.pdfUrl = '';
         state.pdfPage = 1;
@@ -7666,51 +7667,20 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         state.pdfDoc = await lib.getDocument({ data: bytes }).promise;
         state.pdfPageCount = state.pdfDoc.numPages || 1;
 
-        let allPages = document.getElementById('pdfSearchAllPages');
-        if (!allPages) {
-          allPages = document.createElement('div');
-          allPages.id = 'pdfSearchAllPages';
-          allPages.className = 'pdf-search-all-pages';
-          pdfViewerPageWrap?.appendChild(allPages);
-        }
-        allPages.innerHTML = '';
         pdfViewerPageWrap?.classList.add('pdf-search-preview-active');
-        allPages.classList.add('active');
-
         if (pdfViewerNote) {
           pdfViewerNote.textContent = 'Pré-visualização — ' + state.pdfPageCount + ' página' + (state.pdfPageCount === 1 ? '' : 's') + ' — ainda não salva no repertório';
           pdfViewerNote.classList.remove('hidden');
           pdfViewerNote.setAttribute('aria-hidden', 'false');
         }
         if (pdfViewerPageIndicator) {
-          pdfViewerPageIndicator.textContent = state.pdfPageCount + ' página' + (state.pdfPageCount === 1 ? '' : 's');
+          pdfViewerPageIndicator.textContent = `Folha 1 de ${state.pdfPageCount}`;
           pdfViewerPageIndicator.classList.remove('hidden');
         }
         pdfViewerScreen?.classList.add('open');
         pdfViewerScreen?.setAttribute('aria-hidden', 'false');
         await new Promise(function(resolve){ requestAnimationFrame(resolve); });
-
-        for (let pageNo = 1; pageNo <= state.pdfPageCount; pageNo += 1) {
-          const page = await state.pdfDoc.getPage(pageNo);
-          const base = page.getViewport({ scale: 1 });
-          const availableW = Math.max(260, Math.min(595, (pdfViewerPageWrap?.clientWidth || window.innerWidth || 390) - 16));
-          const scale = Math.max(0.1, availableW / base.width);
-          const viewport = page.getViewport({ scale: scale });
-          const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-          const canvas = document.createElement('canvas');
-          canvas.setAttribute('aria-label', 'Página ' + pageNo + ' do PDF');
-          canvas.width = Math.ceil(viewport.width * dpr);
-          canvas.height = Math.ceil(viewport.height * dpr);
-          canvas.style.width = Math.ceil(viewport.width) + 'px';
-          canvas.style.height = Math.ceil(viewport.height) + 'px';
-          const ctx = canvas.getContext('2d', { alpha: false });
-          if (!ctx) continue;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          ctx.fillStyle = '#fff';
-          ctx.fillRect(0, 0, viewport.width, viewport.height);
-          allPages.appendChild(canvas);
-          await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-        }
+        await renderPdfPage(1, true);
       } catch (error) {
         console.error('Prévia PDF automático:', error);
         clearSearchPdfAllPages();
