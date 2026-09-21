@@ -973,6 +973,56 @@
       text-overflow: ellipsis;
     }
 
+    .library-song-card.has-reorder-handle {
+      position: relative;
+      padding-left: 42px;
+    }
+
+    .library-order-handle {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: rgba(255,255,255,0.62);
+      font-size: 21px;
+      line-height: 1;
+      letter-spacing: -5px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 5;
+      opacity: .9;
+      transition: background .16s ease, color .16s ease, transform .16s ease;
+    }
+
+    .library-order-handle:hover,
+    .library-order-handle:focus-visible {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      outline: none;
+    }
+
+    .library-order-handle.dragging {
+      cursor: grabbing;
+      color: #fff;
+      background: rgba(105,185,255,0.12);
+      transform: translateY(-50%) scale(1.04);
+    }
+
+    .library-song-swipe.is-order-dragging {
+      z-index: 20;
+    }
+
+    .library-song-swipe.is-order-dragging .library-song-card {
+      box-shadow: 0 16px 36px rgba(0,0,0,0.28), 0 0 0 1px rgba(126,200,255,0.18);
+    }
+
     .library-sort-row {
       display: flex;
       gap: 8px;
@@ -3044,6 +3094,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     const READING_PREFERENCE_KEY = 'palco-pro-reading-preference-v1';
     const CURRENT_KEY = 'palco-pro-current-v1';
     const LISTS_KEY = 'palco-pro-lists-v1';
+    const LIBRARY_ORDERS_KEY = 'palco-pro-library-orders-v1';
 
     const SUGGESTED_SONGS = [];
     const SUGGESTIONS_CATALOG_URL = 'https://raw.githubusercontent.com/fabriciobenigno/Palco-Pro/main/catalogo.json';
@@ -3078,7 +3129,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       pdfProcessing: false,
       currentTheme: 'original',
       editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
-      lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '',
+      lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '', libraryFilterOrders: {},
       librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(), pdfWatermarkDetectionCache: new Map(), pdfWatermarkEditing: null,
       musicSearchResults: [], musicSearchRequestId: 0, musicSearchBusy: false, autoPdfGenerating: false,
       pdfQueueBatches: [], pdfQueueRunning: false
@@ -3431,6 +3482,180 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     }
 
 
+    function loadLibraryFilterOrders() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(LIBRARY_ORDERS_KEY) || '{}');
+        state.libraryFilterOrders = saved && typeof saved === 'object' ? saved : {};
+      } catch (_) {
+        state.libraryFilterOrders = {};
+      }
+    }
+
+    function saveLibraryFilterOrders() {
+      try {
+        localStorage.setItem(LIBRARY_ORDERS_KEY, JSON.stringify(state.libraryFilterOrders || {}));
+      } catch (_) {}
+    }
+
+    function getLibraryFilterOrderKey(type = '', value = '') {
+      return `${String(type || '').trim()}\u0000${normalizeSearchText(value || '')}`;
+    }
+
+    function getSongsForLibraryFilter(type, value) {
+      const normalizedValue = String(value || '').trim();
+      if (!normalizedValue) return [];
+      if (type === 'artist') return state.songs.filter(song => String(song?.artist || '').trim() === normalizedValue);
+      if (type === 'style') return state.songs.filter(song => String(song?.style || '').trim() === normalizedValue);
+      return [];
+    }
+
+    function applySavedLibraryFilterOrder(songs = [], type = '', value = '') {
+      if (!Array.isArray(songs) || !songs.length || !type || !value) return songs;
+      const key = getLibraryFilterOrderKey(type, value);
+      const savedOrder = Array.isArray(state.libraryFilterOrders?.[key]) ? state.libraryFilterOrders[key].map(String) : [];
+      if (!savedOrder.length) return songs;
+      const byId = new Map(songs.map(song => [String(song?.id || ''), song]));
+      const ordered = [];
+      savedOrder.forEach(id => {
+        const song = byId.get(String(id));
+        if (song) {
+          ordered.push(song);
+          byId.delete(String(id));
+        }
+      });
+      songs.forEach(song => {
+        const id = String(song?.id || '');
+        if (byId.has(id)) {
+          ordered.push(song);
+          byId.delete(id);
+        }
+      });
+      return ordered;
+    }
+
+    function shouldAllowManualLibraryOrdering() {
+      const hasContext = (state.librarySortMode === 'lists' && !!state.currentListId) ||
+        ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && !!state.libraryFilterValue);
+      const hasTextSearch = !!String(librarySearchInput?.value || '').trim();
+      return !!hasContext && !hasTextSearch && !state.librarySelectionMode;
+    }
+
+    function persistManualLibraryOrderFromDom() {
+      if (!libraryList || !shouldAllowManualLibraryOrdering()) return;
+      const ids = Array.from(libraryList.querySelectorAll('.library-song-swipe[data-song-id]'))
+        .map(row => String(row.dataset.songId || ''))
+        .filter(Boolean);
+      if (!ids.length) return;
+
+      if (state.librarySortMode === 'lists' && state.currentListId) {
+        const list = getListById(state.currentListId);
+        if (!list) return;
+        const currentIds = Array.isArray(list.songIds) ? list.songIds.map(String) : [];
+        const reordered = ids.concat(currentIds.filter(id => !ids.includes(id)));
+        list.songIds = reordered;
+        state.lists = state.lists.map(item => item.id === list.id ? normalizeList(list) : item);
+        saveLists();
+        return;
+      }
+
+      if (state.librarySortMode === 'artist' || state.librarySortMode === 'style') {
+        const key = getLibraryFilterOrderKey(state.librarySortMode, state.libraryFilterValue);
+        const matchingIds = getSongsForLibraryFilter(state.librarySortMode, state.libraryFilterValue)
+          .map(song => String(song?.id || ''))
+          .filter(Boolean);
+        const saved = Array.isArray(state.libraryFilterOrders?.[key]) ? state.libraryFilterOrders[key].map(String) : [];
+        const rest = saved.filter(id => matchingIds.includes(id) && !ids.includes(id));
+        matchingIds.forEach(id => {
+          if (!ids.includes(id) && !rest.includes(id)) rest.push(id);
+        });
+        state.libraryFilterOrders[key] = ids.concat(rest);
+        saveLibraryFilterOrders();
+      }
+    }
+
+    function attachManualOrderDrag(row, card, songId) {
+      const handle = card?.querySelector('.library-order-handle');
+      if (!handle || !libraryList) return;
+      let dragging = false;
+      let moved = false;
+      let pointerId = null;
+      let lastClientY = 0;
+
+      const rows = () => Array.from(libraryList.querySelectorAll('.library-song-swipe[data-song-id]'));
+
+      const finish = () => {
+        if (!dragging) return;
+        try { if (pointerId != null) handle.releasePointerCapture(pointerId); } catch (_) {}
+        handle.classList.remove('dragging');
+        row.classList.remove('is-order-dragging');
+        dragging = false;
+        pointerId = null;
+        if (moved) {
+          row.dataset.orderDraggedUntil = String(Date.now() + 450);
+          persistManualLibraryOrderFromDom();
+        }
+      };
+
+      handle.addEventListener('pointerdown', event => {
+        if (event.button !== undefined && event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        dragging = true;
+        moved = false;
+        pointerId = event.pointerId;
+        lastClientY = event.clientY;
+        handle.classList.add('dragging');
+        row.classList.add('is-order-dragging');
+        try { handle.setPointerCapture(event.pointerId); } catch (_) {}
+      });
+
+      handle.addEventListener('pointermove', event => {
+        if (!dragging || event.pointerId !== pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        lastClientY = event.clientY;
+        if (Math.abs(event.movementY || 0) > 1 || Math.abs(event.clientY - row.getBoundingClientRect().top - row.offsetHeight / 2) > 8) moved = true;
+        if (!moved) return;
+
+        const candidates = rows().filter(item => item !== row && !item.hidden && item.getBoundingClientRect().height > 0);
+        let target = null;
+        let bestDistance = Infinity;
+        candidates.forEach(item => {
+          const rect = item.getBoundingClientRect();
+          const midpoint = rect.top + rect.height / 2;
+          const distance = Math.abs(lastClientY - midpoint);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            target = item;
+          }
+        });
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        if (lastClientY < rect.top + rect.height / 2) {
+          if (row.nextElementSibling !== target) libraryList.insertBefore(row, target);
+        } else {
+          if (target.nextElementSibling !== row) libraryList.insertBefore(row, target.nextElementSibling);
+        }
+      }, { passive: false });
+
+      handle.addEventListener('pointerup', event => {
+        if (!dragging || event.pointerId !== pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        finish();
+      });
+      handle.addEventListener('pointercancel', event => {
+        if (!dragging || event.pointerId !== pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        finish();
+      });
+      handle.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    }
+
     function saveLists() {
       localStorage.setItem(getListsStorageKey(), JSON.stringify(Array.isArray(state.lists) ? state.lists : []));
     }
@@ -3695,10 +3920,17 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         showToast('Selecione pelo menos uma música', 1400);
         return;
       }
+      const existingList = state.editingListId ? getListById(state.editingListId) : null;
+      const selectedSet = new Set(selectedIds);
+      const preservedExistingOrder = existingList
+        ? (existingList.songIds || []).filter(id => selectedSet.has(id))
+        : [];
+      const newlySelected = selectedIds.filter(id => !preservedExistingOrder.includes(id));
+      const orderedSelectedIds = preservedExistingOrder.concat(newlySelected);
       const payload = normalizeList({
         id: state.editingListId || createSongId(),
         name,
-        songIds: selectedIds
+        songIds: orderedSelectedIds
       });
       const existingIndex = state.lists.findIndex((list) => list.id === payload.id);
       if (existingIndex >= 0) state.lists[existingIndex] = payload;
@@ -3723,7 +3955,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       if (!libraryContextBar) return;
       libraryContextBar.innerHTML = '';
       if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && state.libraryFilterValue) {
-        const info=document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${state.librarySortMode==='artist'?'Artista':'Estilo'}: ${state.libraryFilterValue}</strong><span>Somente as músicas desta seleção</span>`;
+        const info=document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${state.librarySortMode==='artist'?'Artista':'Estilo'}: ${state.libraryFilterValue}</strong><span>Arraste ⠿ para definir a ordem desta seleção</span>`;
         const backBtn=document.createElement('button'); backBtn.className='ghost-btn'; backBtn.type='button'; backBtn.textContent='Trocar filtro';
         backBtn.addEventListener('click',()=>{ state.librarySortMode='alpha'; state.libraryFilterValue=''; state.currentListId=null; librarySearchInput.value=''; persistSettings(); librarySortControls?.classList.remove('hidden'); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active',node.dataset.sort==='alpha')); renderLibraryFilterOptions(); renderLibraryList(''); });
         libraryContextBar.append(info,backBtn); libraryContextBar.classList.remove('hidden'); librarySortControls?.classList.add('hidden'); return;
@@ -3731,7 +3963,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       librarySortControls?.classList.remove('hidden');
       if (state.librarySortMode !== 'lists' || !state.currentListId) { libraryContextBar.classList.add('hidden'); return; }
       const currentList = getListById(state.currentListId); if (!currentList) { libraryContextBar.classList.add('hidden'); return; }
-      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) nesta lista</span>`;
+      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) • Arraste ⠿ para definir a ordem</span>`;
       const backBtn=document.createElement('button'); backBtn.className='ghost-btn'; backBtn.type='button'; backBtn.textContent='Voltar'; backBtn.addEventListener('click',()=>{state.currentListId=null; renderLibraryList(librarySearchInput?librarySearchInput.value:'');});
       const editBtn=document.createElement('button'); editBtn.className='ghost-btn'; editBtn.type='button'; editBtn.textContent='Editar lista'; editBtn.addEventListener('click',()=>openListEditor(currentList.id));
       libraryContextBar.append(info,backBtn,editBtn); libraryContextBar.classList.remove('hidden');
@@ -6415,8 +6647,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         songs = songs.slice().reverse();
       } else if (state.librarySortMode === 'artist' && state.libraryFilterValue) {
         songs = songs.filter(song => (song.artist || '').trim() === state.libraryFilterValue);
+        songs = applySavedLibraryFilterOrder(songs, 'artist', state.libraryFilterValue);
       } else if (state.librarySortMode === 'style' && state.libraryFilterValue) {
         songs = songs.filter(song => (song.style || '').trim() === state.libraryFilterValue);
+        songs = applySavedLibraryFilterOrder(songs, 'style', state.libraryFilterValue);
       }
 
       if (query) {
@@ -6951,7 +7185,11 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
             renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
           });
         } else {
-          card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
+          const orderHandle = shouldAllowManualLibraryOrdering()
+            ? '<span class="library-order-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>'
+            : '';
+          card.innerHTML = `${orderHandle}<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
+          card.classList.toggle('has-reorder-handle', !!orderHandle);
         }
 
         row.appendChild(actions);
@@ -6961,6 +7199,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           closeAllLibrarySwipes();
         } else {
           attachLibrarySwipe(row, card, song.id);
+          if (shouldAllowManualLibraryOrdering()) attachManualOrderDrag(row, card, song.id);
+          card.addEventListener('click', (event) => {
+            if (Number(row.dataset.orderDraggedUntil || 0) > Date.now()) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }, true);
         }
       });
     }
@@ -7987,6 +8232,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       setReadingPreference(getReadingPreference());
       loadCurrentDraft();
       loadSongs();
+      loadLibraryFilterOrders();
       loadLists();
       updateValueLabels();
       state.baseSpeed = Number(baseSpeed.value);
@@ -8024,7 +8270,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       filter: 'all',
       catalog: [],
       provisional: [],
-      singleResults: [],
+      singleResults: [], singleSelectedId: '',
       bulkResults: [],
       searchRunId: 0,
       singleSearchBusy: false,
@@ -9159,6 +9405,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       ppAdmin.singleSearchBusy = true;
       const runId = ++ppAdmin.searchRunId;
       ppAdmin.singleResults = [];
+      ppAdmin.singleSelectedId = '';
       ppAdminRenderSingle();
       ppAdminSetStatus('ppAdminSingleStatus', '🔎 Pesquisando e validando progressivamente...', '');
       try {
@@ -9192,12 +9439,33 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     function ppAdminRenderSingle() {
       const root = $pp('ppAdminSingleResults'); if (!root) return;
       root.innerHTML = '';
-      if (!ppAdmin.singleResults.length) { root.innerHTML = '<div class="pp-admin-empty">Nenhum resultado válido ainda.</div>'; return; }
+      if (!ppAdmin.singleResults.length) {
+        root.innerHTML = '<div class="pp-admin-empty">Nenhum resultado válido ainda.</div>';
+        return;
+      }
       ppAdmin.singleResults.slice(0, PP_ADMIN_MAX_SINGLE_RESULTS).forEach(item => {
-        const row = document.createElement('article'); row.className='pp-admin-result';
-        row.innerHTML = `<div><div class="pp-admin-result-title">${ppAdminEscape(item.title)}</div><div class="pp-admin-result-meta">${ppAdminEscape(item.artist)} • ${ppAdminEscape(item.style || 'Música brasileira')}</div><div class="pp-admin-result-lyrics">${ppAdminEscape(item.lyrics)}</div><div class="pp-admin-result-source">${ppAdminEscape(item.source || '')}</div></div><div class="pp-admin-result-actions"><button class="pp-admin-btn pp-admin-btn-small pp-admin-btn-primary" data-pp-admin-single-use="${ppAdminEscape(item.id)}" type="button">Usar no cadastro</button></div>`;
+        const row = document.createElement('article');
+        row.className = 'pp-admin-result' + (String(ppAdmin.singleSelectedId) === String(item.id) ? ' selected' : '');
+        row.innerHTML = `<label class="pp-admin-result-select"><input type="checkbox" data-pp-admin-single-select="${ppAdminEscape(item.id)}" ${String(ppAdmin.singleSelectedId) === String(item.id) ? 'checked' : ''} aria-label="Selecionar música"><span>Selecionar</span></label><div><div class="pp-admin-result-title">${ppAdminEscape(item.title)}</div><div class="pp-admin-result-meta">${ppAdminEscape(item.artist)} • ${ppAdminEscape(item.style || 'Música brasileira')}</div><div class="pp-admin-result-source">${ppAdminEscape(item.source || '')}</div></div>`;
         root.appendChild(row);
       });
+    }
+
+    function ppAdminSelectSingleResult(id) {
+      const item = ppAdmin.singleResults.find(result => String(result.id) === String(id));
+      if (!item) return;
+      ppAdmin.singleSelectedId = String(id);
+      ppAdminSwitchTab('register');
+      ppAdmin.editingCatalogId = '';
+      $pp('ppAdminEditingBadge').textContent = 'Novo';
+      $pp('ppAdminFormTitle').value = item.title;
+      $pp('ppAdminFormArtist').value = item.artist;
+      $pp('ppAdminFormStyle').value = item.style || 'Música brasileira';
+      $pp('ppAdminFormKey').value = '';
+      $pp('ppAdminFormLyrics').value = item.lyrics;
+      ppAdminSetStatus('ppAdminManualStatus', '✅ Música selecionada para o cadastro.', 'success');
+      $pp('ppAdminFormTitle')?.focus();
+      ppAdminRenderSingle();
     }
 
     function ppAdminRenderBulk() {
@@ -9238,21 +9506,6 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         ppAdminRenderBulk();
         ppAdminSetStatus('ppAdminBulkStatus', `✅ ${Number(data.adicionadas || validated.length)} música(s) cadastrada(s) no catálogo principal.`, 'success');
       } catch (error) { ppAdminSetStatus('ppAdminBulkStatus','❌ ' + error.message,'error'); }
-    }
-
-    function ppAdminUseSingleResult(id) {
-      const item = ppAdmin.singleResults.find(result => String(result.id) === String(id));
-      if (!item) return;
-      ppAdminSwitchTab('register');
-      ppAdmin.editingCatalogId='';
-      $pp('ppAdminEditingBadge').textContent='Novo';
-      $pp('ppAdminFormTitle').value=item.title;
-      $pp('ppAdminFormArtist').value=item.artist;
-      $pp('ppAdminFormStyle').value=item.style || 'Música brasileira';
-      $pp('ppAdminFormKey').value='';
-      $pp('ppAdminFormLyrics').value=item.lyrics;
-      ppAdminSetStatus('ppAdminManualStatus','✅ Dados válidos preenchidos no cadastro manual.','success');
-      $pp('ppAdminFormTitle')?.focus();
     }
 
     function ppAdminDownloadCatalog() {
@@ -9328,7 +9581,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       $pp('ppAdminBulkSearchBtn')?.addEventListener('click', ppAdminBulkSearch);
       $pp('ppAdminSingleSearchBtn')?.addEventListener('click', ppAdminSingleSearch);
       $pp('ppAdminSingleQuery')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); ppAdminSingleSearch(); }});
-      $pp('ppAdminSingleClearBtn')?.addEventListener('click', () => { ppAdmin.singleResults=[]; $pp('ppAdminSingleQuery').value=''; ppAdminRenderSingle(); ppAdminSetStatus('ppAdminSingleStatus','Resultados limpos.',''); });
+      $pp('ppAdminSingleClearBtn')?.addEventListener('click', () => { ppAdmin.singleResults=[]; ppAdmin.singleSelectedId=''; $pp('ppAdminSingleQuery').value=''; ppAdminRenderSingle(); ppAdminSetStatus('ppAdminSingleStatus','Resultados limpos.',''); });
       $pp('ppAdminBulkQuery')?.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); ppAdminBulkSearch(); }});
       $pp('ppAdminBulkClearBtn')?.addEventListener('click', () => { ppAdmin.bulkResults=[]; ppAdmin.bulkSelected.clear(); $pp('ppAdminBulkQuery').value=''; ppAdminRenderBulk(); ppAdminSetStatus('ppAdminBulkStatus','Resultados limpos.',''); });
       $pp('ppAdminBulkSelectAllBtn')?.addEventListener('click', ppAdminSelectAllBulk);
@@ -9353,9 +9606,17 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         if (del) { ppAdminDeleteCatalog(del.dataset.ppAdminDelete); return; }
       });
 
+      $pp('ppAdminSingleResults')?.addEventListener('change', event => {
+        const checkbox = event.target.closest('[data-pp-admin-single-select]');
+        if (!checkbox) return;
+        if (!checkbox.checked) { ppAdmin.singleSelectedId = ''; ppAdminRenderSingle(); return; }
+        ppAdminSelectSingleResult(checkbox.dataset.ppAdminSingleSelect);
+      });
       $pp('ppAdminSingleResults')?.addEventListener('click', event => {
-        const use = event.target.closest('[data-pp-admin-single-use]');
-        if (use) ppAdminUseSingleResult(use.dataset.ppAdminSingleUse);
+        if (event.target.closest('input[type="checkbox"]')) return;
+        const row = event.target.closest('.pp-admin-result');
+        const checkbox = row?.querySelector('[data-pp-admin-single-select]');
+        if (checkbox) { checkbox.checked = true; ppAdminSelectSingleResult(checkbox.dataset.ppAdminSingleSelect); }
       });
 
       $pp('ppAdminBulkResults')?.addEventListener('change', event => {
