@@ -3576,80 +3576,102 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     function attachManualOrderDrag(row, card, songId) {
       const handle = card?.querySelector('.library-order-handle');
       if (!handle || !libraryList) return;
+
       let dragging = false;
-      let moved = false;
       let pointerId = null;
-      let lastClientY = 0;
+      let startY = 0;
+      let lastY = 0;
+      let didMove = false;
+      let previousTouchAction = '';
 
-      const rows = () => Array.from(libraryList.querySelectorAll('.library-song-swipe[data-song-id]'));
+      const rows = () => Array.from(libraryList.querySelectorAll('.library-song-swipe[data-song-id]'))
+        .filter(item => item !== row && !item.hidden && item.getBoundingClientRect().height > 0);
 
-      const finish = () => {
+      const finish = (commit = true) => {
         if (!dragging) return;
-        try { if (pointerId != null) handle.releasePointerCapture(pointerId); } catch (_) {}
+        try {
+          if (pointerId != null && handle.hasPointerCapture?.(pointerId)) handle.releasePointerCapture(pointerId);
+        } catch (_) {}
         handle.classList.remove('dragging');
         row.classList.remove('is-order-dragging');
+        handle.style.touchAction = previousTouchAction || 'none';
+        const shouldCommit = commit && didMove;
         dragging = false;
         pointerId = null;
-        if (moved) {
-          row.dataset.orderDraggedUntil = String(Date.now() + 450);
+        if (shouldCommit) {
+          row.dataset.orderDraggedUntil = String(Date.now() + 600);
           persistManualLibraryOrderFromDom();
+          // Re-render após persistir para manter a ordem visual e o estado de filtros/listas sincronizados.
+          requestAnimationFrame(() => renderLibraryList(''));
         }
       };
 
       handle.addEventListener('pointerdown', event => {
+        if (!shouldAllowManualLibraryOrdering()) return;
         if (event.button !== undefined && event.button !== 0) return;
         event.preventDefault();
         event.stopPropagation();
         dragging = true;
-        moved = false;
         pointerId = event.pointerId;
-        lastClientY = event.clientY;
+        startY = event.clientY;
+        lastY = event.clientY;
+        didMove = false;
+        previousTouchAction = handle.style.touchAction;
+        handle.style.touchAction = 'none';
         handle.classList.add('dragging');
         row.classList.add('is-order-dragging');
         try { handle.setPointerCapture(event.pointerId); } catch (_) {}
-      });
+      }, { passive: false });
 
       handle.addEventListener('pointermove', event => {
         if (!dragging || event.pointerId !== pointerId) return;
         event.preventDefault();
         event.stopPropagation();
-        lastClientY = event.clientY;
-        if (Math.abs(event.movementY || 0) > 1 || Math.abs(event.clientY - row.getBoundingClientRect().top - row.offsetHeight / 2) > 8) moved = true;
-        if (!moved) return;
+        const deltaY = event.clientY - startY;
+        lastY = event.clientY;
+        if (Math.abs(deltaY) >= 6) didMove = true;
+        if (!didMove) return;
 
-        const candidates = rows().filter(item => item !== row && !item.hidden && item.getBoundingClientRect().height > 0);
+        const candidates = rows();
+        if (!candidates.length) return;
+
         let target = null;
-        let bestDistance = Infinity;
-        candidates.forEach(item => {
-          const rect = item.getBoundingClientRect();
+        for (const other of candidates) {
+          const rect = other.getBoundingClientRect();
           const midpoint = rect.top + rect.height / 2;
-          const distance = Math.abs(lastClientY - midpoint);
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            target = item;
+          if (lastY < midpoint) {
+            target = other;
+            break;
           }
-        });
-        if (!target) return;
-        const rect = target.getBoundingClientRect();
-        if (lastClientY < rect.top + rect.height / 2) {
-          if (row.nextElementSibling !== target) libraryList.insertBefore(row, target);
-        } else {
-          if (target.nextElementSibling !== row) libraryList.insertBefore(row, target.nextElementSibling);
         }
+
+        if (target) {
+          libraryList.insertBefore(row, target);
+          return;
+        }
+
+        const last = candidates[candidates.length - 1];
+        libraryList.insertBefore(row, last.nextElementSibling);
       }, { passive: false });
 
       handle.addEventListener('pointerup', event => {
         if (!dragging || event.pointerId !== pointerId) return;
         event.preventDefault();
         event.stopPropagation();
-        finish();
+        finish(true);
       });
+
       handle.addEventListener('pointercancel', event => {
         if (!dragging || event.pointerId !== pointerId) return;
         event.preventDefault();
         event.stopPropagation();
-        finish();
+        finish(false);
       });
+
+      handle.addEventListener('lostpointercapture', () => {
+        if (dragging) finish(true);
+      });
+
       handle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -6851,10 +6873,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         btn.textContent = value;
         btn.addEventListener('click', () => {
           state.libraryFilterValue = value;
+          state.currentListId = null;
+          if (librarySearchInput) librarySearchInput.value = '';
           persistSettings();
           renderLibraryFilterOptions();
           renderLibraryContextBar();
           setLibrarySelectionMode(false);
+          renderLibraryList('');
         });
         libraryFilterOptions.appendChild(btn);
       });
