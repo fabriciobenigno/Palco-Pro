@@ -2404,6 +2404,8 @@
       height:100dvh;
       background:#030712;
       overflow:hidden;
+      isolation:isolate;
+      contain:layout paint size;
     }
     .pp-game-root.pp-game-open{display:block;}
     .pp-game-frame{
@@ -2414,6 +2416,9 @@
       margin:0;
       padding:0;
       background:#030712;
+      isolation:isolate;
+      -webkit-transform:translateZ(0);
+      transform:translateZ(0);
     }
     #ppGameSource{display:none!important;}
 
@@ -2841,7 +2846,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 &lt;html lang="pt-BR"&gt;
 &lt;head&gt;
   &lt;meta charset="UTF-8" /&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
   &lt;meta name="theme-color" content="#030712" /&gt;
   &lt;title&gt;Palco Pro — Jogo da Velha&lt;/title&gt;
 
@@ -2884,6 +2889,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     }
 
     body {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
       min-height: 100vh;
       min-height: 100svh;
       display: flex;
