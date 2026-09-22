@@ -4273,18 +4273,16 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         const matchHtml = song._catalogMatch ? `<span class="suggestion-item-match">${escapeHtml(song._catalogMatch)}</span>` : '';
         const statusText = alreadyInRepertoire
           ? 'Já está no seu repertório'
-          : 'Toque no nome para abrir • marque para adicionar';
+          : 'Toque para selecionar';
         content.innerHTML = `<span class="suggestion-item-title">${escapeHtml(song.title || 'Sem título')}</span><span class="suggestion-item-meta">${escapeHtml(song.artist || 'Artista não informado')} • ${escapeHtml(statusText)}</span>${matchHtml}`;
 
-        content.addEventListener('click', async (event) => {
+        // Nesta tela de pesquisa para cadastro, clicar no resultado significa
+        // somente selecionar a música. Nunca abrir PDF, letra ou visualização.
+        content.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
-          if (alreadyInRepertoire) {
-            const personalSong = state.songs.find((item) => isSameSongIdentity(item, song));
-            if (personalSong) await openSongById(personalSong.id);
-            return;
-          }
-          await openTemporaryCatalogSong(song);
+          if (alreadyInRepertoire) return;
+          toggleSuggestionSelection(song.id);
         });
 
         row.appendChild(checkbox);
@@ -5342,6 +5340,22 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       });
       state.revealedSongId = exceptSongId || null;
     }
+    async function ensurePdfForReadingPreference(song) {
+      if (!song?.id) return false;
+      const offlinePdf = await getOfflinePdf(song.id).catch(() => null);
+      if (state.currentSongId !== song.id) return false;
+      if (state.editingPdfData || song.pdfData || song.pdfUrl || offlinePdf?.blob) return true;
+      try {
+        await generateLocalPdfForRepertoireSong(song);
+      } catch (error) {
+        console.warn('Falha ao gerar PDF sob demanda:', error);
+        return false;
+      }
+      if (state.currentSongId !== song.id) return false;
+      const freshOfflinePdf = await getOfflinePdf(song.id).catch(() => null);
+      return !!(state.editingPdfData || song.pdfData || song.pdfUrl || freshOfflinePdf?.blob);
+    }
+
     async function openSongById(songId) {
       const song = state.songs.find(item => item.id === songId);
       if (!song) return;
@@ -5364,14 +5378,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         return;
       }
 
-      const offlinePdf = await getOfflinePdf(song.id).catch(() => null);
+      const hasPdf = await ensurePdfForReadingPreference(song);
       if (state.currentSongId !== song.id) return;
-      const hasPdf = !!(state.editingPdfData || song.pdfUrl || offlinePdf?.blob);
       if (hasPdf) {
         await openPdfForSong(song);
       } else {
         closePdfViewer();
-        loadScript();
+        showToast('A preferência PDF está ativa, mas não foi possível preparar o PDF desta música.', 2600);
       }
     }
 
@@ -6350,15 +6363,14 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         loadScript();
         return;
       }
-      const offlinePdf = await getOfflinePdf(song.id).catch(() => null);
+      const hasPdf = await ensurePdfForReadingPreference(song);
       if (state.currentSongId !== song.id) return;
-      const hasPdf = !!(song.pdfData || song.pdfUrl || offlinePdf?.blob);
       if (hasPdf) {
         await openPdfForSong(song);
       } else {
         closePdfViewer();
         resetSongToTopStart();
-        loadScript();
+        showToast('A preferência PDF está ativa, mas não foi possível preparar o PDF desta música.', 2600);
       }
     }
     function getSwipeNavigationPreference() {
@@ -6945,10 +6957,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       state.editingPdfData = song.pdfData || '';
       resetSongToTopStart();
       if (getReadingPreference() === 'pdf') {
-        const offlinePdf = await getOfflinePdf(song.id).catch(() => null);
+        const hasPdf = await ensurePdfForReadingPreference(song);
         if (state.currentSongId !== song.id) return;
-        if (song.pdfData || song.pdfUrl || offlinePdf?.blob) await openPdfForSong(song);
-        else { closePdfViewer(); loadScript(); }
+        if (hasPdf) await openPdfForSong(song);
+        else { closePdfViewer(); showToast('A preferência PDF está ativa, mas não foi possível preparar o PDF desta música.', 2600); }
       } else {
         closePdfViewer();
         loadScript();
