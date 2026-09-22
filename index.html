@@ -2393,6 +2393,30 @@
     .pp-admin-limit{font-size:10px;color:#91a0b8;}
     @media(max-width:860px){.pp-admin-register-grid{grid-template-columns:1fr;}}
 
+
+    /* === PALCO PRO — JOGO DA VELHA OCULTO === */
+    .pp-game-root{
+      position:fixed;
+      inset:0;
+      z-index:10050;
+      display:none;
+      width:100vw;
+      height:100dvh;
+      background:#030712;
+      overflow:hidden;
+    }
+    .pp-game-root.pp-game-open{display:block;}
+    .pp-game-frame{
+      display:block;
+      width:100%;
+      height:100%;
+      border:0;
+      margin:0;
+      padding:0;
+      background:#030712;
+    }
+    #ppGameSource{display:none!important;}
+
 </style>
 </head>
 <body>
@@ -2796,6 +2820,1403 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         </div>
       </div>
     </div>
+
+
+    <!-- =========================================================
+         PALCO PRO — JOGO DA VELHA OCULTO
+         Acesso: Suporte -> Acesso de ADM -> usuário "jogo"
+         O conteúdo do jogo é carregado via srcdoc, sem dependências
+         externas, para continuar funcionando offline.
+         ========================================================= -->
+    <div class="pp-game-root" id="ppGameRoot" aria-hidden="true">
+      <iframe
+        class="pp-game-frame"
+        id="ppGameFrame"
+        title="Palco Pro — Jogo da Velha"
+        aria-label="Palco Pro — Jogo da Velha"
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
+    <textarea id="ppGameSource" hidden aria-hidden="true">&lt;!DOCTYPE html&gt;
+&lt;html lang="pt-BR"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" /&gt;
+  &lt;meta name="theme-color" content="#030712" /&gt;
+  &lt;title&gt;Palco Pro — Jogo da Velha&lt;/title&gt;
+
+  &lt;style&gt;
+    :root {
+      --app-bg:
+        radial-gradient(circle at 18% 12%, rgba(91,176,255,.10), transparent 25%),
+        radial-gradient(circle at 82% 18%, rgba(92,146,255,.08), transparent 26%),
+        radial-gradient(circle at 50% 60%, rgba(255,255,255,.018), transparent 34%),
+        linear-gradient(180deg, #030712 0%, #08111d 52%, #040915 100%);
+      --card-bg: linear-gradient(180deg, rgba(13,19,31,.90), rgba(7,11,19,.86));
+      --card-border: rgba(255,255,255,.11);
+      --text: #fff;
+      --soft-text: rgba(255,255,255,.72);
+      --muted: rgba(255,255,255,.48);
+      --accent-1: #4f8cff;
+      --accent-2: #7cb0ff;
+      --accent-border: rgba(124,176,255,.34);
+      --cell-bg: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018));
+      --shadow: 0 30px 80px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.04);
+      --x-color: #4f8cff;
+      --o-color: #ff5b6e;
+      --winner-color: #4f8cff;
+      --x-color-soft: rgba(79,140,255,.14);
+      --o-color-soft: rgba(255,91,110,.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html {
+      min-height: 100%;
+      background: var(--app-bg);
+      background-color: #030712;
+      color-scheme: dark;
+      overscroll-behavior: none;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: #030712;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--app-bg);
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .30;
+      background:
+        linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+
+    button, input { font: inherit; }
+    button { -webkit-appearance: none; appearance: none; }
+
+    .app {
+      width: min(100%, 440px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-card {
+      position: relative;
+      width: 100%;
+      padding: clamp(18px, 4vw, 28px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      background: linear-gradient(180deg, #0d131f 0%, #070b13 100%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .game-card::before {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -110px;
+      top: -120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79,140,255,.14) 0%, rgba(79,140,255,.05) 45%, transparent 72%);
+      pointer-events: none;
+    }
+
+    .topbar, .hero, .turn-box, .board-wrap, .scoreboard, .status, .actions, .footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+
+    .brand-icon {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(79,140,255,.24), rgba(124,176,255,.07));
+      border: 1px solid var(--accent-border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 22px rgba(0,0,0,.18);
+      font-size: 20px;
+    }
+
+    .brand-title { font-size: 15px; font-weight: 850; }
+    .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+
+    .top-btn {
+      width: 39px;
+      height: 39px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.035);
+      color: var(--soft-text);
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .top-btn:hover { background: rgba(255,255,255,.065); transform: translateY(-1px); }
+    .top-btn:active { transform: scale(.96); }
+
+    .round-badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--soft-text);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+
+    .hero { text-align: center; margin-bottom: 18px; }
+    .hero h1 { font-size: clamp(29px, 8vw, 38px); line-height: 1; letter-spacing: -.045em; font-weight: 900; }
+    .hero p { margin-top: 8px; color: var(--soft-text); font-size: 12px; }
+
+    .turn-box { display: flex; justify-content: center; margin-bottom: 18px; }
+
+    .turn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 40px;
+      padding: 7px 13px 7px 8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(91,176,255,.12), rgba(255,255,255,.035));
+      border: 1px solid rgba(124,176,255,.18);
+      color: var(--soft-text);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .turn-symbol {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--winner-color);
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--winner-color) 24%, transparent);
+      font-size: 13px;
+      font-weight: 900;
+      transition: background .25s ease, box-shadow .25s ease;
+    }
+
+    /* Tabuleiro responsivo: cresce e reduz junto com a tela, mantendo o quadrado perfeito. */
+    .board-wrap {
+      width: min(100%, 360px, calc(100vw - 42px));
+      margin: 0 auto 20px;
+    }
+
+    .board {
+      --gap: clamp(7px, 2vw, 10px);
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      padding: var(--gap);
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: var(--gap);
+      border-radius: clamp(20px, 5vw, 25px);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255,255,255,.028), transparent 42%),
+        linear-gradient(180deg, rgba(255,255,255,.034), rgba(255,255,255,.015));
+      border: 1px solid rgba(255,255,255,.075);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.035),
+        0 22px 55px rgba(0,0,0,.24);
+    }
+
+    .cell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.065);
+      border-radius: clamp(13px, 3.4vw, 19px);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.043), rgba(255,255,255,.016));
+      color: #fff;
+      cursor: pointer;
+      transition:
+        transform .16s ease,
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.025),
+        0 7px 16px rgba(0,0,0,.10);
+    }
+
+    .cell:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent-2) 28%, transparent);
+      background:
+        linear-gradient(180deg, rgba(91,176,255,.075), rgba(255,255,255,.023));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.045),
+        0 12px 24px rgba(0,0,0,.16);
+    }
+
+    .cell:active { transform: scale(.975); }
+    .cell:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+    .mark {
+      width: 67%;
+      height: 67%;
+      overflow: visible;
+      /* Sem filtros: símbolos nítidos em qualquer tela. */
+    }
+
+    .mark path,
+    .mark circle {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .mark-x path { stroke-width: 10; }
+    .mark-o path { stroke-width: 9; }
+
+    .cell.x {
+      color: var(--x-color);
+      text-shadow: none;
+    }
+
+    .cell.o {
+      color: var(--o-color);
+      text-shadow: none;
+    }
+
+    .cell.pop .mark {
+      animation: markIn .22s cubic-bezier(.2,.85,.25,1);
+    }
+
+    @keyframes markIn {
+      0% { transform: scale(.55) rotate(-5deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    .winning-line-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .winning-line-glow,
+    .winning-line {
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+      pathLength: 1;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      opacity: 0;
+    }
+
+    .winning-line-glow {
+      stroke: var(--winner-color);
+      stroke-width: 12;
+      /* Sem blur: mantemos apenas a leitura do traço. */
+    }
+
+    .winning-line {
+      stroke: var(--winner-color);
+      stroke-width: 6.5;
+      /* Traço limpo e nítido, sem brilho difuso. */
+    }
+
+    .winning-line.show {
+      opacity: 1;
+      animation: drawWin .56s cubic-bezier(.18,.86,.24,1) forwards;
+    }
+
+    .winning-line-glow.show {
+      opacity: .22;
+      animation: drawWin .56s cubic-bezier(.18,.86,.24,1) forwards;
+    }
+
+    @keyframes drawWin {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .cell.winning {
+      border-color: color-mix(in srgb, var(--winner-color) 24%, rgba(255,255,255,.065));
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--winner-color) 7%, transparent), rgba(255,255,255,.015));
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .score {
+      min-height: 70px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 16px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.065);
+    }
+
+    .score-label { color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .score-value { margin-top: 5px; font-size: 22px; font-weight: 900; }
+    .score.x .score-value { color: var(--x-color); }
+    .score.o .score-value { color: var(--o-color); }
+    .score.draw .score-value { color: rgba(255,255,255,.88); }
+
+    .status {
+      min-height: 46px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 10px 13px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.06);
+      color: var(--soft-text);
+      font-size: 12px;
+      font-weight: 650;
+      text-align: center;
+    }
+
+    .status.win {
+      color: color-mix(in srgb, var(--winner-color) 78%, white);
+      border-color: color-mix(in srgb, var(--winner-color) 24%, transparent);
+      background: color-mix(in srgb, var(--winner-color) 7%, transparent);
+    }
+
+    .actions { display: grid; grid-template-columns: 1fr 52px; gap: 8px; }
+
+    .action-btn {
+      min-height: 50px;
+      border-radius: 15px;
+      border: 0;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 800;
+      transition: transform .16s ease, filter .2s ease, background .2s ease;
+    }
+
+    .restart-btn {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      box-shadow: 0 12px 25px rgba(79,140,255,.22), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    .restart-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .restart-btn:active { transform: scale(.985); }
+
+    .reset-score-btn {
+      width: 52px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--soft-text);
+      font-size: 18px;
+    }
+
+    .reset-score-btn:hover { background: rgba(255,255,255,.07); transform: translateY(-1px); }
+
+    .footer { margin-top: 15px; text-align: center; color: rgba(255,255,255,.28); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+
+    /* Modal de configuração */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    .modal-backdrop.open { display: flex; animation: fadeIn .18s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .settings-modal {
+      width: min(100%, 390px);
+      padding: 22px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(15,21,34,.98), rgba(6,10,17,.98));
+      box-shadow: 0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.05);
+      transform: translateY(8px) scale(.98);
+      animation: modalIn .2s ease forwards;
+    }
+
+    @keyframes modalIn { to { transform: translateY(0) scale(1); } }
+
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 18px; }
+    .modal-title { font-size: 20px; font-weight: 900; letter-spacing: -.02em; }
+    .modal-subtitle { margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .settings-note {
+      margin: -7px 0 15px;
+      padding: 10px 12px;
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.025);
+      color: rgba(255,255,255,.63);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .close-btn {
+      width: 35px;
+      height: 35px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--soft-text);
+      cursor: pointer;
+    }
+
+    .player-setting {
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 18px;
+      background: rgba(255,255,255,.025);
+      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .player-setting.active-x {
+      border-color: color-mix(in srgb, var(--selected-preview, var(--x-color)) 34%, rgba(255,255,255,.08));
+      background: linear-gradient(180deg, color-mix(in srgb, var(--selected-preview, var(--x-color)) 8%, transparent), rgba(255,255,255,.022));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 0 0 1px color-mix(in srgb, var(--selected-preview, var(--x-color)) 8%, transparent);
+    }
+
+    .player-setting.active-o {
+      border-color: color-mix(in srgb, var(--selected-preview, var(--o-color)) 34%, rgba(255,255,255,.08));
+      background: linear-gradient(180deg, color-mix(in srgb, var(--selected-preview, var(--o-color)) 8%, transparent), rgba(255,255,255,.022));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 0 0 1px color-mix(in srgb, var(--selected-preview, var(--o-color)) 8%, transparent);
+    }
+
+    .player-setting-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .player-identity { display:flex; align-items:center; gap:11px; min-width:0; }
+    .player-symbol {
+      width: 42px; height: 42px; flex:0 0 auto;
+      display:grid; place-items:center;
+      border-radius: 13px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      font-size: 21px; font-weight: 950;
+    }
+    .player-symbol.x-symbol { color: var(--x-color); text-shadow: 0 0 18px color-mix(in srgb, var(--x-color) 22%, transparent); }
+    .player-symbol.o-symbol { color: var(--o-color); text-shadow: 0 0 18px color-mix(in srgb, var(--o-color) 20%, transparent); }
+    .player-name { font-size: 13px; font-weight: 850; }
+    .player-help { margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .chosen-label {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:5px 8px; border-radius:999px;
+      background: rgba(255,255,255,.045);
+      border:1px solid rgba(255,255,255,.07);
+      color:rgba(255,255,255,.62);
+      font-size:9px; font-weight:850;
+      text-transform:uppercase; letter-spacing:.06em;
+      white-space:nowrap;
+    }
+
+    .palette-label { margin-top: 13px; margin-bottom: 9px; color: rgba(255,255,255,.53); font-size: 9px; font-weight: 850; letter-spacing:.08em; text-transform:uppercase; }
+    .fixed-palette {
+      display:grid;
+      grid-template-columns:repeat(6, minmax(0,1fr));
+      gap:7px;
+    }
+    .color-choice {
+      position:relative;
+      min-width:0;
+      aspect-ratio:1;
+      border-radius:13px;
+      border:2px solid transparent;
+      cursor:pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 7px 14px rgba(0,0,0,.13);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .color-choice:hover { transform: translateY(-1px); }
+    .color-choice::after {
+      content:'✓';
+      position:absolute; right:4px; bottom:4px;
+      width:17px; height:17px;
+      display:grid; place-items:center;
+      border-radius:50%;
+      background:rgba(0,0,0,.45);
+      color:#fff; font-size:10px; font-weight:950;
+      opacity:0; transform:scale(.75);
+      transition:.16s ease;
+    }
+    .color-choice.selected {
+      border-color:#fff;
+      transform:translateY(-2px) scale(1.02);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.11), 0 9px 20px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.24);
+    }
+    .color-choice.selected::after { opacity:1; transform:scale(1); }
+    .color-choice.occupied { opacity:.34; cursor:not-allowed; }
+    .color-choice:disabled { pointer-events:none; }
+    .color-choice[data-color='red'].selected { border-color:#ff8d9a; box-shadow:0 0 0 2px rgba(255,91,110,.18), 0 9px 22px rgba(255,91,110,.12); }
+    .color-choice[data-color='blue'].selected { border-color:#a9c7ff; box-shadow:0 0 0 2px rgba(79,140,255,.18), 0 9px 22px rgba(79,140,255,.12); }
+
+    .modal-footer { display: flex; gap: 8px; margin-top: 17px; flex-wrap: wrap; }
+    .return-palco-btn {
+      flex: 1 1 100%;
+      min-height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(124,176,255,.18);
+      background: rgba(255,255,255,.035);
+      color: var(--soft-text);
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform .16s ease, background .18s ease, filter .18s ease;
+    }
+    .return-palco-btn:hover { background: rgba(124,176,255,.08); transform: translateY(-1px); }
+    .return-palco-btn:active { transform: scale(.985); }
+    .modal-footer button { flex: 1; min-height: 45px; border-radius: 14px; border: 1px solid rgba(255,255,255,.08); cursor: pointer; font-weight: 800; }
+    .save-settings { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: #fff; border: 0 !important; }
+    .default-settings { background: rgba(255,255,255,.04); color: var(--soft-text); }
+
+    @media (max-height: 700px) {
+      body { align-items: flex-start; padding-top: 10px; padding-bottom: 10px; }
+      .game-card { padding: 16px; }
+      .topbar { margin-bottom: 14px; }
+      .hero { margin-bottom: 12px; }
+      .turn-box { margin-bottom: 12px; }
+      .board-wrap { margin-bottom: 13px; }
+      .score { min-height: 58px; }
+      .status { min-height: 40px; margin-bottom: 9px; }
+      .footer { margin-top: 9px; }
+    }
+
+    @media (max-width: 370px) {
+      body { padding: 10px; }
+      .game-card { padding: 14px; border-radius: 22px; }
+      .brand-subtitle { display: none; }
+      .round-badge { padding-inline: 8px; }
+      .board-wrap { width: min(100%, calc(100vw - 28px)); }
+    }
+
+    /* =========================================================
+       RESPONSIVIDADE FINAL — PC E CELULAR
+       ========================================================= */
+
+    @media (min-width: 760px) {
+      body {
+        padding: 16px;
+        overflow: hidden;
+      }
+
+      .app {
+        width: min(920px, calc(100vw - 32px));
+        max-height: calc(100svh - 32px);
+      }
+
+      .game-card {
+        width: 100%;
+        max-height: calc(100svh - 32px);
+        padding: 24px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        grid-template-areas:
+          "top top"
+          "hero hero"
+          "turn turn"
+          "board score"
+          "board status"
+          "board actions"
+          "footer footer";
+        column-gap: 28px;
+        row-gap: 0;
+        align-items: center;
+      }
+
+      .topbar { grid-area: top; width: 100%; margin-bottom: 14px; }
+      .hero { grid-area: hero; margin-bottom: 10px; }
+      .hero h1 { font-size: 34px; }
+      .hero p { font-size: 11px; }
+      .turn-box { grid-area: turn; margin-bottom: 14px; }
+
+      .board-wrap {
+        grid-area: board;
+        align-self: center;
+        justify-self: center;
+        width: min(420px, calc(100svh - 235px), calc(100vw - 440px));
+        margin: 0;
+      }
+
+      .scoreboard {
+        grid-area: score;
+        width: 100%;
+        margin: 0 0 10px;
+      }
+
+      .status {
+        grid-area: status;
+        width: 100%;
+        margin: 0 0 10px;
+        min-height: 50px;
+      }
+
+      .actions {
+        grid-area: actions;
+        width: 100%;
+        align-self: end;
+      }
+
+      .footer {
+        grid-area: footer;
+        margin-top: 13px;
+      }
+    }
+
+    @media (max-width: 759px) {
+      html, body {
+        width: 100%;
+        min-height: 100%;
+        height: 100%;
+      }
+
+      body {
+        width: 100%;
+        min-height: 100svh;
+        min-height: 100dvh;
+        height: 100dvh;
+        padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+        overflow: hidden;
+        background: var(--app-bg);
+        background-color: #030712;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 440px;
+        max-height: calc(100dvh - 16px);
+      }
+
+      .game-card {
+        width: 100%;
+        padding: clamp(12px, 3.2vw, 18px);
+        border-radius: 24px;
+        max-height: calc(100dvh - 16px);
+        overflow: hidden;
+      }
+
+      .topbar { margin-bottom: clamp(10px, 2.5vh, 16px); }
+      .brand-icon { width: 40px; height: 40px; border-radius: 13px; font-size: 18px; }
+      .brand-title { font-size: 14px; }
+      .brand-subtitle { font-size: 9px; }
+      .top-btn { width: 36px; height: 36px; border-radius: 11px; }
+      .round-badge { padding: 7px 9px; font-size: 9px; }
+
+      .hero { margin-bottom: clamp(8px, 2vh, 13px); }
+      .hero h1 { font-size: clamp(25px, 8vw, 32px); }
+      .hero p { margin-top: 6px; font-size: 10px; }
+
+      .turn-box { margin-bottom: clamp(8px, 2vh, 13px); }
+      .turn-pill { min-height: 36px; padding: 6px 11px 6px 7px; font-size: 11px; }
+      .turn-symbol { width: 24px; height: 24px; border-radius: 8px; }
+
+      .board-wrap {
+        width: min(360px, calc(100vw - 22px), calc(100dvh - 292px));
+        margin: 0 auto clamp(10px, 2vh, 15px);
+      }
+
+      .scoreboard {
+        gap: 6px;
+        margin-bottom: clamp(7px, 1.5vh, 11px);
+      }
+
+      .score {
+        min-height: clamp(53px, 8vh, 67px);
+        padding: 7px 5px;
+        border-radius: 14px;
+      }
+
+      .score-label { font-size: 8px; }
+      .score-value { margin-top: 3px; font-size: clamp(18px, 5vw, 22px); }
+
+      .status {
+        min-height: clamp(38px, 6vh, 46px);
+        margin-bottom: clamp(8px, 1.5vh, 11px);
+        padding: 8px 11px;
+        border-radius: 13px;
+        font-size: 10px;
+      }
+
+      .actions { grid-template-columns: 1fr 46px; gap: 7px; }
+      .action-btn { min-height: 45px; border-radius: 14px; }
+      .reset-score-btn { width: 46px; font-size: 17px; }
+      .footer { margin-top: 9px; font-size: 8px; }
+    }
+
+    /* Celulares com pouca altura: usa a tela inteira sem rolagem. */
+    @media (max-width: 759px) and (max-height: 760px) {
+      body {
+        padding-top: max(5px, env(safe-area-inset-top));
+        padding-bottom: max(5px, env(safe-area-inset-bottom));
+      }
+
+      .app {
+        max-height: calc(100dvh - 10px);
+      }
+
+      .game-card {
+        max-height: calc(100dvh - 10px);
+        padding: 10px 12px;
+        border-radius: 22px;
+      }
+
+      .topbar { margin-bottom: 7px; }
+      .brand-icon { width: 36px; height: 36px; border-radius: 11px; }
+      .brand-title { font-size: 13px; }
+      .brand-subtitle { display: none; }
+      .top-btn { width: 34px; height: 34px; border-radius: 10px; }
+      .round-badge { padding: 6px 8px; font-size: 8px; }
+
+      .hero { margin-bottom: 6px; }
+      .hero h1 { font-size: 25px; }
+      .hero p { display: none; }
+
+      .turn-box { margin-bottom: 7px; }
+      .turn-pill { min-height: 31px; padding: 5px 10px 5px 6px; font-size: 10px; }
+      .turn-symbol { width: 21px; height: 21px; }
+
+      .board-wrap {
+        width: min(300px, calc(100vw - 26px), calc(100dvh - 245px));
+        margin-bottom: 8px;
+      }
+
+      .scoreboard { gap: 5px; margin-bottom: 7px; }
+      .score { min-height: 46px; padding: 5px 4px; }
+      .score-label { font-size: 7px; }
+      .score-value { font-size: 18px; margin-top: 2px; }
+
+      .status { min-height: 33px; margin-bottom: 7px; padding: 7px 9px; font-size: 9px; }
+      .actions { grid-template-columns: 1fr 42px; gap: 6px; }
+      .action-btn { min-height: 40px; border-radius: 13px; }
+      .reset-score-btn { width: 42px; }
+      .footer { display: none; }
+    }
+
+    /* Celulares muito baixos: comprime os blocos sem criar rolagem. */
+    @media (max-width: 759px) and (max-height: 640px) {
+      .game-card { padding: 10px 12px 11px; }
+      .topbar { margin-bottom: 7px; }
+      .brand-icon { width: 36px; height: 36px; border-radius: 11px; }
+      .brand-subtitle { display: none; }
+      .top-btn { width: 34px; height: 34px; }
+      .hero { margin-bottom: 7px; }
+      .hero h1 { font-size: 25px; }
+      .hero p { display: none; }
+      .turn-box { margin-bottom: 7px; }
+      .turn-pill { min-height: 32px; font-size: 10px; }
+      .turn-symbol { width: 22px; height: 22px; }
+      .board-wrap { width: min(300px, calc(100vw - 22px), calc(100dvh - 238px)); margin-bottom: 8px; }
+      .score { min-height: 48px; }
+      .status { min-height: 34px; margin-bottom: 7px; }
+      .actions { grid-template-columns: 1fr 42px; }
+      .action-btn { min-height: 41px; }
+      .reset-score-btn { width: 42px; }
+      .footer { display: none; }
+    }
+
+    /* Telas desktop baixas: mantém tudo visível sem rolagem. */
+    @media (min-width: 760px) and (max-height: 760px) {
+      .app, .game-card { max-height: calc(100svh - 20px); }
+      .game-card { padding: 16px 20px; grid-template-columns: minmax(0, 1fr) 260px; column-gap: 20px; }
+      .topbar { margin-bottom: 8px; }
+      .hero { margin-bottom: 7px; }
+      .hero h1 { font-size: 28px; }
+      .hero p { display: none; }
+      .turn-box { margin-bottom: 8px; }
+      .board-wrap { width: min(340px, calc(100svh - 215px), calc(100vw - 360px)); }
+      .score { min-height: 58px; }
+      .status { min-height: 42px; }
+      .action-btn { min-height: 44px; }
+      .footer { margin-top: 7px; }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+  &lt;main class="app"&gt;
+    &lt;section class="game-card"&gt;
+      &lt;header class="topbar"&gt;
+        &lt;div class="brand"&gt;
+          &lt;div class="brand-icon"&gt;🎵&lt;/div&gt;
+          &lt;div&gt;
+            &lt;div class="brand-title"&gt;Palco Pro&lt;/div&gt;
+            &lt;div class="brand-subtitle"&gt;Jogo da Velha&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="top-actions"&gt;
+          &lt;button class="top-btn" id="settingsBtn" aria-label="Configurar cores" title="Configurar cores"&gt;⚙&lt;/button&gt;
+          &lt;div class="round-badge" id="roundBadge"&gt;Partida 1&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/header&gt;
+
+      &lt;div class="hero"&gt;
+        &lt;h1&gt;Jogo da Velha&lt;/h1&gt;
+        &lt;p&gt;Uma pausa rápida entre uma música e outra.&lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;div class="turn-box"&gt;
+        &lt;div class="turn-pill"&gt;
+          &lt;span class="turn-symbol" id="turnSymbol"&gt;X&lt;/span&gt;
+          &lt;span id="turnText"&gt;Vez do jogador X&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="board-wrap"&gt;
+        &lt;div class="board" id="board" aria-label="Tabuleiro do jogo da velha"&gt;
+          &lt;svg class="winning-line-svg" viewBox="0 0 100 100" aria-hidden="true"&gt;
+            &lt;path id="winningLineGlow" class="winning-line-glow" d="M16.5 16.5 Q50 15.7 83.5 16.5"&gt;&lt;/path&gt;
+            &lt;path id="winningLine" class="winning-line" d="M16.5 16.5 Q50 15.7 83.5 16.5"&gt;&lt;/path&gt;
+          &lt;/svg&gt;
+
+          &lt;button class="cell" data-index="0" aria-label="Casa 1"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="1" aria-label="Casa 2"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="2" aria-label="Casa 3"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="3" aria-label="Casa 4"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="4" aria-label="Casa 5"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="5" aria-label="Casa 6"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="6" aria-label="Casa 7"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="7" aria-label="Casa 8"&gt;&lt;/button&gt;
+          &lt;button class="cell" data-index="8" aria-label="Casa 9"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="scoreboard"&gt;
+        &lt;div class="score x"&gt;
+          &lt;div class="score-label"&gt;Jogador X&lt;/div&gt;
+          &lt;div class="score-value" id="scoreX"&gt;0&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="score draw"&gt;
+          &lt;div class="score-label"&gt;Empates&lt;/div&gt;
+          &lt;div class="score-value" id="scoreDraw"&gt;0&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="score o"&gt;
+          &lt;div class="score-label"&gt;Jogador O&lt;/div&gt;
+          &lt;div class="score-value" id="scoreO"&gt;0&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="status" id="status"&gt;Comece a partida escolhendo uma casa.&lt;/div&gt;
+
+      &lt;div class="actions"&gt;
+        &lt;button class="action-btn restart-btn" id="restartBtn"&gt;Nova partida&lt;/button&gt;
+        &lt;button class="action-btn reset-score-btn" id="resetScoreBtn" title="Zerar placar" aria-label="Zerar placar"&gt;↻&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;footer class="footer"&gt;PALCO PRO • MODO JOGO&lt;/footer&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;!-- CONFIGURAÇÕES --&gt;
+  &lt;div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true"&gt;
+    &lt;section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"&gt;
+      &lt;div class="modal-head"&gt;
+        &lt;div&gt;
+          &lt;div class="modal-title" id="settingsTitle"&gt;Cores dos jogadores&lt;/div&gt;
+          &lt;div class="modal-subtitle"&gt;Defina as duas cores que serão usadas durante a partida.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button class="close-btn" id="closeSettingsBtn" aria-label="Fechar configurações"&gt;✕&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="settings-note"&gt;
+        A combinação padrão segue a leitura visual mais comum: &lt;strong style="color:#78adff"&gt;X em azul&lt;/strong&gt; e &lt;strong style="color:#ff7d8b"&gt;O em vermelho&lt;/strong&gt;. As outras opções são cores fixas, escolhidas para manter contraste claro no tabuleiro.
+      &lt;/div&gt;
+
+      &lt;div class="player-setting active-x" id="xPlayerSetting"&gt;
+        &lt;div class="player-setting-head"&gt;
+          &lt;div class="player-identity"&gt;
+            &lt;div class="player-symbol x-symbol"&gt;X&lt;/div&gt;
+            &lt;div&gt;
+              &lt;div class="player-name"&gt;Jogador X&lt;/div&gt;
+              &lt;div class="player-help"&gt;Símbolo, placar e risco de vitória.&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="chosen-label" id="xChosenLabel"&gt;✓ Selecionada&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="palette-label"&gt;Escolha a cor do X&lt;/div&gt;
+        &lt;div class="fixed-palette" data-player="X"&gt;
+          &lt;button class="color-choice" data-color="blue" data-value="#4f8cff" style="background:#4f8cff" title="Azul"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="red" data-value="#ff5b6e" style="background:#ff5b6e" title="Vermelho"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="green" data-value="#45d39a" style="background:#45d39a" title="Verde"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="yellow" data-value="#f6c453" style="background:#f6c453" title="Amarelo"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="purple" data-value="#a78bfa" style="background:#a78bfa" title="Roxo"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="cyan" data-value="#48c8f5" style="background:#48c8f5" title="Ciano"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="player-setting active-o" id="oPlayerSetting"&gt;
+        &lt;div class="player-setting-head"&gt;
+          &lt;div class="player-identity"&gt;
+            &lt;div class="player-symbol o-symbol"&gt;O&lt;/div&gt;
+            &lt;div&gt;
+              &lt;div class="player-name"&gt;Jogador O&lt;/div&gt;
+              &lt;div class="player-help"&gt;Símbolo, placar e risco de vitória.&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="chosen-label" id="oChosenLabel"&gt;✓ Selecionada&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="palette-label"&gt;Escolha a cor do O&lt;/div&gt;
+        &lt;div class="fixed-palette" data-player="O"&gt;
+          &lt;button class="color-choice" data-color="blue" data-value="#4f8cff" style="background:#4f8cff" title="Azul"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="red" data-value="#ff5b6e" style="background:#ff5b6e" title="Vermelho"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="green" data-value="#45d39a" style="background:#45d39a" title="Verde"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="yellow" data-value="#f6c453" style="background:#f6c453" title="Amarelo"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="purple" data-value="#a78bfa" style="background:#a78bfa" title="Roxo"&gt;&lt;/button&gt;
+          &lt;button class="color-choice" data-color="cyan" data-value="#48c8f5" style="background:#48c8f5" title="Ciano"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="modal-footer"&gt;
+        &lt;button class="default-settings" id="defaultSettingsBtn"&gt;Padrão clássico&lt;/button&gt;
+        &lt;button class="save-settings" id="saveSettingsBtn"&gt;Aplicar cores&lt;/button&gt;
+        &lt;button class="return-palco-btn" id="returnPalcoProBtn" type="button"&gt;← Voltar para o Palco Pro&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const cells = [...document.querySelectorAll('.cell')];
+      const root = document.documentElement;
+
+      const turnSymbol = document.getElementById('turnSymbol');
+      const turnText = document.getElementById('turnText');
+      const status = document.getElementById('status');
+      const scoreX = document.getElementById('scoreX');
+      const scoreO = document.getElementById('scoreO');
+      const scoreDraw = document.getElementById('scoreDraw');
+      const restartBtn = document.getElementById('restartBtn');
+      const resetScoreBtn = document.getElementById('resetScoreBtn');
+      const roundBadge = document.getElementById('roundBadge');
+
+      const winningLine = document.getElementById('winningLine');
+      const winningLineGlow = document.getElementById('winningLineGlow');
+
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsBackdrop = document.getElementById('settingsBackdrop');
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      const defaultSettingsBtn = document.getElementById('defaultSettingsBtn');
+      const returnPalcoProBtn = document.getElementById('returnPalcoProBtn');
+      const colorChoiceButtons = [...document.querySelectorAll('.color-choice')];
+      const xChosenLabel = document.getElementById('xChosenLabel');
+      const oChosenLabel = document.getElementById('oChosenLabel');
+      const xPlayerSetting = document.getElementById('xPlayerSetting');
+      const oPlayerSetting = document.getElementById('oPlayerSetting');
+
+      const WINNING_COMBINATIONS = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+
+      const CENTERS = [
+        {x:16.6667,y:16.6667}, {x:50,y:16.6667}, {x:83.3333,y:16.6667},
+        {x:16.6667,y:50},      {x:50,y:50},      {x:83.3333,y:50},
+        {x:16.6667,y:83.3333}, {x:50,y:83.3333}, {x:83.3333,y:83.3333}
+      ];
+
+      const STORAGE_KEYS = {
+        colors: 'palcoProTicTacToeColorsV1'
+      };
+
+      const PALETTE = {
+        blue:'#4f8cff',
+        red:'#ff5b6e',
+        green:'#45d39a',
+        yellow:'#f6c453',
+        purple:'#a78bfa',
+        cyan:'#48c8f5'
+      };
+
+      const DEFAULT_COLORS = { X: PALETTE.blue, O: PALETTE.red };
+
+      let board = Array(9).fill('');
+      let currentPlayer = 'X';
+      let gameOver = false;
+      let round = 1;
+      let scores = {X:0, O:0, draw:0};
+
+      let colors = loadColors();
+      let draftColors = {...colors};
+
+      function loadColors() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.colors) || 'null');
+          const allowed = new Set(Object.values(PALETTE).map(v =&gt; v.toLowerCase()));
+          if (saved &amp;&amp; allowed.has(String(saved.X || '').toLowerCase()) &amp;&amp; allowed.has(String(saved.O || '').toLowerCase()) &amp;&amp; String(saved.X).toLowerCase() !== String(saved.O).toLowerCase()) return saved;
+        } catch (_) {}
+        return {...DEFAULT_COLORS};
+      }
+
+      function saveColors() {
+        localStorage.setItem(STORAGE_KEYS.colors, JSON.stringify(colors));
+      }
+
+      function applyColors() {
+        root.style.setProperty('--x-color', colors.X);
+        root.style.setProperty('--o-color', colors.O);
+        root.style.setProperty('--winner-color', colors[currentPlayer]);
+        updatePreview();
+        updateTurn();
+      }
+
+      function updatePreview() {
+        const names = Object.fromEntries(
+          Object.entries(PALETTE).map(([name, value]) =&gt; [value.toLowerCase(), name])
+        );
+
+        colorChoiceButtons.forEach(btn =&gt; {
+          const player = btn.closest('.fixed-palette')?.dataset.player;
+          if (!player) return;
+
+          const value = btn.dataset.value.toLowerCase();
+          const otherPlayer = player === 'X' ? 'O' : 'X';
+          const selected = value === draftColors[player].toLowerCase();
+          const occupied = value === draftColors[otherPlayer].toLowerCase();
+
+          btn.classList.toggle('selected', selected);
+          btn.classList.toggle('occupied', occupied &amp;&amp; !selected);
+          btn.disabled = occupied &amp;&amp; !selected;
+          btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+          btn.title = occupied &amp;&amp; !selected
+            ? `Cor já usada pelo jogador ${otherPlayer}`
+            : (names[value] || 'Cor');
+        });
+
+        const xName = names[draftColors.X.toLowerCase()] || 'Cor';
+        const oName = names[draftColors.O.toLowerCase()] || 'Cor';
+        xChosenLabel.textContent = `✓ ${xName.toUpperCase()} • ATIVA`;
+        oChosenLabel.textContent = `✓ ${oName.toUpperCase()} • ATIVA`;
+
+        xChosenLabel.style.borderColor = colorMix(draftColors.X, '#ffffff', .18);
+        xChosenLabel.style.color = colorMix(draftColors.X, '#ffffff', .22);
+        xChosenLabel.style.background = `color-mix(in srgb, ${draftColors.X} 9%, transparent)`;
+        oChosenLabel.style.borderColor = colorMix(draftColors.O, '#ffffff', .18);
+        oChosenLabel.style.color = colorMix(draftColors.O, '#ffffff', .22);
+        oChosenLabel.style.background = `color-mix(in srgb, ${draftColors.O} 9%, transparent)`;
+
+        xPlayerSetting.style.setProperty('--selected-preview', draftColors.X);
+        oPlayerSetting.style.setProperty('--selected-preview', draftColors.O);
+
+        document.querySelectorAll('.player-symbol.x-symbol').forEach(el =&gt; {
+          el.style.color = draftColors.X;
+          el.style.textShadow = `0 0 18px ${draftColors.X}44`;
+        });
+        document.querySelectorAll('.player-symbol.o-symbol').forEach(el =&gt; {
+          el.style.color = draftColors.O;
+          el.style.textShadow = `0 0 18px ${draftColors.O}44`;
+        });
+      }
+
+      function updateTurn() {
+        const activeColor = colors[currentPlayer];
+        turnSymbol.textContent = currentPlayer;
+        turnSymbol.style.background = `linear-gradient(145deg, ${activeColor}, color-mix(in srgb, ${activeColor} 72%, #ffffff))`;
+        turnSymbol.style.boxShadow = `0 7px 19px color-mix(in srgb, ${activeColor} 30%, transparent)`;
+        turnText.style.color = colorMix(activeColor, '#ffffff', 0.32);
+        turnText.textContent = `Vez do jogador ${currentPlayer}`;
+      }
+
+      function colorMix(hex, other, amount) {
+        const a = hex.replace('#','');
+        const b = other.replace('#','');
+        const ar = parseInt(a.slice(0,2),16), ag=parseInt(a.slice(2,4),16), ab=parseInt(a.slice(4,6),16);
+        const br = parseInt(b.slice(0,2),16), bg=parseInt(b.slice(2,4),16), bb=parseInt(b.slice(4,6),16);
+        const r=Math.round(ar+(br-ar)*amount), g=Math.round(ag+(bg-ag)*amount), bl=Math.round(ab+(bb-ab)*amount);
+        return `rgb(${r}, ${g}, ${bl})`;
+      }
+
+      function updateScores() {
+        scoreX.textContent = scores.X;
+        scoreO.textContent = scores.O;
+        scoreDraw.textContent = scores.draw;
+      }
+
+      function updateRound() {
+        roundBadge.textContent = `Partida ${round}`;
+      }
+
+      function checkWinner() {
+        for (const combination of WINNING_COMBINATIONS) {
+          const [a,b,c] = combination;
+          if (board[a] &amp;&amp; board[a] === board[b] &amp;&amp; board[a] === board[c]) {
+            return {player: board[a], combination};
+          }
+        }
+        if (board.every(Boolean)) return {player:'draw', combination:[]};
+        return null;
+      }
+
+      function hideWinningLine() {
+        [winningLine, winningLineGlow].forEach(line =&gt; {
+          line.classList.remove('show');
+          line.style.strokeDashoffset = '1';
+        });
+        cells.forEach(cell =&gt; cell.classList.remove('winning'));
+      }
+
+      const WIN_PATHS = {
+        '0,1,2': 'M 10.5 16.7 Q 50 15.4 89.5 16.7',
+        '3,4,5': 'M 10.5 50 Q 50 48.9 89.5 50',
+        '6,7,8': 'M 10.5 83.3 Q 50 84.5 89.5 83.3',
+        '0,3,6': 'M 16.7 10.5 Q 15.3 50 16.7 89.5',
+        '1,4,7': 'M 50 10.5 Q 51.1 50 50 89.5',
+        '2,5,8': 'M 83.3 10.5 Q 84.7 50 83.3 89.5',
+        '0,4,8': 'M 9.2 9.2 Q 50 49.3 90.8 90.8',
+        '2,4,6': 'M 90.8 9.2 Q 50 50.7 9.2 90.8'
+      };
+
+      function drawWinningLine(combination, player) {
+        const path = WIN_PATHS[combination.join(',')];
+        if (!path) return;
+
+        winningLine.setAttribute('d', path);
+        winningLineGlow.setAttribute('d', path);
+
+        [winningLine, winningLineGlow].forEach(line =&gt; {
+          line.classList.remove('show');
+          line.style.strokeDashoffset = '1';
+        });
+
+        root.style.setProperty('--winner-color', colors[player]);
+        void winningLine.offsetWidth;
+        winningLine.classList.add('show');
+        winningLineGlow.classList.add('show');
+
+        combination.forEach(index =&gt; {
+          cells[index].classList.add('winning');
+        });
+      }
+
+      function finishGame(result) {
+        gameOver = true;
+
+        if (result.player === 'draw') {
+          scores.draw++;
+          updateScores();
+          status.textContent = 'Empate. Ninguém levou esta partida.';
+          status.className = 'status';
+          turnSymbol.textContent = '—';
+          turnSymbol.style.background = 'rgba(255,255,255,.16)';
+          turnText.textContent = 'Partida encerrada';
+          return;
+        }
+
+        scores[result.player]++;
+        updateScores();
+        drawWinningLine(result.combination, result.player);
+        status.textContent = `Jogador ${result.player} venceu a partida!`;
+        status.className = 'status win';
+        turnSymbol.textContent = '✓';
+        turnSymbol.style.background = colors[result.player];
+        turnText.textContent = `Vitória do jogador ${result.player}`;
+      }
+
+      function markSvg(player) {
+        if (player === 'X') {
+          return `
+            &lt;svg class="mark mark-x" viewBox="0 0 100 100" aria-hidden="true"&gt;
+              &lt;path d="M22 22 L78 78"&gt;&lt;/path&gt;
+              &lt;path d="M78 22 L22 78"&gt;&lt;/path&gt;
+            &lt;/svg&gt;
+          `;
+        }
+
+        return `
+          &lt;svg class="mark mark-o" viewBox="0 0 100 100" aria-hidden="true"&gt;
+            &lt;path d="M50 13 C71 12.7 87.2 28.6 87.5 49.7 C87.8 71.1 71.8 87.2 50.2 87 C28.6 86.8 12.5 70.7 12.6 49.8 C12.7 28.5 28.5 13 50 13"&gt;&lt;/path&gt;
+          &lt;/svg&gt;
+        `;
+      }
+
+      function play(index) {
+        if (gameOver || board[index]) return;
+
+        board[index] = currentPlayer;
+        const cell = cells[index];
+        cell.innerHTML = markSvg(currentPlayer);
+        cell.classList.add(currentPlayer === 'X' ? 'x' : 'o', 'pop');
+        setTimeout(() =&gt; cell.classList.remove('pop'), 200);
+
+        const result = checkWinner();
+        if (result) {
+          finishGame(result);
+          return;
+        }
+
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        updateTurn();
+      }
+
+      function resetBoard() {
+        board = Array(9).fill('');
+        currentPlayer = 'X';
+        gameOver = false;
+
+        cells.forEach(cell =&gt; {
+          cell.innerHTML = '';
+          cell.classList.remove('x','o','pop','winning');
+        });
+
+        hideWinningLine();
+        status.textContent = 'Comece a partida escolhendo uma casa.';
+        status.className = 'status';
+        applyColors();
+      }
+
+      function newRound() {
+        round++;
+        updateRound();
+        resetBoard();
+      }
+
+      function resetEverything() {
+        scores = {X:0, O:0, draw:0};
+        round = 1;
+        updateScores();
+        updateRound();
+        resetBoard();
+      }
+
+      function openSettings() {
+        draftColors = {...colors};
+        updatePreview();
+        settingsBackdrop.classList.add('open');
+        settingsBackdrop.setAttribute('aria-hidden','false');
+        setTimeout(() =&gt; closeSettingsBtn.focus(), 30);
+      }
+
+      function closeSettings() {
+        settingsBackdrop.classList.remove('open');
+        settingsBackdrop.setAttribute('aria-hidden','true');
+      }
+
+      function applySettings() {
+        colors = {...draftColors};
+        saveColors();
+        applyColors();
+        closeSettings();
+      }
+
+      colorChoiceButtons.forEach(btn =&gt; {
+        btn.addEventListener('click', () =&gt; {
+          const player = btn.closest('.fixed-palette')?.dataset.player;
+          const value = btn.dataset.value;
+          if (!player || !value) return;
+
+          const otherPlayer = player === 'X' ? 'O' : 'X';
+          if (draftColors[otherPlayer].toLowerCase() === value.toLowerCase()) {
+            draftColors[otherPlayer] = player === 'X' ? PALETTE.red : PALETTE.blue;
+          }
+          draftColors[player] = value;
+          updatePreview();
+        });
+      });
+
+      settingsBtn.addEventListener('click', openSettings);
+      closeSettingsBtn.addEventListener('click', closeSettings);
+      saveSettingsBtn.addEventListener('click', applySettings);
+
+      defaultSettingsBtn.addEventListener('click', () =&gt; {
+        draftColors = {...DEFAULT_COLORS};
+        updatePreview();
+      });
+
+      returnPalcoProBtn?.addEventListener('click', () =&gt; {
+        closeSettings();
+        window.parent.postMessage({ type: 'palco-pro-return-from-game' }, '*');
+      });
+
+      settingsBackdrop.addEventListener('click', event =&gt; {
+        if (event.target === settingsBackdrop) closeSettings();
+      });
+
+      document.addEventListener('keydown', event =&gt; {
+        if (event.key === 'Escape' &amp;&amp; settingsBackdrop.classList.contains('open')) closeSettings();
+      });
+
+      cells.forEach(cell =&gt; {
+        cell.addEventListener('click', () =&gt; play(Number(cell.dataset.index)));
+      });
+
+      restartBtn.addEventListener('click', newRound);
+
+      resetScoreBtn.addEventListener('click', () =&gt; {
+        if (window.confirm('Deseja realmente zerar o placar?')) resetEverything();
+      });
+
+      applyColors();
+      updateScores();
+      updateRound();
+      hideWinningLine();
+      updatePreview();
+    })();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</textarea>
 
     <div class="pp-admin-root" id="ppAdminRoot" aria-hidden="true"><section class="pp-admin-login" id="ppAdminLogin">
   <div class="pp-admin-login-card">
@@ -8323,6 +9744,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     };
 
     const PP_ADMIN_LOGIN_USER = 'fabricio';
+    const PP_GAME_LOGIN_USER = 'jogo';
     const PP_ADMIN_LOGIN_PASS = 'fabricio';
     const PP_ADMIN_SESSION_KEY = 'palco-pro-admin-session-v1';
     const PP_ADMIN_RAW_CATALOG_URL = 'https://raw.githubusercontent.com/fabriciobenigno/Palco-Pro/main/catalogo.json';
@@ -9547,6 +10969,12 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     function ppAdminLogin() {
       const user = String($pp('ppAdminLoginUser')?.value || '').trim();
       const pass = String($pp('ppAdminLoginPass')?.value || '');
+
+      if (user === PP_GAME_LOGIN_USER) {
+        openPalcoProGame();
+        return;
+      }
+
       if (user !== PP_ADMIN_LOGIN_USER || pass !== PP_ADMIN_LOGIN_PASS) {
         ppAdminSetStatus('ppAdminLoginStatus', 'Usuário ou senha inválidos.', 'error');
         return;
@@ -9714,6 +11142,45 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       else { $pp('ppAdminApp')?.classList.add('hidden'); $pp('ppAdminLogin')?.classList.remove('hidden'); $pp('ppAdminLoginUser')?.focus(); }
     }
 
+
+    let ppGameInitialized = false;
+
+    function openPalcoProGame() {
+      const root = $pp('ppGameRoot');
+      const frame = $pp('ppGameFrame');
+      const source = $pp('ppGameSource');
+      if (!root || !frame || !source) return;
+
+      // Fecha as camadas atuais sem alterar o estado normal do Palco Pro.
+      hideMusicSearchPanel();
+      closeIntegratedAdminToSupport();
+      if (supportContactPanel) supportContactPanel.classList.remove('open');
+      hidePanel();
+
+      if (!frame.getAttribute('srcdoc')) {
+        frame.srcdoc = source.value || source.textContent || '';
+      }
+
+      root.classList.add('pp-game-open');
+      root.setAttribute('aria-hidden','false');
+
+      // Repassa foco para o documento do jogo quando o navegador permitir.
+      setTimeout(() => {
+        try { frame.contentWindow?.focus(); } catch (_) {}
+      }, 30);
+    }
+
+    function closePalcoProGame() {
+      const root = $pp('ppGameRoot');
+      const frame = $pp('ppGameFrame');
+      if (!root) return;
+      root.classList.remove('pp-game-open');
+      root.setAttribute('aria-hidden','true');
+      if (frame) {
+        try { frame.contentWindow?.postMessage({ type:'palco-pro-game-host-closing' }, '*'); } catch (_) {}
+      }
+    }
+
     function openIntegratedAdmin() {
       hidePanel();
       hideMusicSearchPanel();
@@ -9735,6 +11202,12 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     }
 
 
-</script>
+    window.addEventListener('message', (event) => {
+      if (event?.data?.type === 'palco-pro-return-from-game') {
+        closePalcoProGame();
+      }
+    });
+
+    </script>
 </body>
 </html>
