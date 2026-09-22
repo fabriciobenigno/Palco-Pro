@@ -9480,16 +9480,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const item = ppAdmin.singleResults.find(result => String(result.id) === String(id));
       if (!item) return;
       ppAdmin.singleSelectedId = String(id);
-      ppAdminSwitchTab('register');
-      ppAdmin.editingCatalogId = '';
-      $pp('ppAdminEditingBadge').textContent = 'Novo';
-      $pp('ppAdminFormTitle').value = item.title;
-      $pp('ppAdminFormArtist').value = item.artist;
-      $pp('ppAdminFormStyle').value = item.style || 'Música brasileira';
-      $pp('ppAdminFormKey').value = '';
-      $pp('ppAdminFormLyrics').value = item.lyrics;
-      ppAdminSetStatus('ppAdminManualStatus', '✅ Música selecionada para o cadastro.', 'success');
-      $pp('ppAdminFormTitle')?.focus();
+      ppAdminSetStatus('ppAdminSingleStatus', `✅ Selecionada: ${item.title} — ${item.artist}. Use o fluxo de cadastro para continuar.`, 'success');
       ppAdminRenderSingle();
     }
 
