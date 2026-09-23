@@ -1015,6 +1015,58 @@
       transform: translateY(-50%) scale(1.04);
     }
 
+    .library-list-song-card.has-list-order-controls {
+      padding-left: 70px;
+      padding-right: 82px;
+      gap: 8px;
+    }
+    .library-list-position {
+      position: absolute;
+      left: 42px;
+      top: 50%;
+      transform: translateY(-50%);
+      min-width: 23px;
+      height: 23px;
+      padding: 0 5px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(105,185,255,0.10);
+      border: 1px solid rgba(126,200,255,0.14);
+      color: rgba(207,232,255,0.84);
+      font-size: 10px;
+      font-weight: 850;
+      pointer-events: none;
+    }
+    .library-order-buttons {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      gap: 4px;
+      z-index: 7;
+    }
+    .library-order-step {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.82);
+      font-size: 15px;
+      line-height: 1;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .library-order-step:active { transform: scale(.94); }
+    .library-order-step:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+
     .library-song-swipe.is-order-dragging {
       z-index: 20;
     }
@@ -2288,7 +2340,10 @@
     }
 
     @media (max-width: 560px) {
-      :root { --text-width: 90vw; }
+      .library-list-song-card.has-list-order-controls { padding-left: 66px; padding-right: 74px; }
+      .library-list-position { left: 39px; min-width: 21px; height: 21px; font-size: 9px; }
+      .library-order-buttons { right: 6px; gap: 3px; }
+      .library-order-step { width: 27px; height: 27px; font-size: 14px; }
       .script-inner { padding-left: 18px; padding-right: 18px; }
       .controls-bar { gap: 10px; bottom: calc(var(--safe-bottom) + 18px); }
       .mini-btn, .circle-btn { width: 46px; height: 46px; }
@@ -2375,6 +2430,18 @@
     .pp-admin-modal{position:fixed;inset:0;z-index:10090;display:none;place-items:center;padding:16px;background:rgba(1,4,9,.72);backdrop-filter:blur(15px)}.pp-admin-modal.show{display:grid}.pp-admin-modal-card{width:min(720px,96vw);max-height:90vh;overflow:auto;border-radius:28px;background:linear-gradient(180deg,#101a2a,#070d16);border:1px solid rgba(170,205,255,.16);box-shadow:0 30px 100px rgba(0,0,0,.55)}.pp-admin-modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}.pp-admin-modal-head h3{margin:0;font-size:17px}.pp-admin-modal-body{padding:18px;display:grid;gap:12px}.pp-admin-modal-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.pp-admin-icon-btn{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#fff;cursor:pointer}.pp-admin-detail{padding:13px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}.pp-admin-detail label{display:block;color:#65738a;font-size:10px;text-transform:uppercase;font-weight:850;letter-spacing:.08em;margin-bottom:5px}.pp-admin-detail div{font-size:12px;line-height:1.65;white-space:pre-wrap;word-break:break-word}.pp-admin-footer{color:#627087;font-size:10px;text-align:center}
     @media(max-width:760px){.pp-admin-root{padding:10px}.pp-admin-topbar{align-items:flex-start;flex-direction:column}.pp-admin-top-actions{width:100%}.pp-admin-top-actions .pp-admin-btn{flex:1}.pp-admin-stats{grid-template-columns:repeat(2,1fr)}.pp-admin-panel-grid,.pp-admin-two{grid-template-columns:1fr}.pp-admin-song{grid-template-columns:18px minmax(0,1fr)}.pp-admin-song-actions{grid-column:2;justify-content:flex-start}.pp-admin-card{padding:14px;border-radius:23px}.pp-admin-toolbar .pp-admin-btn{flex:1 1 140px}.pp-admin-result{grid-template-columns:20px minmax(0,1fr)}}
     @media(max-width:430px){.pp-admin-search{flex-basis:100%}.pp-admin-stat strong{font-size:20px}.pp-admin-card-head{flex-direction:column}}
+    @media(max-width:430px){
+      .pp-admin-login{min-height:100dvh;padding:14px 12px 18px;align-content:center;}
+      .pp-admin-login-card{width:min(100%,380px);padding:18px 15px;border-radius:24px;}
+      .pp-admin-login-card .pp-admin-brand{gap:10px;align-items:center;}
+      .pp-admin-login-card .pp-admin-brand-mark{width:42px;height:42px;flex:0 0 42px;}
+      .pp-admin-login-card .pp-admin-brand h1{font-size:20px;line-height:1.1;}
+      .pp-admin-login-card .pp-admin-brand p{font-size:10px;line-height:1.35;}
+      .pp-admin-login-card .pp-admin-form-grid{gap:9px;margin-top:15px;}
+      .pp-admin-login-card .pp-admin-field{gap:6px;}
+      .pp-admin-login-card input{min-height:46px;padding:11px 12px;border-radius:14px;}
+      .pp-admin-login-card .pp-admin-btn{min-height:46px;width:100%;}
+    }
 
 
     /* Camada independente: o ADM só abre quando o usuário toca em Acesso de ADM. */
@@ -4286,7 +4353,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       <div><h1>Palco Pro Admin</h1><p>Área administrativa integrada ao Palco Pro</p></div>
     </div>
     <div class="pp-admin-form-grid">
-      <div class="pp-admin-field"><label for="ppAdminLoginUser">Usuário</label><input id="ppAdminLoginUser" type="text" autocomplete="username" value="fabricio" /></div>
+      <div class="pp-admin-field"><label for="ppAdminLoginUser">Usuário</label><input id="ppAdminLoginUser" type="text" autocomplete="username" placeholder="Digite seu usuário" /></div>
       <div class="pp-admin-field"><label for="ppAdminLoginPass">Senha</label><input id="ppAdminLoginPass" type="password" autocomplete="current-password" /></div>
       <button class="pp-admin-btn pp-admin-btn-primary" id="ppAdminLoginBtn" type="button">Entrar</button>
       <button class="pp-admin-btn pp-admin-btn-secondary" id="ppAdminLoginCloseBtn" type="button">Voltar ao suporte</button>
@@ -5412,6 +5479,24 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       });
     }
 
+    function moveSongWithinCurrentList(songId, direction) {
+      const list = getListById(state.currentListId);
+      if (!list || !songId) return;
+      const ids = Array.isArray(list.songIds) ? list.songIds.map(String) : [];
+      const index = ids.indexOf(String(songId));
+      if (index < 0) return;
+      const nextIndex = direction === 'up' ? index - 1 : index + 1;
+      if (nextIndex < 0 || nextIndex >= ids.length) {
+        showToast(direction === 'up' ? 'Esta música já está em primeiro lugar.' : 'Esta música já está em último lugar.', 1300);
+        return;
+      }
+      [ids[index], ids[nextIndex]] = [ids[nextIndex], ids[index]];
+      list.songIds = ids;
+      state.lists = state.lists.map(item => item.id === list.id ? normalizeList(list) : item);
+      saveLists();
+      renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
+    }
+
     function saveCurrentList() {
       const name = (listNameInput?.value || '').trim();
       if (!name) {
@@ -5467,7 +5552,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       librarySortControls?.classList.remove('hidden');
       if (state.librarySortMode !== 'lists' || !state.currentListId) { libraryContextBar.classList.add('hidden'); return; }
       const currentList = getListById(state.currentListId); if (!currentList) { libraryContextBar.classList.add('hidden'); return; }
-      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) • Arraste ⠿ para definir a ordem</span>`;
+      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) • Use ↑ ↓ ou arraste ⠿ para definir a ordem</span>`;
       const backBtn=document.createElement('button'); backBtn.className='ghost-btn'; backBtn.type='button'; backBtn.textContent='Voltar'; backBtn.addEventListener('click',()=>{state.currentListId=null; renderLibraryList(librarySearchInput?librarySearchInput.value:'');});
       const editBtn=document.createElement('button'); editBtn.className='ghost-btn'; editBtn.type='button'; editBtn.textContent='Editar lista'; editBtn.addEventListener('click',()=>openListEditor(currentList.id));
       libraryContextBar.append(info,backBtn,editBtn); libraryContextBar.classList.remove('hidden');
@@ -8048,6 +8133,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       const payload = {
+        action: 'receberNovoCadastro',
         id: song.id,
         musica: song.title || '',
         artista: song.artist || '',
@@ -8681,10 +8767,15 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         actions.appendChild(editBtn);
         actions.appendChild(deleteBtn);
 
-        const card = document.createElement('button');
-        card.className = 'library-song-card';
+        const inCurrentList = state.librarySortMode === 'lists' && !!state.currentListId && !state.librarySelectionMode;
+        const card = document.createElement(inCurrentList ? 'div' : 'button');
+        card.className = 'library-song-card' + (inCurrentList ? ' library-list-song-card' : '');
         if (state.librarySelectionMode) card.classList.add('selection-mode');
-        card.type = 'button';
+        if (!inCurrentList) card.type = 'button';
+        if (inCurrentList) {
+          card.setAttribute('role', 'button');
+          card.setAttribute('tabindex', '0');
+        }
         const artistText = song.artist || 'Sem cantor';
         const styleText = song.style || 'Sem estilo';
         if (state.librarySelectionMode) {
@@ -8707,8 +8798,15 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           const orderHandle = shouldAllowManualLibraryOrdering()
             ? '<span class="library-order-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>'
             : '';
-          card.innerHTML = `${orderHandle}<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
-          card.classList.toggle('has-reorder-handle', !!orderHandle);
+          if (inCurrentList) {
+            const list = getListById(state.currentListId);
+            const position = Math.max(1, (list?.songIds || []).map(String).indexOf(String(song.id)) + 1);
+            card.innerHTML = `${orderHandle}<span class="library-list-position" aria-label="Posição ${position}">${position}</span><span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span><span class="library-order-buttons" aria-label="Alterar posição"><span class="library-order-step" data-order-action="up" role="button" tabindex="0" aria-label="Mover para cima" title="Mover para cima">↑</span><span class="library-order-step" data-order-action="down" role="button" tabindex="0" aria-label="Mover para baixo" title="Mover para baixo">↓</span></span>`;
+            card.classList.add('has-reorder-handle','has-list-order-controls');
+          } else {
+            card.innerHTML = `${orderHandle}<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
+            card.classList.toggle('has-reorder-handle', !!orderHandle);
+          }
         }
 
         row.appendChild(actions);
@@ -8720,11 +8818,34 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           attachLibrarySwipe(row, card, song.id);
           if (shouldAllowManualLibraryOrdering()) attachManualOrderDrag(row, card, song.id);
           card.addEventListener('click', (event) => {
+            const orderAction = event.target.closest?.('[data-order-action]');
+            if (orderAction && inCurrentList) {
+              event.preventDefault();
+              event.stopPropagation();
+              moveSongWithinCurrentList(song.id, orderAction.dataset.orderAction);
+              return;
+            }
             if (Number(row.dataset.orderDraggedUntil || 0) > Date.now()) {
               event.preventDefault();
               event.stopPropagation();
             }
           }, true);
+          if (inCurrentList) {
+            card.addEventListener('keydown', (event) => {
+              const orderAction = event.target.closest?.('[data-order-action]');
+              if (orderAction && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault();
+                event.stopPropagation();
+                moveSongWithinCurrentList(song.id, orderAction.dataset.orderAction);
+                return;
+              }
+              if ((event.key === 'Enter' || event.key === ' ') && event.target === card) {
+                event.preventDefault();
+                state.currentSongId = song.id;
+                openSelectedSong();
+              }
+            });
+          }
         }
       });
     }
