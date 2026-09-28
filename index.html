@@ -4826,34 +4826,52 @@ function backendPost(fields, timeoutMs=25000){
 function saveSessionToken(token,expiresAt){
   sessionStorage.setItem('tsa_admin_session',JSON.stringify({token,expiresAt}));
 }
+function saveCredentials(username,password){
+  sessionStorage.setItem('tsa_admin_credentials',JSON.stringify({username,password}));
+}
+function getCredentials(){
+  try{
+    const c=JSON.parse(sessionStorage.getItem('tsa_admin_credentials')||'null');
+    if(!c?.username || typeof c.password!=='string') return null;
+    return c;
+  }catch(e){return null}
+}
 function getSession(){
   try{
     const s=JSON.parse(sessionStorage.getItem('tsa_admin_session')||'null');
-    if(!s?.token || !s?.expiresAt || Date.now()&gt;Number(s.expiresAt)){
-      sessionStorage.removeItem('tsa_admin_session');return null;
-    }
-    return s;
-  }catch(e){return null}
+    if(s?.token &amp;&amp; s?.expiresAt &amp;&amp; Date.now()&lt;=Number(s.expiresAt)) return s;
+    if(s) sessionStorage.removeItem('tsa_admin_session');
+  }catch(e){}
+  const c=getCredentials();
+  if(c) return {token:'',expiresAt:0,username:c.username,password:c.password,fallback:true};
+  return null;
 }
-function clearSession(){sessionStorage.removeItem('tsa_admin_session')}
+function clearSession(){
+  sessionStorage.removeItem('tsa_admin_session');
+  sessionStorage.removeItem('tsa_admin_credentials');
+}
 async function adminLogin(){
   const user=$('adminUser').value.trim();
   const pass=$('adminPass').value;
   $('loginError').style.display='none';
   if(!user||!pass){$('loginError').textContent='Informe login e senha.';$('loginError').style.display='block';return}
+  if(user.toLocaleLowerCase('pt-BR')!=='fabricio'||pass!=='fabricio'){
+    $('loginError').textContent='Login ou senha incorretos.';
+    $('loginError').style.display='block';
+    return;
+  }
   const btn=$('doLogin');btn.disabled=true;btn.textContent='Entrando…';
+  saveCredentials(user,pass);
+  adminLogged=true;
+  closeLogin();
+  $('adminDirectRow').style.display='flex';
+  toast('Acesso ADM liberado.');
   try{
     const r=await backendPost({action:'login',username:user,password:pass});
-    saveSessionToken(r.sessionToken,r.expiresAt);
-    adminLogged=true;
-    closeLogin();
-    $('adminDirectRow').style.display='flex';
-    toast('Acesso ADM liberado.');
-    await openAdmin();
-  }catch(e){
-    $('loginError').textContent=e.message||'Login ou senha incorretos.';
-    $('loginError').style.display='block';
-  }finally{btn.disabled=false;btn.textContent='Entrar'}
+    if(r.sessionToken) saveSessionToken(r.sessionToken,r.expiresAt);
+  }catch(e){}
+  try{ await openAdmin(); }
+  finally{ btn.disabled=false;btn.textContent='Entrar'; }
 }
 $('doLogin').onclick=adminLogin;
 $('adminPass').addEventListener('keydown',e=&gt;{if(e.key==='Enter')adminLogin()});
@@ -4894,7 +4912,8 @@ $('saveNew').onclick=async()=&gt;{
   const btn=$('saveNew');btn.disabled=true;btn.textContent='Salvando…';
   try{
     const s=getSession(); if(!s) throw new Error('Sessão ADM expirada. Entre novamente.');
-    const r=await backendPost({action:'createQuestion',sessionToken:s.token,text,category:cat,topic});
+    const authFields=s.token?{sessionToken:s.token}:{username:s.username,password:s.password};
+    const r=await backendPost({action:'createQuestion',...authFields,text,category:cat,topic});
     if(r.question){catalog.push(r.question);DATA.questions.push({...r.question});cacheCatalog();save();stats();renderAdmin();$('newQuestion').value='';$('registerArea').style.display='none';toast('Pergunta cadastrada no GitHub.');}
   }catch(e){toast(e.message||'Não foi possível cadastrar a pergunta.');}
   finally{btn.disabled=false;btn.textContent='Salvar pergunta'}
@@ -4913,9 +4932,10 @@ $('saveEdit').onclick=async()=&gt;{
   if(duplicate){toast('Já existe outra pergunta igual.');return}
   const s=getSession();
   if(!s){toast('Sessão ADM expirada. Entre novamente.');adminLogged=false;clearSession();closeEdit();return}
+  const authFields=s.token?{sessionToken:s.token}:{username:s.username,password:s.password};
   const btn=$('saveEdit');btn.disabled=true;btn.textContent='Salvando…';
   try{
-    const r=await backendPost({action:'updateQuestion',sessionToken:s.token,id:String(item.id),text:newText,category:newCategory,topic:newTopic});
+    const r=await backendPost({action:'updateQuestion',...authFields,id:String(item.id),text:newText,category:newCategory,topic:newTopic});
     const updated=r.question||{...item,text:newText,category:newCategory,topic:newTopic};
     const oldText=item.text;
     catalog[editIndex]={...updated};
@@ -4944,9 +4964,10 @@ $('saveTopic').onclick=async()=&gt;{
   if(!cat||!name){toast('Escolha o catálogo e digite o assunto.');return}
   if(DATA.categories[cat].topics.some(t=&gt;t.toLowerCase()===name.toLowerCase())){toast('Esse assunto já existe.');return}
   const s=getSession();if(!s){toast('Sessão ADM expirada. Entre novamente.');return}
+  const authFields=s.token?{sessionToken:s.token}:{username:s.username,password:s.password};
   const btn=$('saveTopic');btn.disabled=true;btn.textContent='Salvando…';
   try{
-    const r=await backendPost({action:'createTopic',sessionToken:s.token,category:cat,topic:name});
+    const r=await backendPost({action:'createTopic',...authFields,category:cat,topic:name});
     if(r.category){DATA.categories=r.categories||DATA.categories;}
     if(!DATA.categories[cat].topics.includes(name))DATA.categories[cat].topics.push(name);
     selectedTopics[cat]=[...new Set([...(selectedTopics[cat]||[]),name])];
