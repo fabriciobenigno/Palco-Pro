@@ -5209,7 +5209,7 @@ button{
               <input id="suggestionsSearchInput" type="search" placeholder="Título, título + artista ou trecho da letra..." autocomplete="off" inputmode="search" />
               <button class="catalog-search-clear hidden" id="clearCatalogSearchBtn" type="button" aria-label="Limpar pesquisa">×</button>
             </div>
-            <div class="catalog-search-help">Ex.: <b>Oceano</b> · <b>Oceano Djavan</b> · <b>um trecho da letra</b></div>
+            <div class="catalog-search-help">Ex.: <b>Oceano</b> · <b>Oceano Djavan</b> · <b>um trecho da letra</b> · <b>todas as músicas</b></div>
           </div>
 
           <div class="catalog-tools-row">
@@ -6266,7 +6266,12 @@ button{
     }
 
     function getSuggestionSearchQuery() {
-      return normalizeSearchText(suggestionsSearchInput?.value || '');
+      return normalizeSearchText(suggestionsSearchInput?.value || '').replace(/\s+/g, ' ');
+    }
+
+    function isAllCatalogSearchQuery(query) {
+      const normalized = normalizeSearchText(query).replace(/\s+/g, ' ').trim();
+      return normalized === 'todas as musicas' || normalized === 'todas musicas';
     }
 
     function getSuggestionSongKey(song) {
@@ -6764,6 +6769,20 @@ button{
       if (query.length < 2) {
         suggestionsList.innerHTML = '<div class="suggestion-empty"><strong>Continue digitando</strong>Digite pelo menos 2 caracteres para pesquisar.</div>';
         updateSuggestionsStatus('Digite o título, título + artista ou um trecho da letra.');
+        return;
+      }
+
+      // Atalho exclusivo para o cadastro de música disponível ao usuário.
+      // Ao pesquisar por “todas as músicas”, mostra o catálogo público completo
+      // carregado pelo Palco Pro, sem consultar a busca externa.
+      if (isAllCatalogSearchQuery(query)) {
+        const allCatalogSongs = (Array.isArray(state.suggestionSongs) ? state.suggestionSongs : []).slice();
+        renderCatalogSongs(allCatalogSongs, 'Catálogo completo', {
+          emptyMessage: 'O catálogo está vazio no momento.'
+        });
+        updateSuggestionsStatus(allCatalogSongs.length
+          ? `${allCatalogSongs.length} música${allCatalogSongs.length === 1 ? '' : 's'} disponível${allCatalogSongs.length === 1 ? '' : 'eis'} no catálogo.`
+          : 'O catálogo está vazio no momento.');
         return;
       }
 
@@ -11728,11 +11747,6 @@ button{
       });
     }
 
-    function ppAdminIsAllCatalogQuery(query) {
-      const normalized = ppAdminNormalize(query);
-      return normalized === 'todas as musicas' || normalized === 'todas musicas';
-    }
-
     async function ppAdminSingleSearch() {
       const query = String($pp('ppAdminSingleQuery')?.value || '').trim();
       if (query.length < 2 || ppAdmin.singleSearchBusy || ppAdmin.bulkSearchBusy) return;
@@ -11745,19 +11759,6 @@ button{
 
       try {
         await ppAdminLoadCatalog();
-
-        if (ppAdminIsAllCatalogQuery(query)) {
-          ppAdmin.singleCatalogMode = true;
-          ppAdminRenderSingle();
-          if (runId === ppAdmin.searchRunId) {
-            ppAdminSetStatus(
-              'ppAdminSingleStatus',
-              `📚 Catálogo completo exibido: ${ppAdmin.catalog.length} música(s).`,
-              'success'
-            );
-          }
-          return;
-        }
 
         ppAdminSetStatus('ppAdminSingleStatus', '🔎 Pesquisando e validando progressivamente...', '');
         await ppAdminProgressiveSearch(query, 'single', PP_ADMIN_MAX_SINGLE_RESULTS, runId);
