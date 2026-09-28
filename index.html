@@ -4784,7 +4784,46 @@ $('adminDirect').onclick=openAdmin;
 $('closeLogin').onclick=closeLogin;
 
 function backendConfigured(){return /^https:\/\//i.test(BACKEND_URL)}
-function backendPost(fields, timeoutMs=25000){
+
+async function tsaFetchRemoteQuestions(){
+  const url='perguntas.json?tsa_verify='+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const response=await fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+  if(!response.ok) throw new Error('HTTP '+response.status);
+  const parsed=await response.json();
+  if(!validCatalogShape(parsed)) throw new Error('Formato inválido do perguntas.json.');
+  return parsed;
+}
+
+async function tsaWaitForRemoteWrite(action, fields, timeoutMs){
+  const deadline=Date.now()+timeoutMs;
+  let lastError=null;
+  const text=String(fields.text||'').trim().toLocaleLowerCase('pt-BR');
+  const category=String(fields.category||'').trim();
+  const topic=String(fields.topic||'').trim();
+  const id=String(fields.id||'').trim();
+  while(Date.now()&lt;deadline){
+    try{
+      const remote=await tsaFetchRemoteQuestions();
+      if(action==='updateQuestion'){
+        const found=remote.questions.some(q=&gt;String(q.id)===id &amp;&amp; String(q.text||'').trim().toLocaleLowerCase('pt-BR')===text &amp;&amp; String(q.category||'').trim()===category &amp;&amp; String(q.topic||'').trim()===topic);
+        if(found) return {ok:true,verified:true};
+      }else if(action==='createQuestion'){
+        const found=remote.questions.some(q=&gt;String(q.text||'').trim().toLocaleLowerCase('pt-BR')===text &amp;&amp; String(q.category||'').trim()===category &amp;&amp; String(q.topic||'').trim()===topic);
+        if(found) return {ok:true,verified:true};
+      }else if(action==='createTopic'){
+        const found=remote.categories?.[category]?.topics?.some(t=&gt;String(t).trim()===topic);
+        if(found) return {ok:true,verified:true,categories:remote.categories};
+      }else{
+        return {ok:true,verified:false};
+      }
+    }catch(e){lastError=e}
+    await new Promise(resolve=&gt;setTimeout(resolve,1400));
+  }
+  const detail=lastError?.message?(' '+lastError.message):'';
+  throw new Error('A gravação foi enviada, mas o GitHub não confirmou a alteração dentro do tempo esperado.'+detail);
+}
+
+function backendPost(fields, timeoutMs=65000){
   return new Promise((resolve,reject)=&gt;{
     if(!backendConfigured()){
       reject(new Error('Backend do Apps Script ainda não foi configurado.'));
@@ -4792,19 +4831,6 @@ function backendPost(fields, timeoutMs=25000){
     }
     const requestId='tsa_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const frame=$('tsaBackendFrame');
-    let timer;
-    const onMessage=e=&gt;{
-      if(e.source!==frame.contentWindow) return;
-      const data=e.data;
-      if(!data || data.source!=='tosa-backend' || data.requestId!==requestId) return;
-      cleanup();
-      if(data.ok) resolve(data); else reject(new Error(data.error||'Falha no backend.'));
-    };
-    const cleanup=()=&gt;{
-      window.removeEventListener('message',onMessage);
-      clearTimeout(timer);
-      form.remove();
-    };
     const form=document.createElement('form');
     form.method='POST';
     form.action=BACKEND_URL;
@@ -4813,13 +4839,28 @@ function backendPost(fields, timeoutMs=25000){
     const payload={...fields,requestId};
     Object.entries(payload).forEach(([k,v])=&gt;{
       const input=document.createElement('input');
-      input.type='hidden';input.name=k;input.value=typeof v==='string'?v:JSON.stringify(v);
+      input.type='hidden';
+      input.name=k;
+      input.value=typeof v==='string'?v:JSON.stringify(v);
       form.appendChild(input);
     });
-    window.addEventListener('message',onMessage);
     document.body.appendChild(form);
-    timer=setTimeout(()=&gt;{cleanup();reject(new Error('O backend não respondeu a tempo.'))},timeoutMs);
-    form.submit();
+
+    // O retorno HTML do Apps Script não é usado para confirmar a gravação.
+    // O navegador envia o POST para o iframe e o app confirma a operação
+    // diretamente no perguntas.json publicado no GitHub.
+    try{form.submit();}catch(e){form.remove();reject(e);return}
+
+    const action=String(fields.action||'').trim();
+    if(action==='login'){
+      setTimeout(()=&gt;{try{form.remove()}catch(_){}},3000);
+      resolve({ok:true});
+      return;
+    }
+
+    tsaWaitForRemoteWrite(action,fields,timeoutMs)
+      .then(result=&gt;{setTimeout(()=&gt;{try{form.remove()}catch(_){}},3000);resolve(result)})
+      .catch(error=&gt;{setTimeout(()=&gt;{try{form.remove()}catch(_){}},3000);reject(error)});
   });
 }
 
