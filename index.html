@@ -11235,6 +11235,7 @@ button{
           closeAdminModal();
           try {
             ppAdminSetStatus('ppAdminReceivedStatus', 'Publicando no catálogo principal...', '');
+            const quantidadeAntesUi = Number(ppAdmin.catalog.length || 0);
             const data = await ppAdminRequest('approveCadastro', {
               cadastroCompleto: {
                 id: String(item.id), title: item.title, artist: item.artist, style: item.style,
@@ -11242,8 +11243,18 @@ button{
                 dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
               }
             });
+            const antes = Number(data?.quantidadeAntes);
+            const depois = Number(data?.quantidadeDepois);
+            if (data?.adicionada === true && Number.isFinite(antes) && Number.isFinite(depois) && depois !== antes + 1) {
+              throw new Error('Proteção: o Apps Script não confirmou o crescimento esperado do catálogo.');
+            }
+            if (quantidadeAntesUi > 0 && Number.isFinite(depois) && depois < quantidadeAntesUi) {
+              throw new Error('Proteção: a confirmação do catálogo retornou menos músicas que o catálogo que estava carregado no ADM.');
+            }
             await Promise.all([ppAdminLoadCatalog(), ppAdminLoadReceived()]);
-            ppAdminSetStatus('ppAdminReceivedStatus', '✅ Música publicada no catálogo principal.', 'success');
+            ppAdminSetStatus('ppAdminReceivedStatus', data?.cadastroRemovido === false
+              ? '⚠️ Música publicada; o cadastro permaneceu em recebidos para exclusão manual.'
+              : '✅ Música publicada no catálogo principal.', data?.cadastroRemovido === false ? 'warn' : 'success');
             ppAdminSetStatus('ppAdminGlobalStatus', `✅ ${item.title} aprovado.`, 'success');
           } catch (error) {
             ppAdminSetStatus('ppAdminReceivedStatus', '❌ ' + error.message, 'error');
@@ -11266,13 +11277,18 @@ button{
               if (!item) continue;
               if (ppAdmin.catalog.some(song => ppAdminIsDuplicate(song, item))) { skipped++; continue; }
               try {
-                await ppAdminRequest('approveCadastro', {
+                const data = await ppAdminRequest('approveCadastro', {
                   cadastroCompleto: {
                     id: String(item.id), title: item.title, artist: item.artist, style: item.style,
                     note: item.note, tom: item.note, lyrics: item.lyrics, usuario: item.user,
                     dataCadastro: item.date, pdfUrl: item.pdfUrl, pdfDriveFileId: item.pdfFileId, pdfFileName: item.pdfFileName
                   }
                 });
+                const antes = Number(data?.quantidadeAntes);
+                const depois = Number(data?.quantidadeDepois);
+                if (data?.adicionada === true && Number.isFinite(antes) && Number.isFinite(depois) && depois !== antes + 1) {
+                  throw new Error('Proteção: o Apps Script não confirmou o crescimento esperado do catálogo.');
+                }
                 ok++;
               } catch (_) {}
             }
