@@ -5300,6 +5300,7 @@ button{
       currentTheme: 'original',
       editingPdfData: '', pdfDoc: null, pdfPage: 1, pdfPageCount: 0, pdfSongId: '', pdfRenderToken: 0,
       lists: [], currentListId: null, editingListId: null, revealedListId: null, listEditorSearch: '', libraryFilterOrders: {},
+      temporaryPlaybackSequenceIds: [], temporaryPlaybackListId: null,
       librarySelectionMode: false, selectedLibrarySongIds: [], offlinePdfIds: new Set(), pdfWatermarkDetectionCache: new Map(), pdfWatermarkEditing: null,
       musicSearchResults: [], musicSearchRequestId: 0, musicSearchBusy: false, autoPdfGenerating: false,
       pdfQueueBatches: [], pdfQueueRunning: false
@@ -5941,6 +5942,47 @@ button{
 
     function getListById(listId) {
       return state.lists.find((item) => item.id === listId) || null;
+    }
+
+    // Sequência temporária criada ao escolher uma música pelo
+    // campo "Buscar no repertório". A lista original nunca é alterada.
+    function clearTemporaryPlaybackSequence() {
+      state.temporaryPlaybackSequenceIds = [];
+      state.temporaryPlaybackListId = null;
+    }
+
+    function startTemporaryPlaybackSequence(songId) {
+      const targetId = String(songId || '');
+      if (!targetId) {
+        clearTemporaryPlaybackSequence();
+        return false;
+      }
+
+      // Se já estamos dentro de uma lista, ela tem prioridade.
+      let targetList = state.currentListId ? getListById(state.currentListId) : null;
+      if (!targetList || !Array.isArray(targetList.songIds) || !targetList.songIds.map(String).includes(targetId)) {
+        targetList = state.lists.find(list =>
+          Array.isArray(list?.songIds) && list.songIds.map(String).includes(targetId)
+        ) || null;
+      }
+
+      if (!targetList) {
+        clearTemporaryPlaybackSequence();
+        return false;
+      }
+
+      const orderedIds = Array.from(new Set(
+        [targetId, ...(targetList.songIds || []).map(String).filter(id => id !== targetId)]
+      )).filter(id => state.songs.some(song => String(song?.id || '') === id));
+
+      if (!orderedIds.length) {
+        clearTemporaryPlaybackSequence();
+        return false;
+      }
+
+      state.temporaryPlaybackSequenceIds = orderedIds;
+      state.temporaryPlaybackListId = targetList.id;
+      return true;
     }
 
     function getSongsFromList(listId) {
@@ -7652,9 +7694,15 @@ button{
       return !!(state.editingPdfData || song.pdfData || song.pdfUrl || freshOfflinePdf?.blob);
     }
 
-    async function openSongById(songId) {
+    async function openSongById(songId, options = {}) {
       const song = state.songs.find(item => item.id === songId);
       if (!song) return;
+
+      // A seleção feita na busca do repertório inicia uma sequência
+      // temporária baseada exclusivamente na lista à qual a música pertence.
+      // A lista persistida não é alterada.
+      if (options?.fromRepertoireSearch) startTemporaryPlaybackSequence(song.id);
+      else clearTemporaryPlaybackSequence();
       state.currentSongId = song.id;
       songTitleInput.value = song.title || '';
       artistInput.value = song.artist || '';
@@ -7767,7 +7815,7 @@ button{
           closeAllLibrarySwipes();
           return;
         }
-        openSongById(songId);
+        openSongById(songId, { fromRepertoireSearch: row.dataset.fromRepertoireSearch === '1' });
       });
     }
 
@@ -9221,6 +9269,14 @@ button{
       deleteSongById(songId);
     }
     function getPlaybackSongList() {
+      if (Array.isArray(state.temporaryPlaybackSequenceIds) && state.temporaryPlaybackSequenceIds.length) {
+        const byId = new Map(state.songs.map(song => [String(song?.id || ''), song]));
+        const sequence = state.temporaryPlaybackSequenceIds
+          .map(id => byId.get(String(id)))
+          .filter(Boolean);
+        if (sequence.length) return sequence;
+        clearTemporaryPlaybackSequence();
+      }
       if (state.currentListId) {
         const listSongs = getSongsFromList(state.currentListId);
         if (listSongs.length) return listSongs;
@@ -9462,6 +9518,7 @@ button{
         const row = document.createElement('div');
         row.className = 'library-song-swipe';
         row.dataset.songId = song.id;
+        row.dataset.fromRepertoireSearch = query ? '1' : '0';
         if (state.revealedSongId === song.id) row.classList.add('revealed');
 
         const actions = document.createElement('div');
