@@ -6024,15 +6024,40 @@ button{
         listSongsSelection.appendChild(row);
       });
       filterListEditorSongs(state.listEditorSearch || '');
+      if (listSongSearchInput && listSongSearchInput.value !== (state.listEditorSearch || '')) {
+        listSongSearchInput.value = state.listEditorSearch || '';
+      }
     }
 
 
     function filterListEditorSongs(term = '') {
       if (!listSongsSelection) return;
       const query = normalizeSearchText(term);
+      let visibleCount = 0;
       listSongsSelection.querySelectorAll('.list-selector-item').forEach((row) => {
-        row.hidden = !!query && !(row.dataset.listSongSearch || '').includes(query);
+        const haystack = normalizeSearchText(row.dataset.listSongSearch || '');
+        const visible = !query || haystack.includes(query);
+        row.hidden = !visible;
+        if (visible) visibleCount += 1;
       });
+
+      let emptyNote = listSongsSelection.querySelector('.list-editor-search-empty');
+      if (query && visibleCount === 0) {
+        if (!emptyNote) {
+          emptyNote = document.createElement('div');
+          emptyNote.className = 'panel-note list-editor-search-empty';
+          listSongsSelection.appendChild(emptyNote);
+        }
+        emptyNote.textContent = `Nenhuma música encontrada para “${term}”.`;
+      } else if (emptyNote) {
+        emptyNote.remove();
+      }
+    }
+
+    function updateListEditorSearch() {
+      const term = listSongSearchInput?.value || '';
+      state.listEditorSearch = term;
+      filterListEditorSongs(term);
     }
 
     function setAllListEditorSelections(checked) {
@@ -6229,7 +6254,7 @@ button{
       if (!libraryContextBar) return;
       libraryContextBar.innerHTML = '';
       if ((state.librarySortMode === 'artist' || state.librarySortMode === 'style') && state.libraryFilterValue) {
-        const info=document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${state.librarySortMode==='artist'?'Artista':'Estilo'}: ${state.libraryFilterValue}</strong><span>Arraste ⠿ para definir a ordem desta seleção</span>`;
+        const info=document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${state.librarySortMode==='artist'?'Artista':'Estilo'}: ${state.libraryFilterValue}</strong><span>Use os botões ↑ ↓ para definir a ordem desta seleção</span>`;
         const backBtn=document.createElement('button'); backBtn.className='ghost-btn'; backBtn.type='button'; backBtn.textContent='Trocar filtro';
         backBtn.addEventListener('click',()=>{ state.librarySortMode='alpha'; state.libraryFilterValue=''; state.currentListId=null; librarySearchInput.value=''; persistSettings(); librarySortControls?.classList.remove('hidden'); librarySortControls?.querySelectorAll('.library-sort-btn').forEach(node=>node.classList.toggle('active',node.dataset.sort==='alpha')); renderLibraryFilterOptions(); renderLibraryList(''); });
         libraryContextBar.append(info,backBtn); libraryContextBar.classList.remove('hidden'); librarySortControls?.classList.add('hidden'); return;
@@ -6237,7 +6262,7 @@ button{
       librarySortControls?.classList.remove('hidden');
       if (state.librarySortMode !== 'lists' || !state.currentListId) { libraryContextBar.classList.add('hidden'); return; }
       const currentList = getListById(state.currentListId); if (!currentList) { libraryContextBar.classList.add('hidden'); return; }
-      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) • Use ↑ ↓ ou arraste ⠿ para definir a ordem</span>`;
+      const info = document.createElement('div'); info.className='library-context-info'; info.innerHTML=`<strong>${currentList.name}</strong><span>${getSongsFromList(currentList.id).length} música(s) • Use os botões ↑ ↓ para definir a ordem</span>`;
       const backBtn=document.createElement('button'); backBtn.className='ghost-btn'; backBtn.type='button'; backBtn.textContent='Voltar'; backBtn.addEventListener('click',()=>{state.currentListId=null; renderLibraryList(librarySearchInput?librarySearchInput.value:'');});
       const editBtn=document.createElement('button'); editBtn.className='ghost-btn'; editBtn.type='button'; editBtn.textContent='Editar lista'; editBtn.addEventListener('click',()=>openListEditor(currentList.id));
       libraryContextBar.append(info,backBtn,editBtn); libraryContextBar.classList.remove('hidden');
@@ -8775,7 +8800,7 @@ button{
         lyrics: scriptInput.value
       }));
     }
-    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.librarySortMode = ''; state.libraryFilterValue = ''; if (saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, 'lyrics'); } catch (_) {} } if (saved.swipeNavigation === 'stanza' || saved.swipeNavigation === 'song') { state.swipeNavigation = saved.swipeNavigation; } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; if (swipeSongRadio) swipeSongRadio.checked = state.swipeNavigation === 'song'; if (swipeStanzaRadio) swipeStanzaRadio.checked = state.swipeNavigation === 'stanza'; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
+    function loadSettings() { try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); if (saved.fontSize) fontSize.value = saved.fontSize; if (saved.stanzaSpacing) stanzaSpacing.value = saved.stanzaSpacing; if (saved.lineHeight) lineHeight.value = saved.lineHeight; if (saved.textWidth) textWidth.value = saved.textWidth; if (saved.overlayOpacity) overlayOpacity.value = saved.overlayOpacity; if (saved.baseSpeed) baseSpeed.value = saved.baseSpeed; if (saved.voiceFollowSpeed) voiceFollowSpeed.value = saved.voiceFollowSpeed; state.librarySortMode = ''; state.libraryFilterValue = ''; if (saved.readingPreference === 'pdf' || saved.readingPreference === 'lyrics') { try { localStorage.setItem(READING_PREFERENCE_KEY, saved.readingPreference); } catch (_) {} } if (saved.swipeNavigation === 'stanza' || saved.swipeNavigation === 'song') { state.swipeNavigation = saved.swipeNavigation; } if (typeof saved.theme === 'string' && saved.theme) { state.currentTheme = saved.theme === 'lumina-clara' ? 'rubi-profundo' : saved.theme; } state.mirror = !!saved.mirror; mirrorToggle.checked = state.mirror; if (swipeSongRadio) swipeSongRadio.checked = state.swipeNavigation === 'song'; if (swipeStanzaRadio) swipeStanzaRadio.checked = state.swipeNavigation === 'stanza'; userName = typeof saved.userName === 'string' ? saved.userName.trim() : ''; renderUserName(); voiceToggle.checked = false;
         voiceToggle.disabled = true; } catch (_) { renderUserName(); } }
     function loadCurrentDraft() {
       try {
@@ -9499,17 +9524,13 @@ button{
             renderLibraryList(librarySearchInput ? librarySearchInput.value : '');
           });
         } else {
-          const orderHandle = shouldAllowManualLibraryOrdering()
-            ? '<span class="library-order-handle" title="Arraste para reordenar" aria-label="Arraste para reordenar">⠿</span>'
-            : '';
           if (inCurrentList) {
             const list = getListById(state.currentListId);
             const position = Math.max(1, (list?.songIds || []).map(String).indexOf(String(song.id)) + 1);
-            card.innerHTML = `${orderHandle}<span class="library-list-position" aria-label="Posição ${position}">${position}</span><span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span><span class="library-order-buttons" aria-label="Alterar posição"><span class="library-order-step" data-order-action="up" role="button" tabindex="0" aria-label="Mover para cima" title="Mover para cima">↑</span><span class="library-order-step" data-order-action="down" role="button" tabindex="0" aria-label="Mover para baixo" title="Mover para baixo">↓</span></span>`;
-            card.classList.add('has-reorder-handle','has-list-order-controls');
+            card.innerHTML = `<span class="library-list-position" aria-label="Posição ${position}">${position}</span><span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span><span class="library-order-buttons" aria-label="Alterar posição"><span class="library-order-step" data-order-action="up" role="button" tabindex="0" aria-label="Mover para cima" title="Mover para cima">↑</span><span class="library-order-step" data-order-action="down" role="button" tabindex="0" aria-label="Mover para baixo">↓</span></span>`;
+            card.classList.add('has-list-order-controls');
           } else {
-            card.innerHTML = `${orderHandle}<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
-            card.classList.toggle('has-reorder-handle', !!orderHandle);
+            card.innerHTML = `<span class="library-song-line">${song.title || 'Sem título'}${getOfflinePdfBadgeHtml(song)} <small>- ${artistText} - ${styleText}</small></span>`;
           }
         }
 
@@ -9520,7 +9541,6 @@ button{
           closeAllLibrarySwipes();
         } else {
           attachLibrarySwipe(row, card, song.id);
-          if (shouldAllowManualLibraryOrdering()) attachManualOrderDrag(row, card, song.id);
           card.addEventListener('click', (event) => {
             const orderAction = event.target.closest?.('[data-order-action]');
             if (orderAction && inCurrentList) {
@@ -10382,7 +10402,13 @@ button{
       closeFirstAccessTutorialBtn?.addEventListener('click', closeFirstAccessTutorial);
       firstAccessNameInput?.addEventListener('keydown', (event) => { if (event.key === 'Enter') submitFirstAccessName(); });
       $('hideSongEditorBtn').addEventListener('click', hideSongEditor); $('hideSongActionsBtn').addEventListener('click', hideSongActions); $('hideListEditorBtn').addEventListener('click', hideListEditor); $('saveListBtn').addEventListener('click', saveCurrentList); if (selectAllListSongsBtn) selectAllListSongsBtn.addEventListener('click', () => setAllListEditorSelections(true)); if (clearSelectedListSongsBtn) clearSelectedListSongsBtn.addEventListener('click', removeSelectedFromListEditor);
-      if (listSongSearchInput) listSongSearchInput.addEventListener('input', () => { state.listEditorSearch = listSongSearchInput.value || ''; filterListEditorSongs(state.listEditorSearch); });       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); });; if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', () => { const hasValue = !!String(suggestionsSearchInput.value || '').trim(); clearCatalogSearchBtn?.classList.toggle('hidden', !hasValue); if (hasValue) { state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); } renderSuggestionList(); }); if (clearCatalogSearchBtn) clearCatalogSearchBtn.addEventListener('click', () => { suggestionsSearchInput.value = ''; clearCatalogSearchBtn.classList.add('hidden'); state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); renderSuggestionList(); suggestionsSearchInput.focus(); }); if ($('catalogFilterControls')) $('catalogFilterControls').addEventListener('click', (event) => { const btn = event.target.closest('.catalog-filter-btn'); if (!btn) return; state.suggestionFilterMode = btn.dataset.catalogFilter || ''; state.suggestionFilterValue = ''; if (suggestionsSearchInput) suggestionsSearchInput.value = ''; clearCatalogSearchBtn?.classList.add('hidden'); updateCatalogFilterUi(); renderSuggestionList(); }); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => {
+      if (listSongSearchInput) {
+        listSongSearchInput.addEventListener('input', updateListEditorSearch);
+        listSongSearchInput.addEventListener('change', updateListEditorSearch);
+        listSongSearchInput.addEventListener('search', updateListEditorSearch);
+        listSongSearchInput.addEventListener('keyup', (event) => { if (event.key === 'Enter') updateListEditorSearch(); });
+        listSongSearchInput.addEventListener('compositionend', updateListEditorSearch);
+      }       $('saveSongBtn').addEventListener('click', saveCurrentSong); $('openSuggestionsBtn').addEventListener('click', openSuggestionsPanel); $('hideSuggestionsPanelBtn').addEventListener('click', () => { hideSuggestionsPanel(); openSongEditor(); }); if (refreshSuggestionsBtn) refreshSuggestionsBtn.addEventListener('click', async () => { await loadSuggestionSongs(true); });; if (saveSelectedSuggestionsBtn) saveSelectedSuggestionsBtn.addEventListener('click', saveSelectedSuggestions); if (suggestionsSearchInput) suggestionsSearchInput.addEventListener('input', () => { const hasValue = !!String(suggestionsSearchInput.value || '').trim(); clearCatalogSearchBtn?.classList.toggle('hidden', !hasValue); if (hasValue) { state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); } renderSuggestionList(); }); if (clearCatalogSearchBtn) clearCatalogSearchBtn.addEventListener('click', () => { suggestionsSearchInput.value = ''; clearCatalogSearchBtn.classList.add('hidden'); state.suggestionFilterMode = ''; state.suggestionFilterValue = ''; updateCatalogFilterUi(); renderSuggestionList(); suggestionsSearchInput.focus(); }); if ($('catalogFilterControls')) $('catalogFilterControls').addEventListener('click', (event) => { const btn = event.target.closest('.catalog-filter-btn'); if (!btn) return; state.suggestionFilterMode = btn.dataset.catalogFilter || ''; state.suggestionFilterValue = ''; if (suggestionsSearchInput) suggestionsSearchInput.value = ''; clearCatalogSearchBtn?.classList.add('hidden'); updateCatalogFilterUi(); renderSuggestionList(); }); $('editSongActionBtn').addEventListener('click', () => { if (state.selectedSongActionId) editSongById(state.selectedSongActionId); }); $('deleteSongActionBtn').addEventListener('click', () => { if (!state.selectedSongActionId) return; confirmDeleteSong(state.selectedSongActionId); }); $('backSongBtn').addEventListener('click', previousSong); $('nextSongBtn').addEventListener('click', nextSong); $('backBlockBtn').addEventListener('click', () => jumpLine(-1)); $('nextBlockBtn').addEventListener('click', () => jumpLine(1)); $('playPauseBtn').addEventListener('click', togglePlayPause); $('toggleCleanModeBtn').addEventListener('click', toggleCleanMode); $('openPanelDockBtn').addEventListener('click', togglePanel); $('openLibraryBtn').addEventListener('click', openLibraryPanel); $('hideLibraryBtn').addEventListener('click', hideLibraryPanel); librarySearchInput.addEventListener('input', () => {
         const term = librarySearchInput.value || '';
         renderLibrarySearchSuggestions(term);
         const personalMatches = getNormalizedLibrarySongs(term);
