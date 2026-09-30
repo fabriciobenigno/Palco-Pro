@@ -3846,6 +3846,106 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 10px));
       }
     }
+
+
+    /* =========================================================
+       MULTIPLAYER ONLINE — CAMADA NOVA
+       O modo local continua sendo o padrão.
+       ========================================================= */
+    .mode-setting {
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 18px;
+      background: rgba(255,255,255,.025);
+    }
+    .mode-setting-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .mode-title { font-size:13px; font-weight:850; }
+    .mode-help { margin-top:4px; color:var(--muted); font-size:10px; line-height:1.45; }
+    .mode-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+    .mode-option {
+      position:relative; min-height:54px; display:flex; align-items:center; gap:9px;
+      padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.025); color:var(--soft-text); cursor:pointer;
+      transition:.18s ease;
+    }
+    .mode-option:hover { background:rgba(255,255,255,.055); transform:translateY(-1px); }
+    .mode-option input { position:absolute; opacity:0; pointer-events:none; }
+    .mode-radio { width:17px; height:17px; border-radius:50%; border:2px solid rgba(255,255,255,.22); display:grid; place-items:center; flex:0 0 auto; }
+    .mode-radio::after { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent-2); transform:scale(0); transition:.16s ease; }
+    .mode-option.selected { border-color:var(--accent-border); background:linear-gradient(180deg, rgba(79,140,255,.11), rgba(255,255,255,.025)); }
+    .mode-option.selected .mode-radio { border-color:var(--accent-2); }
+    .mode-option.selected .mode-radio::after { transform:scale(1); }
+    .mode-label { display:grid; gap:2px; font-size:11px; font-weight:800; }
+    .mode-label small { color:var(--muted); font-size:9px; font-weight:600; }
+
+    .online-backdrop {
+      position:fixed; inset:0; z-index:260; display:none; align-items:center; justify-content:center;
+      padding:18px; background:rgba(0,0,0,.64);
+    }
+    .online-backdrop.open { display:flex; animation:fadeIn .18s ease; }
+    .online-panel {
+      width:min(100%,410px); max-height:min(92svh,760px); overflow:auto;
+      padding:22px; border-radius:24px; border:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(15,21,34,.99), rgba(6,10,17,.99));
+      box-shadow:0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .online-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .online-title { font-size:20px; font-weight:900; letter-spacing:-.02em; }
+    .online-subtitle { margin-top:5px; color:var(--muted); font-size:11px; line-height:1.45; }
+    .online-close { width:35px; height:35px; display:grid; place-items:center; border-radius:11px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); color:var(--soft-text); cursor:pointer; }
+    .online-field { display:grid; gap:7px; margin-bottom:10px; }
+    .online-field label { color:var(--soft-text); font-size:11px; font-weight:700; }
+    .online-input {
+      width:100%; min-height:45px; padding:11px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.05); color:#fff; outline:none; font-size:14px;
+    }
+    .online-input:focus { border-color:var(--accent-border); box-shadow:0 0 0 3px rgba(79,140,255,.08); }
+    .online-actions { display:grid; gap:8px; margin-top:12px; }
+    .online-btn {
+      min-height:46px; padding:11px 13px; border-radius:14px; border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.045); color:#fff; font-weight:850; cursor:pointer; transition:.18s ease;
+    }
+    .online-btn:hover { transform:translateY(-1px); background:rgba(255,255,255,.07); }
+    .online-btn.primary { border:0; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); }
+    .online-btn.danger { border-color:rgba(255,91,110,.18); background:rgba(255,91,110,.07); color:#ffb0ba; }
+    .online-btn:disabled { opacity:.46; cursor:not-allowed; transform:none; }
+    .online-divider { height:1px; background:rgba(255,255,255,.07); margin:17px 0; }
+    .online-status-card {
+      display:grid; gap:7px; padding:12px; border-radius:15px; border:1px solid rgba(255,255,255,.07);
+      background:rgba(255,255,255,.025); margin-bottom:11px;
+    }
+    .online-status-title { font-size:12px; font-weight:850; }
+    .online-status-text { color:var(--soft-text); font-size:10px; line-height:1.5; }
+    .online-room-card { display:none; gap:9px; padding:14px; margin-top:12px; border-radius:17px; border:1px solid rgba(124,176,255,.17); background:rgba(79,140,255,.055); }
+    .online-room-card.open { display:grid; }
+    .online-code { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .online-code strong { font-size:22px; letter-spacing:.12em; }
+    .online-role { color:var(--muted); font-size:10px; }
+    .online-share { word-break:break-all; color:var(--soft-text); font-size:9px; line-height:1.4; }
+    .online-note { margin-top:10px; color:var(--muted); font-size:9px; line-height:1.5; }
+    .online-section-title { font-size:11px; font-weight:850; color:var(--soft-text); margin-bottom:7px; }
+    .online-join-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    .online-reactions { display:none; grid-template-columns:repeat(8,1fr); gap:5px; margin:8px 0 8px; }
+    .online-reactions.open { display:grid; }
+    .reaction-btn { min-height:36px; border-radius:11px; border:1px solid rgba(255,255,255,.07); background:rgba(255,255,255,.035); color:#fff; cursor:pointer; font-size:17px; }
+    .reaction-btn:active { transform:scale(.94); }
+    .reaction-pop {
+      position:fixed; left:50%; top:48%; z-index:220; transform:translate(-50%,-50%) scale(.76);
+      padding:14px 18px; border-radius:22px; background:rgba(8,12,18,.92); border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 18px 50px rgba(0,0,0,.38); font-size:44px; opacity:0; pointer-events:none;
+    }
+    .reaction-pop.show { animation:reactionPop 1.05s ease forwards; }
+    @keyframes reactionPop { 0%{opacity:0;transform:translate(-50%,-50%) scale(.76)} 18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)} 40%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(.92)} }
+    .thinking-dots { display:inline-block; min-width:22px; text-align:left; }
+
+    @media (max-width:420px) {
+      .mode-options { grid-template-columns:1fr; }
+      .online-join-row { grid-template-columns:1fr; }
+      .online-reactions { grid-template-columns:repeat(4,1fr); }
+    }
+
   &lt;/style&gt;
 &lt;/head&gt;
 
@@ -3900,7 +4000,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       &lt;div class="scoreboard"&gt;
         &lt;div class="score x"&gt;
-          &lt;div class="score-label"&gt;Jogador X&lt;/div&gt;
+          &lt;div class="score-label" id="scoreXLabel"&gt;Jogador X&lt;/div&gt;
           &lt;div class="score-value" id="scoreX"&gt;0&lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="score draw"&gt;
@@ -3908,7 +4008,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           &lt;div class="score-value" id="scoreDraw"&gt;0&lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="score o"&gt;
-          &lt;div class="score-label"&gt;Jogador O&lt;/div&gt;
+          &lt;div class="score-label" id="scoreOLabel"&gt;Jogador O&lt;/div&gt;
           &lt;div class="score-value" id="scoreO"&gt;0&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
@@ -3918,6 +4018,17 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       &lt;div class="actions"&gt;
         &lt;button class="action-btn restart-btn" id="restartBtn"&gt;Nova partida&lt;/button&gt;
         &lt;button class="action-btn reset-score-btn" id="resetScoreBtn" title="Zerar placar" aria-label="Zerar placar"&gt;↻&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-reactions" id="onlineReactions" aria-label="Reações durante a partida"&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="😂" aria-label="Rir"&gt;😂&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="😱" aria-label="Surpresa"&gt;😱&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="😎" aria-label="Legal"&gt;😎&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="🔥" aria-label="Fogo"&gt;🔥&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="👀" aria-label="Estou de olho"&gt;👀&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="🤔" aria-label="Pensando"&gt;🤔&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="😈" aria-label="Travessura"&gt;😈&lt;/button&gt;
+        &lt;button class="reaction-btn" type="button" data-reaction="🎉" aria-label="Comemorar"&gt;🎉&lt;/button&gt;
       &lt;/div&gt;
 
       &lt;footer class="footer"&gt;PALCO PRO • MODO JOGO&lt;/footer&gt;
@@ -3985,6 +4096,27 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         &lt;/div&gt;
       &lt;/div&gt;
 
+      &lt;div class="mode-setting"&gt;
+        &lt;div class="mode-setting-head"&gt;
+          &lt;div&gt;
+            &lt;div class="mode-title"&gt;Modo de jogo&lt;/div&gt;
+            &lt;div class="mode-help"&gt;O jogo sempre abre no modo local. O modo online é ativado somente quando você escolher esta opção.&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="mode-options" role="radiogroup" aria-label="Modo de jogo"&gt;
+          &lt;label class="mode-option selected" id="modeOptionLocal"&gt;
+            &lt;input type="radio" name="gameMode" id="modeLocal" value="local" checked /&gt;
+            &lt;span class="mode-radio" aria-hidden="true"&gt;&lt;/span&gt;
+            &lt;span class="mode-label"&gt;Multiplayer local&lt;small&gt;Duas pessoas no mesmo dispositivo&lt;/small&gt;&lt;/span&gt;
+          &lt;/label&gt;
+          &lt;label class="mode-option" id="modeOptionOnline"&gt;
+            &lt;input type="radio" name="gameMode" id="modeOnline" value="online" /&gt;
+            &lt;span class="mode-radio" aria-hidden="true"&gt;&lt;/span&gt;
+            &lt;span class="mode-label"&gt;Multiplayer online&lt;small&gt;Jogue à distância por link/código&lt;/small&gt;&lt;/span&gt;
+          &lt;/label&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
       &lt;div class="modal-footer"&gt;
         &lt;button class="default-settings" id="defaultSettingsBtn"&gt;Padrão clássico&lt;/button&gt;
         &lt;button class="save-settings" id="saveSettingsBtn"&gt;Aplicar cores&lt;/button&gt;
@@ -3993,8 +4125,126 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     &lt;/section&gt;
   &lt;/div&gt;
 
+  &lt;!-- =========================================================
+       MULTIPLAYER ONLINE — PAINEL DE SALA
+       Não é aberto ao iniciar o jogo. Só aparece quando o usuário
+       escolhe "Multiplayer online" em Ajustes ou quando o link recebido
+       contém ?jogo=velha&amp;room=...&amp;key=...
+       ========================================================= --&gt;
+  &lt;div class="online-backdrop" id="onlineBackdrop" aria-hidden="true"&gt;
+    &lt;section class="online-panel" role="dialog" aria-modal="true" aria-labelledby="onlineTitle"&gt;
+      &lt;div class="online-head"&gt;
+        &lt;div&gt;
+          &lt;div class="online-title" id="onlineTitle"&gt;Multiplayer online&lt;/div&gt;
+          &lt;div class="online-subtitle"&gt;Crie uma sala e envie o link para outra pessoa. O modo local permanece disponível a qualquer momento.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;button class="online-close" id="onlineCloseBtn" type="button" aria-label="Fechar multiplayer online"&gt;✕&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-status-card"&gt;
+        &lt;div class="online-status-title" id="onlineMainStatusTitle"&gt;Pronto para criar uma partida&lt;/div&gt;
+        &lt;div class="online-status-text" id="onlineMainStatusText"&gt;O servidor online será usado somente para sincronizar as jogadas da sala.&lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-field"&gt;
+        &lt;label for="onlineNameInput"&gt;Seu nome na partida&lt;/label&gt;
+        &lt;input class="online-input" id="onlineNameInput" type="text" maxlength="30" autocomplete="nickname" placeholder="Digite seu nome" /&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-actions"&gt;
+        &lt;button class="online-btn primary" id="createOnlineBtn" type="button"&gt;🌐 Criar partida online&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-divider"&gt;&lt;/div&gt;
+
+      &lt;div class="online-section-title"&gt;Entrar em uma partida existente&lt;/div&gt;
+      &lt;div class="online-field"&gt;
+        &lt;label for="onlineRoomCodeInput"&gt;Código da sala&lt;/label&gt;
+        &lt;input class="online-input" id="onlineRoomCodeInput" type="text" maxlength="8" autocomplete="off" placeholder="Ex.: A7K4M2Q9" /&gt;
+      &lt;/div&gt;
+      &lt;div class="online-join-row"&gt;
+        &lt;button class="online-btn" id="joinOnlineBtn" type="button"&gt;🎮 Entrar para jogar&lt;/button&gt;
+        &lt;button class="online-btn" id="watchOnlineBtn" type="button"&gt;👀 Assistir&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-room-card" id="onlineRoomCard"&gt;
+        &lt;div class="online-code"&gt;
+          &lt;div&gt;&lt;div class="online-role" id="onlineRoleText"&gt;Sua função&lt;/div&gt;&lt;strong id="onlineRoomCodeText"&gt;--------&lt;/strong&gt;&lt;/div&gt;
+          &lt;button class="online-btn" id="copyOnlineLinkBtn" type="button" style="min-height:38px;padding:8px 10px;"&gt;🔗 Copiar link&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class="online-share" id="onlineShareText"&gt;&lt;/div&gt;
+        &lt;div class="online-note"&gt;O link inclui uma chave privada da sala. Não publique o link em locais públicos se a partida for destinada a uma pessoa específica.&lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-actions" style="margin-top:10px;"&gt;
+        &lt;button class="online-btn danger" id="leaveOnlineBtn" type="button" style="display:none;"&gt;🚪 Sair da sala&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+
+  &lt;div class="reaction-pop" id="reactionPop" aria-hidden="true"&gt;&lt;/div&gt;
+
+
   &lt;script&gt;
+    /* ================================================================
+       PALCO PRO — JOGO DA VELHA COMPLETO
+
+       OBJETIVO DESTA VERSÃO
+       ----------------------------------------------------------------
+       1) O app abre SEMPRE no modo MULTIPLAYER LOCAL.
+       2) O local continua sendo o comportamento original: duas pessoas
+          no mesmo dispositivo, X e O alternando normalmente.
+       3) Em Ajustes existe a opção MULTIPLAYER ONLINE.
+       4) O online usa um Web App do Google Apps Script como backend e uma
+          planilha do Google Sheets como armazenamento das salas.
+       5) A comunicação do navegador usa JSONP por GET. Isso evita depender
+          de CORS explícito no endpoint quando o jogo está hospedado no
+          GitHub Pages / dentro do iframe do Palco Pro.
+       6) O cliente consulta a sala em aproximadamente 850 ms durante uma
+          partida. Assim, uma jogada costuma aparecer muito rapidamente.
+          O indicador “Adversário está pensando . .. ...” mascara pequenas
+          variações de latência sem fingir que existe conexão WebSocket.
+       7) O servidor valida a vez, a casa, o token do jogador e o estado
+          da partida. LockService evita duas jogadas simultâneas.
+       8) O online usa melhor de 3: primeiro jogador a chegar a 2 vitórias
+          encerra a série. Empates não dão ponto.
+       9) O compartilhamento usa um link com room + key. A chave não é um
+          dado da conta Google; ela é somente a autorização da sala.
+      10) O modo espectador é suportado. Quem escolhe “Assistir” não recebe
+          X/O e apenas acompanha o estado da sala.
+      11) Reações rápidas são eventos curtos sincronizados pela sala.
+
+       INTEGRAÇÃO COM O PALCO PRO
+       ----------------------------------------------------------------
+       - Este arquivo foi preparado para continuar sendo carregado dentro do
+         ppGameSource/ppGameFrame existente no Index principal.
+       - O botão “← Voltar para o Palco Pro” envia a mensagem:
+           { type: 'palco-pro-return-from-game' }
+       - O Index principal já possui o listener que fecha o jogo ao receber
+         essa mensagem.
+       - NÃO remova o bloco ppGameRoot / ppGameFrame / ppGameSource do Index.
+       - Na reintegração, copie o HTML completo deste jogo para o conteúdo
+         do ppGameSource escapado conforme o padrão que o Palco Pro já usa.
+       - A URL do Apps Script fica na constante ONLINE_API_URL abaixo.
+       - Depois da publicação do Apps Script, substitua somente essa URL.
+
+       GOOGLE SHEETS / APPS SCRIPT
+       ----------------------------------------------------------------
+       Planilha: uma aba chamada JogoVelhaSalas.
+       O Code.gs entregue junto com este arquivo cria os cabeçalhos sozinho.
+       A planilha não precisa ficar publicada na internet.
+       O Web App do Apps Script é quem lê/escreve a planilha.
+
+       LIMITES / EXPECTATIVAS
+       ----------------------------------------------------------------
+       - Isto NÃO é um servidor WebSocket. É sincronização por consultas curtas.
+       - Para um jogo simples como jogo da velha, isso é suficiente.
+       - Se o projeto futuramente crescer para muitas partidas simultâneas,
+         recomenda-se migrar o mesmo contrato de sala para Firebase/Supabase.
+       ================================================================ */
     (() =&gt; {
+      'use strict';
+
       const cells = [...document.querySelectorAll('.cell')];
       const root = document.documentElement;
 
@@ -4004,6 +4254,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const scoreX = document.getElementById('scoreX');
       const scoreO = document.getElementById('scoreO');
       const scoreDraw = document.getElementById('scoreDraw');
+      const scoreXLabel = document.getElementById('scoreXLabel');
+      const scoreOLabel = document.getElementById('scoreOLabel');
       const restartBtn = document.getElementById('restartBtn');
       const resetScoreBtn = document.getElementById('resetScoreBtn');
       const roundBadge = document.getElementById('roundBadge');
@@ -4023,31 +4275,54 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const xPlayerSetting = document.getElementById('xPlayerSetting');
       const oPlayerSetting = document.getElementById('oPlayerSetting');
 
+      const modeLocal = document.getElementById('modeLocal');
+      const modeOnline = document.getElementById('modeOnline');
+      const modeOptionLocal = document.getElementById('modeOptionLocal');
+      const modeOptionOnline = document.getElementById('modeOptionOnline');
+
+      const onlineBackdrop = document.getElementById('onlineBackdrop');
+      const onlineCloseBtn = document.getElementById('onlineCloseBtn');
+      const onlineNameInput = document.getElementById('onlineNameInput');
+      const onlineRoomCodeInput = document.getElementById('onlineRoomCodeInput');
+      const createOnlineBtn = document.getElementById('createOnlineBtn');
+      const joinOnlineBtn = document.getElementById('joinOnlineBtn');
+      const watchOnlineBtn = document.getElementById('watchOnlineBtn');
+      const copyOnlineLinkBtn = document.getElementById('copyOnlineLinkBtn');
+      const leaveOnlineBtn = document.getElementById('leaveOnlineBtn');
+      const onlineMainStatusTitle = document.getElementById('onlineMainStatusTitle');
+      const onlineMainStatusText = document.getElementById('onlineMainStatusText');
+      const onlineRoomCard = document.getElementById('onlineRoomCard');
+      const onlineRoomCodeText = document.getElementById('onlineRoomCodeText');
+      const onlineRoleText = document.getElementById('onlineRoleText');
+      const onlineShareText = document.getElementById('onlineShareText');
+      const onlineReactions = document.getElementById('onlineReactions');
+      const reactionPop = document.getElementById('reactionPop');
+
+      /* ---------------------------------------------------------------
+         CONFIGURAÇÃO PRINCIPAL — APENAS UMA URL PRECISA SER PREENCHIDA.
+         --------------------------------------------------------------- */
+      const ONLINE_API_URL = 'https://script.google.com/macros/s/AKfycbweGCvcOlO76O2CRVQTQUp5Unu2yOB5cKKvs1iFFf8RQpRI1jObEvfh4D4y-8gW2Ibr/exec';
+      const ONLINE_POLL_MS = 850;
+      const ONLINE_WAIT_POLL_MS = 1500;
+      const ONLINE_STATE_TIMEOUT_MS = 9000;
+      const ONLINE_REQUEST_TIMEOUT_MS = 10000;
+      const PUBLIC_GAME_URL = ''; // vazio = tenta usar o endereço atual do Palco Pro/iframe
+
       const WINNING_COMBINATIONS = [
         [0,1,2], [3,4,5], [6,7,8],
         [0,3,6], [1,4,7], [2,5,8],
         [0,4,8], [2,4,6]
       ];
 
-      const CENTERS = [
-        {x:16.6667,y:16.6667}, {x:50,y:16.6667}, {x:83.3333,y:16.6667},
-        {x:16.6667,y:50},      {x:50,y:50},      {x:83.3333,y:50},
-        {x:16.6667,y:83.3333}, {x:50,y:83.3333}, {x:83.3333,y:83.3333}
-      ];
-
       const STORAGE_KEYS = {
-        colors: 'palcoProTicTacToeColorsV1'
+        colors: 'palcoProTicTacToeColorsV1',
+        playerId: 'palcoProTicTacToeOnlinePlayerIdV1',
+        playerName: 'palcoProTicTacToeOnlinePlayerNameV1'
       };
 
       const PALETTE = {
-        blue:'#4f8cff',
-        red:'#ff5b6e',
-        green:'#45d39a',
-        yellow:'#f6c453',
-        purple:'#a78bfa',
-        cyan:'#48c8f5'
+        blue:'#4f8cff', red:'#ff5b6e', green:'#45d39a', yellow:'#f6c453', purple:'#a78bfa', cyan:'#48c8f5'
       };
-
       const DEFAULT_COLORS = { X: PALETTE.blue, O: PALETTE.red };
 
       let board = Array(9).fill('');
@@ -4055,9 +4330,56 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       let gameOver = false;
       let round = 1;
       let scores = {X:0, O:0, draw:0};
-
       let colors = loadColors();
       let draftColors = {...colors};
+
+      /* O modo NÃO é persistido: todo carregamento começa local. */
+      let gameMode = 'local';
+      let localInitialized = false;
+
+      /* Estado online local do navegador. */
+      let online = {
+        active: false,
+        role: 'none', // x | o | spectator
+        room: '',
+        key: '',
+        token: '',
+        playerId: '',
+        name: '',
+        state: null,
+        pollTimer: null,
+        pollBusy: false,
+        pendingMove: null,
+        lastServerMoveNumber: -1,
+        lastReactionTs: 0,
+        lastStateAt: 0,
+        joinedFromLink: false
+      };
+
+      function uid(prefix='pp') {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let out = prefix;
+        for (let i=0;i&lt;18;i++) out += alphabet[Math.floor(Math.random()*alphabet.length)];
+        return out;
+      }
+
+      function getPlayerId() {
+        let id = '';
+        try { id = String(localStorage.getItem(STORAGE_KEYS.playerId) || ''); } catch (_) {}
+        if (!id) {
+          id = uid('p_');
+          try { localStorage.setItem(STORAGE_KEYS.playerId, id); } catch (_) {}
+        }
+        return id;
+      }
+
+      function loadPlayerName() {
+        try { return String(localStorage.getItem(STORAGE_KEYS.playerName) || '').trim().slice(0,30); } catch (_) { return ''; }
+      }
+
+      function savePlayerName(name) {
+        try { localStorage.setItem(STORAGE_KEYS.playerName, name); } catch (_) {}
+      }
 
       function loadColors() {
         try {
@@ -4069,7 +4391,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       function saveColors() {
-        localStorage.setItem(STORAGE_KEYS.colors, JSON.stringify(colors));
+        try { localStorage.setItem(STORAGE_KEYS.colors, JSON.stringify(colors)); } catch (_) {}
       }
 
       function applyColors() {
@@ -4081,69 +4403,55 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       function updatePreview() {
-        const names = Object.fromEntries(
-          Object.entries(PALETTE).map(([name, value]) =&gt; [value.toLowerCase(), name])
-        );
-
+        const names = Object.fromEntries(Object.entries(PALETTE).map(([name, value]) =&gt; [value.toLowerCase(), name]));
         colorChoiceButtons.forEach(btn =&gt; {
           const player = btn.closest('.fixed-palette')?.dataset.player;
           if (!player) return;
-
           const value = btn.dataset.value.toLowerCase();
           const otherPlayer = player === 'X' ? 'O' : 'X';
           const selected = value === draftColors[player].toLowerCase();
           const occupied = value === draftColors[otherPlayer].toLowerCase();
-
           btn.classList.toggle('selected', selected);
           btn.classList.toggle('occupied', occupied &amp;&amp; !selected);
           btn.disabled = occupied &amp;&amp; !selected;
           btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
-          btn.title = occupied &amp;&amp; !selected
-            ? `Cor já usada pelo jogador ${otherPlayer}`
-            : (names[value] || 'Cor');
+          btn.title = occupied &amp;&amp; !selected ? `Cor já usada pelo jogador ${otherPlayer}` : (names[value] || 'Cor');
         });
-
         const xName = names[draftColors.X.toLowerCase()] || 'Cor';
         const oName = names[draftColors.O.toLowerCase()] || 'Cor';
         xChosenLabel.textContent = `✓ ${xName.toUpperCase()} • ATIVA`;
         oChosenLabel.textContent = `✓ ${oName.toUpperCase()} • ATIVA`;
-
         xChosenLabel.style.borderColor = colorMix(draftColors.X, '#ffffff', .18);
         xChosenLabel.style.color = colorMix(draftColors.X, '#ffffff', .22);
         xChosenLabel.style.background = `color-mix(in srgb, ${draftColors.X} 9%, transparent)`;
         oChosenLabel.style.borderColor = colorMix(draftColors.O, '#ffffff', .18);
         oChosenLabel.style.color = colorMix(draftColors.O, '#ffffff', .22);
         oChosenLabel.style.background = `color-mix(in srgb, ${draftColors.O} 9%, transparent)`;
-
         xPlayerSetting.style.setProperty('--selected-preview', draftColors.X);
         oPlayerSetting.style.setProperty('--selected-preview', draftColors.O);
+        document.querySelectorAll('.player-symbol.x-symbol').forEach(el =&gt; { el.style.color = draftColors.X; el.style.textShadow = `0 0 18px ${draftColors.X}44`; });
+        document.querySelectorAll('.player-symbol.o-symbol').forEach(el =&gt; { el.style.color = draftColors.O; el.style.textShadow = `0 0 18px ${draftColors.O}44`; });
+      }
 
-        document.querySelectorAll('.player-symbol.x-symbol').forEach(el =&gt; {
-          el.style.color = draftColors.X;
-          el.style.textShadow = `0 0 18px ${draftColors.X}44`;
-        });
-        document.querySelectorAll('.player-symbol.o-symbol').forEach(el =&gt; {
-          el.style.color = draftColors.O;
-          el.style.textShadow = `0 0 18px ${draftColors.O}44`;
-        });
+      function colorMix(hex, other, amount) {
+        const a = hex.replace('#',''), b = other.replace('#','');
+        const ar = parseInt(a.slice(0,2),16), ag=parseInt(a.slice(2,4),16), ab=parseInt(a.slice(4,6),16);
+        const br = parseInt(b.slice(0,2),16), bg=parseInt(b.slice(2,4),16), bb=parseInt(b.slice(4,6),16);
+        const r=Math.round(ar+(br-ar)*amount), g=Math.round(ag+(bg-ag)*amount), bl=Math.round(ab+(bb-ab)*amount);
+        return `rgb(${r}, ${g}, ${bl})`;
       }
 
       function updateTurn() {
+        if (gameMode === 'online') {
+          updateOnlineTurnText();
+          return;
+        }
         const activeColor = colors[currentPlayer];
         turnSymbol.textContent = currentPlayer;
         turnSymbol.style.background = `linear-gradient(145deg, ${activeColor}, color-mix(in srgb, ${activeColor} 72%, #ffffff))`;
         turnSymbol.style.boxShadow = `0 7px 19px color-mix(in srgb, ${activeColor} 30%, transparent)`;
         turnText.style.color = colorMix(activeColor, '#ffffff', 0.32);
         turnText.textContent = `Vez do jogador ${currentPlayer}`;
-      }
-
-      function colorMix(hex, other, amount) {
-        const a = hex.replace('#','');
-        const b = other.replace('#','');
-        const ar = parseInt(a.slice(0,2),16), ag=parseInt(a.slice(2,4),16), ab=parseInt(a.slice(4,6),16);
-        const br = parseInt(b.slice(0,2),16), bg=parseInt(b.slice(2,4),16), bb=parseInt(b.slice(4,6),16);
-        const r=Math.round(ar+(br-ar)*amount), g=Math.round(ag+(bg-ag)*amount), bl=Math.round(ab+(bb-ab)*amount);
-        return `rgb(${r}, ${g}, ${bl})`;
       }
 
       function updateScores() {
@@ -4159,221 +4467,443 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       function checkWinner() {
         for (const combination of WINNING_COMBINATIONS) {
           const [a,b,c] = combination;
-          if (board[a] &amp;&amp; board[a] === board[b] &amp;&amp; board[a] === board[c]) {
-            return {player: board[a], combination};
-          }
+          if (board[a] &amp;&amp; board[a] === board[b] &amp;&amp; board[a] === board[c]) return {player: board[a], combination};
         }
         if (board.every(Boolean)) return {player:'draw', combination:[]};
         return null;
       }
 
       function hideWinningLine() {
-        [winningLine, winningLineGlow].forEach(line =&gt; {
-          line.classList.remove('show');
-          line.style.strokeDashoffset = '1';
-        });
+        [winningLine, winningLineGlow].forEach(line =&gt; { line.classList.remove('show'); line.style.strokeDashoffset = '1'; });
         cells.forEach(cell =&gt; cell.classList.remove('winning'));
       }
 
       const WIN_PATHS = {
-        '0,1,2': 'M 10.5 16.7 Q 50 15.4 89.5 16.7',
-        '3,4,5': 'M 10.5 50 Q 50 48.9 89.5 50',
-        '6,7,8': 'M 10.5 83.3 Q 50 84.5 89.5 83.3',
-        '0,3,6': 'M 16.7 10.5 Q 15.3 50 16.7 89.5',
-        '1,4,7': 'M 50 10.5 Q 51.1 50 50 89.5',
-        '2,5,8': 'M 83.3 10.5 Q 84.7 50 83.3 89.5',
-        '0,4,8': 'M 9.2 9.2 Q 50 49.3 90.8 90.8',
-        '2,4,6': 'M 90.8 9.2 Q 50 50.7 9.2 90.8'
+        '0,1,2': 'M 10.5 16.7 Q 50 15.4 89.5 16.7', '3,4,5': 'M 10.5 50 Q 50 48.9 89.5 50', '6,7,8': 'M 10.5 83.3 Q 50 84.5 89.5 83.3',
+        '0,3,6': 'M 16.7 10.5 Q 15.3 50 16.7 89.5', '1,4,7': 'M 50 10.5 Q 51.1 50 50 89.5', '2,5,8': 'M 83.3 10.5 Q 84.7 50 83.3 89.5',
+        '0,4,8': 'M 9.2 9.2 Q 50 49.3 90.8 90.8', '2,4,6': 'M 90.8 9.2 Q 50 50.7 9.2 90.8'
       };
 
       function drawWinningLine(combination, player) {
         const path = WIN_PATHS[combination.join(',')];
         if (!path) return;
-
-        winningLine.setAttribute('d', path);
-        winningLineGlow.setAttribute('d', path);
-
-        [winningLine, winningLineGlow].forEach(line =&gt; {
-          line.classList.remove('show');
-          line.style.strokeDashoffset = '1';
-        });
-
+        winningLine.setAttribute('d', path); winningLineGlow.setAttribute('d', path);
+        [winningLine, winningLineGlow].forEach(line =&gt; { line.classList.remove('show'); line.style.strokeDashoffset = '1'; });
         root.style.setProperty('--winner-color', colors[player]);
         void winningLine.offsetWidth;
-        winningLine.classList.add('show');
-        winningLineGlow.classList.add('show');
-
-        combination.forEach(index =&gt; {
-          cells[index].classList.add('winning');
-        });
+        winningLine.classList.add('show'); winningLineGlow.classList.add('show');
+        combination.forEach(index =&gt; cells[index].classList.add('winning'));
       }
 
       function finishGame(result) {
         gameOver = true;
-
         if (result.player === 'draw') {
-          scores.draw++;
-          updateScores();
-          status.textContent = 'Empate. Ninguém levou esta partida.';
-          status.className = 'status';
-          turnSymbol.textContent = '—';
-          turnSymbol.style.background = 'rgba(255,255,255,.16)';
-          turnText.textContent = 'Partida encerrada';
-          return;
+          scores.draw++; updateScores(); status.textContent = 'Empate. Ninguém levou esta partida.'; status.className = 'status';
+          turnSymbol.textContent = '—'; turnSymbol.style.background = 'rgba(255,255,255,.16)'; turnText.textContent = 'Partida encerrada'; return;
         }
-
-        scores[result.player]++;
-        updateScores();
-        drawWinningLine(result.combination, result.player);
-        status.textContent = `Jogador ${result.player} venceu a partida!`;
-        status.className = 'status win';
-        turnSymbol.textContent = '✓';
-        turnSymbol.style.background = colors[result.player];
-        turnText.textContent = `Vitória do jogador ${result.player}`;
+        scores[result.player]++; updateScores(); drawWinningLine(result.combination, result.player);
+        status.textContent = `Jogador ${result.player} venceu a partida!`; status.className = 'status win';
+        turnSymbol.textContent = '✓'; turnSymbol.style.background = colors[result.player]; turnText.textContent = `Vitória do jogador ${result.player}`;
       }
 
       function markSvg(player) {
-        if (player === 'X') {
-          return `
-            &lt;svg class="mark mark-x" viewBox="0 0 100 100" aria-hidden="true"&gt;
-              &lt;path d="M22 22 L78 78"&gt;&lt;/path&gt;
-              &lt;path d="M78 22 L22 78"&gt;&lt;/path&gt;
-            &lt;/svg&gt;
-          `;
-        }
-
-        return `
-          &lt;svg class="mark mark-o" viewBox="0 0 100 100" aria-hidden="true"&gt;
-            &lt;path d="M50 13 C71 12.7 87.2 28.6 87.5 49.7 C87.8 71.1 71.8 87.2 50.2 87 C28.6 86.8 12.5 70.7 12.6 49.8 C12.7 28.5 28.5 13 50 13"&gt;&lt;/path&gt;
-          &lt;/svg&gt;
-        `;
+        if (player === 'X') return `&lt;svg class="mark mark-x" viewBox="0 0 100 100" aria-hidden="true"&gt;&lt;path d="M22 22 L78 78"&gt;&lt;/path&gt;&lt;path d="M78 22 L22 78"&gt;&lt;/path&gt;&lt;/svg&gt;`;
+        return `&lt;svg class="mark mark-o" viewBox="0 0 100 100" aria-hidden="true"&gt;&lt;path d="M50 13 C71 12.7 87.2 28.6 87.5 49.7 C87.8 71.1 71.8 87.2 50.2 87 C28.6 86.8 12.5 70.7 12.6 49.8 C12.7 28.5 28.5 13 50 13"&gt;&lt;/path&gt;&lt;/svg&gt;`;
       }
 
-      function play(index) {
-        if (gameOver || board[index]) return;
+      function renderBoard(newBoard) {
+        board = Array.isArray(newBoard) &amp;&amp; newBoard.length === 9 ? newBoard.slice() : Array(9).fill('');
+        cells.forEach((cell, i) =&gt; {
+          const v = board[i];
+          cell.innerHTML = v ? markSvg(v) : '';
+          cell.classList.toggle('x', v === 'X'); cell.classList.toggle('o', v === 'O');
+          cell.classList.remove('pop');
+        });
+      }
 
+      function playLocal(index) {
+        if (gameOver || board[index]) return;
         board[index] = currentPlayer;
         const cell = cells[index];
         cell.innerHTML = markSvg(currentPlayer);
         cell.classList.add(currentPlayer === 'X' ? 'x' : 'o', 'pop');
         setTimeout(() =&gt; cell.classList.remove('pop'), 200);
-
         const result = checkWinner();
-        if (result) {
-          finishGame(result);
-          return;
-        }
-
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        updateTurn();
+        if (result) { finishGame(result); return; }
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; updateTurn();
       }
 
       function resetBoard() {
-        board = Array(9).fill('');
-        currentPlayer = 'X';
-        gameOver = false;
-
-        cells.forEach(cell =&gt; {
-          cell.innerHTML = '';
-          cell.classList.remove('x','o','pop','winning');
-        });
-
-        hideWinningLine();
-        status.textContent = 'Comece a partida escolhendo uma casa.';
-        status.className = 'status';
-        applyColors();
+        board = Array(9).fill(''); currentPlayer = 'X'; gameOver = false;
+        renderBoard(board); hideWinningLine(); status.textContent = 'Comece a partida escolhendo uma casa.'; status.className = 'status';
+        applyColors(); updateLocalControls();
       }
 
-      function newRound() {
-        round++;
-        updateRound();
-        resetBoard();
+      function newRound() { round++; updateRound(); resetBoard(); }
+      function resetEverything() { scores={X:0,O:0,draw:0}; round=1; updateScores(); updateRound(); resetBoard(); }
+
+      function setModeUI() {
+        modeLocal.checked = gameMode === 'local'; modeOnline.checked = gameMode === 'online';
+        modeOptionLocal.classList.toggle('selected', gameMode === 'local');
+        modeOptionOnline.classList.toggle('selected', gameMode === 'online');
       }
 
-      function resetEverything() {
-        scores = {X:0, O:0, draw:0};
-        round = 1;
-        updateScores();
-        updateRound();
-        resetBoard();
-      }
-
-      function openSettings() {
-        draftColors = {...colors};
-        updatePreview();
-        settingsBackdrop.classList.add('open');
-        settingsBackdrop.setAttribute('aria-hidden','false');
+      function showSettings() {
+        draftColors = {...colors}; setModeUI(); updatePreview(); settingsBackdrop.classList.add('open'); settingsBackdrop.setAttribute('aria-hidden','false');
         setTimeout(() =&gt; closeSettingsBtn.focus(), 30);
       }
 
-      function closeSettings() {
-        settingsBackdrop.classList.remove('open');
-        settingsBackdrop.setAttribute('aria-hidden','true');
-      }
+      function closeSettings() { settingsBackdrop.classList.remove('open'); settingsBackdrop.setAttribute('aria-hidden','true'); }
 
       function applySettings() {
-        colors = {...draftColors};
-        saveColors();
-        applyColors();
-        closeSettings();
+        const requestedMode = modeOnline.checked ? 'online' : 'local';
+        const previousMode = gameMode;
+        colors = {...draftColors}; saveColors();
+        if (previousMode === 'online' &amp;&amp; requestedMode === 'local') leaveOnlineRoom(true);
+        gameMode = requestedMode;
+        applyColors(); closeSettings(); updateLocalControls();
+        if (gameMode === 'online') openOnlineLobby(); else enterLocalMode();
       }
 
-      colorChoiceButtons.forEach(btn =&gt; {
-        btn.addEventListener('click', () =&gt; {
-          const player = btn.closest('.fixed-palette')?.dataset.player;
-          const value = btn.dataset.value;
-          if (!player || !value) return;
+      function enterLocalMode() {
+        stopOnlinePolling(); online.active=false; online.state=null; online.role='none';
+        onlineReactions.classList.remove('open');
+        scoreXLabel.textContent='Jogador X'; scoreOLabel.textContent='Jogador O';
+        scores={X:0,O:0,draw:0}; round=1; currentPlayer='X'; gameOver=false; renderBoard(Array(9).fill('')); hideWinningLine(); updateScores(); updateRound();
+        status.textContent='Comece a partida escolhendo uma casa.'; status.className='status';
+        updateTurn(); updateLocalControls();
+      }
 
-          const otherPlayer = player === 'X' ? 'O' : 'X';
-          if (draftColors[otherPlayer].toLowerCase() === value.toLowerCase()) {
-            draftColors[otherPlayer] = player === 'X' ? PALETTE.red : PALETTE.blue;
-          }
-          draftColors[player] = value;
-          updatePreview();
+      function updateLocalControls() {
+        if (gameMode === 'local') {
+          restartBtn.textContent='Nova partida';
+          resetScoreBtn.style.display='block';
+          onlineReactions.classList.remove('open');
+          return;
+        }
+        resetScoreBtn.style.display='none';
+        onlineReactions.classList.toggle('open', online.active &amp;&amp; online.role !== 'spectator' &amp;&amp; !!online.state &amp;&amp; online.state.status === 'playing');
+        if (!online.active) restartBtn.textContent='Abrir online';
+        else if (online.state?.status === 'finished') restartBtn.textContent='Revanche';
+        else restartBtn.textContent='Sair da sala';
+      }
+
+      /* ========================== ONLINE API ========================== */
+      function apiConfigured() {
+        return ONLINE_API_URL &amp;&amp; !ONLINE_API_URL.includes('COLOCAR_URL');
+      }
+
+      function jsonpRequest(action, params={}) {
+        return new Promise((resolve, reject) =&gt; {
+          if (!apiConfigured()) { reject(new Error('A URL do Web App do Apps Script ainda não foi configurada no jogo.')); return; }
+          const callbackName = `ppGameCb_${Date.now()}_${Math.floor(Math.random()*100000)}`;
+          const script = document.createElement('script');
+          let done = false;
+          const timer = setTimeout(() =&gt; finishReject(new Error('O servidor demorou para responder.')),
+            ONLINE_REQUEST_TIMEOUT_MS);
+          const cleanup = () =&gt; { clearTimeout(timer); try { delete window[callbackName]; } catch (_) { window[callbackName]=undefined; } script.remove(); };
+          const finishResolve = value =&gt; { if(done) return; done=true; cleanup(); resolve(value); };
+          const finishReject = err =&gt; { if(done) return; done=true; cleanup(); reject(err); };
+          window[callbackName] = payload =&gt; {
+            if (payload &amp;&amp; payload.ok === false) finishReject(new Error(payload.error || 'Erro no servidor.'));
+            else finishResolve(payload);
+          };
+          const qs = new URLSearchParams({ action, callback: callbackName, _ts: String(Date.now()), ...params });
+          script.async = true;
+          script.onerror = () =&gt; finishReject(new Error('Não foi possível alcançar o Google Apps Script.'));
+          script.src = `${ONLINE_API_URL}${ONLINE_API_URL.includes('?') ? '&amp;' : '?'}${qs.toString()}`;
+          document.head.appendChild(script);
         });
-      });
+      }
 
-      settingsBtn.addEventListener('click', openSettings);
+      function currentPublicUrl(room='', key='') {
+        try {
+          let base = PUBLIC_GAME_URL.trim();
+          if (!base) {
+            try { base = window.parent?.location?.href || window.location.href; } catch (_) { base = window.location.href; }
+          }
+          const u = new URL(base);
+          ['room','key','jogo'].forEach(k =&gt; u.searchParams.delete(k));
+          u.searchParams.set('jogo','velha'); u.searchParams.set('room',room); u.searchParams.set('key',key);
+          return u.toString();
+        } catch (_) { return `?jogo=velha&amp;room=${encodeURIComponent(room)}&amp;key=${encodeURIComponent(key)}`; }
+      }
+
+      async function createRoom() {
+        const name = String(onlineNameInput.value || '').trim().slice(0,30);
+        if (!name) { setOnlineLobbyStatus('Digite seu nome', 'Digite um nome curto para aparecer para o adversário.'); onlineNameInput.focus(); return; }
+        if (!apiConfigured()) { setOnlineLobbyStatus('Backend não configurado', 'Abra o arquivo e substitua ONLINE_API_URL pela URL /exec do Web App do Apps Script.'); return; }
+        savePlayerName(name);
+        createOnlineBtn.disabled=true; setOnlineLobbyStatus('Criando sala…','Gerando uma sala privada para você.');
+        try {
+          const r = await jsonpRequest('createRoom', {playerId:online.playerId, name});
+          online.active=true; online.role='x'; online.room=r.room; online.key=r.key; online.token=r.token; online.name=name; online.joinedFromLink=false;
+          showOnlineRoom(r.room,r.key,'Jogador X');
+          applyServerState(r.state);
+          setOnlineLobbyStatus('Sala criada','Envie o link para o segundo jogador.');
+          startOnlinePolling();
+          updateLocalControls();
+        } catch (err) { setOnlineLobbyStatus('Não foi possível criar','' + err.message); }
+        finally { createOnlineBtn.disabled=false; }
+      }
+
+      async function joinRoom(asSpectator=false) {
+        const name = String(onlineNameInput.value || '').trim().slice(0,30);
+        const room = String(onlineRoomCodeInput.value || '').trim().toUpperCase();
+        if (room &amp;&amp; !online.key) online.key = room;
+        if (!room) { setOnlineLobbyStatus('Informe o código','Digite o código da sala recebido.'); onlineRoomCodeInput.focus(); return; }
+        if (!asSpectator &amp;&amp; !name) { setOnlineLobbyStatus('Digite seu nome','O nome é usado somente para identificar X/O na partida.'); onlineNameInput.focus(); return; }
+        if (!apiConfigured()) { setOnlineLobbyStatus('Backend não configurado','Substitua ONLINE_API_URL pela URL /exec do Web App do Apps Script.'); return; }
+        if (name) savePlayerName(name);
+        const btn = asSpectator ? watchOnlineBtn : joinOnlineBtn;
+        btn.disabled=true; setOnlineLobbyStatus(asSpectator ? 'Entrando como espectador…' : 'Entrando…','Verificando a sala e sua vaga.');
+        try {
+          const r = await jsonpRequest('joinRoom', {room, key:online.key || '', playerId:online.playerId, name:name || 'Espectador', role:asSpectator ? 'spectator' : 'player'});
+          online.active=true; online.role=r.role; online.room=r.room; online.key=r.key; online.token=r.token || ''; online.name=name || 'Espectador'; online.joinedFromLink=true;
+          showOnlineRoom(r.room,r.key,r.role==='x'?'Jogador X':r.role==='o'?'Jogador O':'Espectador');
+          applyServerState(r.state);
+          setOnlineLobbyStatus(r.role==='spectator'?'Modo espectador':'Você entrou na sala', r.role==='spectator'?'Você apenas acompanhará as jogadas.':'A partida será sincronizada automaticamente.');
+          startOnlinePolling(); updateLocalControls();
+          setTimeout(closeOnlineLobby, 650);
+        } catch (err) { setOnlineLobbyStatus('Não foi possível entrar', err.message); }
+        finally { btn.disabled=false; }
+      }
+
+      function setOnlineLobbyStatus(title, text) { onlineMainStatusTitle.textContent=title; onlineMainStatusText.textContent=text; }
+
+      function showOnlineRoom(room,key,role) {
+        onlineRoomCard.classList.add('open'); onlineRoomCodeText.textContent=room; onlineRoleText.textContent=role;
+        onlineShareText.textContent=currentPublicUrl(room,key); leaveOnlineBtn.style.display='block';
+      }
+
+      function openOnlineLobby() {
+        onlineNameInput.value=online.name || loadPlayerName(); online.playerId=getPlayerId();
+        onlineBackdrop.classList.add('open'); onlineBackdrop.setAttribute('aria-hidden','false');
+        if (online.active &amp;&amp; online.room) { showOnlineRoom(online.room,online.key,online.role==='x'?'Jogador X':online.role==='o'?'Jogador O':'Espectador'); setOnlineLobbyStatus('Você já está em uma sala','A partida continua sendo atualizada em segundo plano.'); }
+        else setOnlineLobbyStatus('Pronto para jogar','Crie uma sala ou informe um código recebido.');
+        setTimeout(() =&gt; (onlineNameInput.value ? onlineRoomCodeInput : onlineNameInput).focus(), 30);
+      }
+
+      function closeOnlineLobby() { onlineBackdrop.classList.remove('open'); onlineBackdrop.setAttribute('aria-hidden','true'); }
+
+      async function leaveOnlineRoom(silent=false) {
+        if (online.active &amp;&amp; online.room &amp;&amp; online.role !== 'spectator' &amp;&amp; online.token &amp;&amp; apiConfigured()) {
+          try { await jsonpRequest('leave', {room:online.room,key:online.key,playerId:online.playerId,token:online.token}); } catch (_) {}
+        }
+        stopOnlinePolling(); online={...online,active:false,role:'none',room:'',key:'',token:'',state:null,pendingMove:null,lastServerMoveNumber:-1,lastReactionTs:0,lastStateAt:0};
+        onlineRoomCard.classList.remove('open'); leaveOnlineBtn.style.display='none'; updateLocalControls();
+        if (!silent) setOnlineLobbyStatus('Sala encerrada','Você voltou ao modo online sem uma partida ativa.');
+      }
+
+      async function copyOnlineLink() {
+        const link=currentPublicUrl(online.room,online.key);
+        try { await navigator.clipboard.writeText(link); onlineMainStatusTitle.textContent='Link copiado'; onlineMainStatusText.textContent='Envie o link para seu adversário.'; }
+        catch (_) { window.prompt('Copie o link da partida:',link); }
+      }
+
+      function startOnlinePolling() { stopOnlinePolling(); if (!online.active) return; pollOnlineState(); online.pollTimer=setInterval(pollOnlineState, ONLINE_POLL_MS); }
+      function stopOnlinePolling() { if (online.pollTimer) clearInterval(online.pollTimer); online.pollTimer=null; }
+
+      async function pollOnlineState() {
+        if (!online.active || online.pollBusy || !online.room) return;
+        online.pollBusy=true;
+        try {
+          const params={room:online.room,key:online.key,playerId:online.playerId}; if (online.token) params.token=online.token;
+          const r=await jsonpRequest('state',params);
+          if (r?.state) applyServerState(r.state);
+          online.lastStateAt=Date.now();
+        } catch (err) {
+          if (Date.now()-online.lastStateAt &gt; ONLINE_STATE_TIMEOUT_MS) status.textContent='Reconectando ao servidor…';
+        } finally { online.pollBusy=false; }
+      }
+
+      function applyServerState(state) {
+        if (!state) return;
+        const prevMove = online.lastServerMoveNumber;
+        online.state=state; online.lastServerMoveNumber=Number(state.moveNumber ?? -1);
+        renderBoard(state.board);
+        currentPlayer=state.currentPlayer || 'X'; gameOver=state.status==='finished'; round=Number(state.round||1);
+        scores={X:Number(state.scoreX||0),O:Number(state.scoreO||0),draw:Number(state.scoreDraw||0)};
+        scoreXLabel.textContent=state.playerX?.name ? `❌ ${state.playerX.name}` : 'Jogador X';
+        scoreOLabel.textContent=state.playerO?.name ? `⭕ ${state.playerO.name}` : 'Jogador O';
+        updateScores(); roundBadge.textContent=`Rodada ${round} • ${scores.X} × ${scores.O}`;
+        hideWinningLine();
+        if (state.winner &amp;&amp; Array.isArray(state.winner.combination) &amp;&amp; state.winner.combination.length) drawWinningLine(state.winner.combination,state.winner.player);
+        updateOnlinePresentation(state, prevMove);
+        if (online.pendingMove !== null) {
+          const p=online.pendingMove;
+          if (Number(state.moveNumber||0) &gt; Number(p.moveNumberBefore||-1)) online.pendingMove=null;
+        }
+        if (state.reaction &amp;&amp; Number(state.reaction.ts||0)&gt;online.lastReactionTs &amp;&amp; state.reaction.playerId!==online.playerId) { online.lastReactionTs=Number(state.reaction.ts||0); showReaction(state.reaction.emoji); }
+        updateLocalControls();
+      }
+
+      function updateOnlinePresentation(state) {
+        onlineReactions.classList.toggle('open', online.active &amp;&amp; online.role !== 'spectator' &amp;&amp; state.status==='playing');
+        if (state.status === 'waiting') {
+          status.textContent='⏳ Aguardando adversário…'; status.className='status';
+          turnSymbol.textContent='…'; turnSymbol.style.background='rgba(255,255,255,.14)'; turnText.textContent='Envie o link da sala para alguém.'; return;
+        }
+        if (state.status === 'closed') {
+          status.textContent='🚪 Esta sala foi encerrada.'; status.className='status';
+          turnSymbol.textContent='—'; turnSymbol.style.background='rgba(255,255,255,.16)'; turnText.textContent='Sala encerrada';
+          return;
+        }
+        if (state.status === 'finished') {
+          const winner=state.winner?.player;
+          const seriesText = state.matchWinner ? ` Série encerrada: ${state.matchWinner==='X'?'X venceu':'O venceu'}.` : ' Toque em Revanche para continuar.';
+          status.textContent=state.winner?.player==='draw' ? '🤝 Empate nesta rodada.' : `🏆 ${state.winner.player==='X'?state.playerX?.name||'Jogador X':state.playerO?.name||'Jogador O'} venceu.${seriesText}`;
+          status.className='status win'; turnSymbol.textContent='✓'; turnSymbol.style.background=winner&amp;&amp;colors[winner]?colors[winner]:'rgba(255,255,255,.16)'; turnText.textContent=state.matchWinner?'Série encerrada':'Rodada encerrada'; return;
+        }
+        updateOnlineTurnText();
+        if (online.pendingMove !== null) status.textContent='Jogada enviada…';
+        else status.textContent=online.role==='spectator'?'👀 Acompanhando a partida.':'Toque em uma casa para jogar.';
+        status.className='status';
+      }
+
+      function updateOnlineTurnText() {
+        const state=online.state; if (!state) return;
+        const active=state.currentPlayer || 'X';
+        const myTurn=online.role===active.toLowerCase();
+        const activeColor=colors[active] || colors.X;
+        turnSymbol.textContent=active;
+        turnSymbol.style.background=`linear-gradient(145deg, ${activeColor}, color-mix(in srgb, ${activeColor} 72%, #ffffff))`;
+        turnSymbol.style.boxShadow=`0 7px 19px color-mix(in srgb, ${activeColor} 30%, transparent)`;
+        turnText.style.color=colorMix(activeColor,'#ffffff',0.32);
+        if (online.role==='spectator') { turnText.textContent=`Vez do jogador ${active}`; return; }
+        if (myTurn) { turnText.textContent=`Sua vez (${active})`; return; }
+        const name=active==='X' ? (state.playerX?.name || 'Jogador X') : (state.playerO?.name || 'Jogador O');
+        turnText.textContent=`${name} está pensando`;
+        ensureThinkingDots();
+      }
+
+      let thinkingFrame=0;
+      function ensureThinkingDots() {
+        // O texto usa CSS/JS simples para manter a mesma sensação em qualquer navegador.
+        if (thinkingFrame) return;
+        const tick=()=&gt;{
+          thinkingFrame=setTimeout(()=&gt;{
+            thinkingFrame=0;
+            if (gameMode==='online' &amp;&amp; online.state &amp;&amp; online.state.status==='playing' &amp;&amp; online.role!==String(online.state.currentPlayer||'').toLowerCase()) {
+              const base=(online.state.currentPlayer==='X'?(online.state.playerX?.name||'Jogador X'):(online.state.playerO?.name||'Jogador O'));
+              const dots='.'.repeat((Math.floor(Date.now()/450)%3)+1);
+              turnText.textContent=`${base} está pensando${dots}`; tick();
+            }
+          },450);
+        };
+        tick();
+      }
+
+      async function onlineMove(index) {
+        const s=online.state; if (!s || s.status!=='playing' || online.role==='spectator') return;
+        if (online.role !== String(s.currentPlayer||'').toLowerCase()) return;
+        if (board[index] || online.pendingMove !== null) return;
+        const beforeBoard=board.slice(); const beforeMove=Number(s.moveNumber||0);
+        board[index]=s.currentPlayer; renderBoard(board); cells[index].classList.add('pop'); setTimeout(()=&gt;cells[index].classList.remove('pop'),200);
+        online.pendingMove={index,board:beforeBoard,moveNumberBefore:beforeMove}; updateOnlinePresentation({...s,board}, beforeMove); status.textContent='Jogada enviada…';
+        try {
+          const r=await jsonpRequest('move',{room:online.room,key:online.key,playerId:online.playerId,token:online.token,index:String(index),moveNumber:String(beforeMove)});
+          if (r?.state) applyServerState(r.state); online.pendingMove=null;
+        } catch (err) {
+          renderBoard(beforeBoard); online.pendingMove=null; status.textContent=err.message; status.className='status';
+        }
+      }
+
+      async function nextRoundOnline() {
+        if (!online.active || !online.state || !online.token) return;
+        restartBtn.disabled=true;
+        try {
+          const r=await jsonpRequest('nextRound',{room:online.room,key:online.key,playerId:online.playerId,token:online.token});
+          if (r?.state) applyServerState(r.state);
+        } catch (err) { status.textContent=err.message; }
+        finally { restartBtn.disabled=false; }
+      }
+
+      async function sendReaction(emoji) {
+        if (!online.active || !online.room || online.role==='none') return;
+        try { await jsonpRequest('react',{room:online.room,key:online.key,playerId:online.playerId,token:online.token||'',emoji}); }
+        catch (_) {}
+      }
+
+      function showReaction(emoji) {
+        reactionPop.textContent=emoji; reactionPop.classList.remove('show'); void reactionPop.offsetWidth; reactionPop.classList.add('show'); reactionPop.setAttribute('aria-hidden','false');
+      }
+
+      function extractLinkParams() {
+        const urls=[];
+        try { urls.push(new URL(window.location.href)); } catch (_) {}
+        try { urls.push(new URL(window.parent.location.href)); } catch (_) {}
+        for (const u of urls) {
+          const game=String(u.searchParams.get('jogo')||'').toLowerCase();
+          const room=String(u.searchParams.get('room')||'').toUpperCase();
+          const key=String(u.searchParams.get('key')||'');
+          if (game==='velha' &amp;&amp; room &amp;&amp; key) return {room,key,game};
+        }
+        return {room:'',key:'',game:''};
+      }
+
+      async function handleIncomingLink() {
+        const q=extractLinkParams();
+        if (q.game!=='velha' || !q.room || !q.key) return;
+        gameMode='online'; setModeUI(); online.key=q.key; onlineRoomCodeInput.value=q.room; online.joinedFromLink=true; online.playerId=getPlayerId();
+        openOnlineLobby();
+      }
+
+      function handleRestartAction() {
+        if (gameMode==='local') newRound();
+        else if (!online.active) openOnlineLobby();
+        else if (online.state?.status==='finished') nextRoundOnline();
+        else openOnlineLobby();
+      }
+
+      /* ============================== EVENTS ============================== */
+      settingsBtn.addEventListener('click', showSettings);
       closeSettingsBtn.addEventListener('click', closeSettings);
       saveSettingsBtn.addEventListener('click', applySettings);
+      defaultSettingsBtn.addEventListener('click',()=&gt;{ draftColors={...DEFAULT_COLORS}; updatePreview(); });
 
-      defaultSettingsBtn.addEventListener('click', () =&gt; {
-        draftColors = {...DEFAULT_COLORS};
-        updatePreview();
-      });
+      colorChoiceButtons.forEach(btn=&gt;btn.addEventListener('click',()=&gt;{
+        const player=btn.closest('.fixed-palette')?.dataset.player, value=btn.dataset.value;
+        if(!player||!value)return;
+        const other=player==='X'?'O':'X';
+        if(draftColors[other].toLowerCase()===value.toLowerCase()) draftColors[other]=player==='X'?PALETTE.red:PALETTE.blue;
+        draftColors[player]=value; updatePreview();
+      }));
 
-      returnPalcoProBtn?.addEventListener('click', () =&gt; {
-        closeSettings();
-        window.parent.postMessage({ type: 'palco-pro-return-from-game' }, '*');
-      });
+      modeLocal.addEventListener('change',setModeUI); modeOnline.addEventListener('change',setModeUI);
+      settingsBackdrop.addEventListener('click',e=&gt;{if(e.target===settingsBackdrop)closeSettings();});
+      document.addEventListener('keydown',e=&gt;{if(e.key==='Escape'&amp;&amp;settingsBackdrop.classList.contains('open'))closeSettings(); if(e.key==='Escape'&amp;&amp;onlineBackdrop.classList.contains('open'))closeOnlineLobby();});
 
-      settingsBackdrop.addEventListener('click', event =&gt; {
-        if (event.target === settingsBackdrop) closeSettings();
-      });
+      returnPalcoProBtn?.addEventListener('click',()=&gt;{ closeSettings(); closeOnlineLobby(); stopOnlinePolling(); window.parent.postMessage({type:'palco-pro-return-from-game'},'*'); });
 
-      document.addEventListener('keydown', event =&gt; {
-        if (event.key === 'Escape' &amp;&amp; settingsBackdrop.classList.contains('open')) closeSettings();
-      });
+      cells.forEach(cell=&gt;cell.addEventListener('click',()=&gt;gameMode==='local'?playLocal(Number(cell.dataset.index)):onlineMove(Number(cell.dataset.index))));
+      restartBtn.addEventListener('click',handleRestartAction);
+      resetScoreBtn.addEventListener('click',()=&gt;{if(gameMode==='local'&amp;&amp;window.confirm('Deseja realmente zerar o placar?'))resetEverything();});
 
-      cells.forEach(cell =&gt; {
-        cell.addEventListener('click', () =&gt; play(Number(cell.dataset.index)));
-      });
+      onlineCloseBtn.addEventListener('click',closeOnlineLobby);
+      createOnlineBtn.addEventListener('click',createRoom);
+      joinOnlineBtn.addEventListener('click',()=&gt;joinRoom(false));
+      watchOnlineBtn.addEventListener('click',()=&gt;joinRoom(true));
+      copyOnlineLinkBtn.addEventListener('click',copyOnlineLink);
+      leaveOnlineBtn.addEventListener('click',()=&gt;leaveOnlineRoom(false));
+      onlineNameInput.addEventListener('input',()=&gt;online.name=onlineNameInput.value.trim().slice(0,30));
+      onlineRoomCodeInput.addEventListener('input',()=&gt;{onlineRoomCodeInput.value=onlineRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); online.key=''; online.joinedFromLink=false;});
+      onlineRoomCodeInput.addEventListener('keydown',e=&gt;{if(e.key==='Enter')joinRoom(false);});
+      onlineReactions.querySelectorAll('.reaction-btn').forEach(btn=&gt;btn.addEventListener('click',()=&gt;sendReaction(btn.dataset.reaction)));
+      onlineBackdrop.addEventListener('click',e=&gt;{if(e.target===onlineBackdrop)closeOnlineLobby();});
+      reactionPop.addEventListener('animationend',()=&gt;reactionPop.classList.remove('show'));
 
-      restartBtn.addEventListener('click', newRound);
-
-      resetScoreBtn.addEventListener('click', () =&gt; {
-        if (window.confirm('Deseja realmente zerar o placar?')) resetEverything();
-      });
-
-      applyColors();
-      updateScores();
-      updateRound();
-      hideWinningLine();
-      updatePreview();
+      /* Estado inicial: LOCAL, deliberadamente não persistido. */
+      online.playerId=getPlayerId(); online.name=loadPlayerName(); onlineNameInput.value=online.name;
+      setModeUI(); enterLocalMode(); applyColors(); updateScores(); updateRound(); hideWinningLine(); updatePreview();
+      localInitialized=true;
+      handleIncomingLink();
     })();
   &lt;/script&gt;
+
 &lt;/body&gt;
-&lt;/html&gt;</textarea>
+&lt;/html&gt;
+</textarea>
 
     <!-- =========================================================
          PALCO PRO — PEDIDO ❤️ OCULTO
@@ -12265,6 +12795,16 @@ button{
         closePalcoProPedido();
       }
     });
+
+    // Link compartilhado do Jogo da Velha: abre o módulo automaticamente
+    // somente quando a URL contém os parâmetros da sala online.
+    try {
+      const ppGameLink = new URL(window.location.href);
+      if (ppGameLink.searchParams.get('jogo') === 'velha' && ppGameLink.searchParams.get('room') && ppGameLink.searchParams.get('key')) {
+        setTimeout(() => openPalcoProGame(), 0);
+      }
+    } catch (_) {}
+
 
     </script>
 </body>
