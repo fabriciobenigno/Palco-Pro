@@ -3342,6 +3342,65 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       background: color-mix(in srgb, var(--winner-color) 7%, transparent);
     }
 
+    /* Celebração online: o mesmo estado de término dispara este efeito nos dois aparelhos. */
+    .winner-overlay {
+      position: fixed; inset: 0; z-index: 300; display: none; place-items: center;
+      overflow: hidden; padding: 22px;
+      background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--winner-color) 16%, transparent), transparent 30%), rgba(3,7,18,.82);
+    }
+    .winner-overlay.show { display: grid; animation: winnerFadeIn .28s ease both; }
+    .winner-rays {
+      position: absolute; inset: -20%; pointer-events: none;
+      background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--winner-color) 14%, transparent) 0deg 6deg, transparent 6deg 18deg);
+      opacity: .22; animation: winnerRays 10s linear infinite;
+    }
+    .winner-card {
+      position: relative; z-index: 2; width: min(100%, 390px); padding: 28px 24px 24px;
+      display: grid; justify-items: center; text-align: center; gap: 9px;
+      border-radius: 28px; border: 1px solid color-mix(in srgb, var(--winner-color) 30%, rgba(255,255,255,.12));
+      background: linear-gradient(180deg, rgba(16,22,36,.98), rgba(7,11,19,.98));
+      box-shadow: 0 32px 100px rgba(0,0,0,.58), 0 0 70px color-mix(in srgb, var(--winner-color) 16%, transparent), inset 0 1px 0 rgba(255,255,255,.08);
+      transform: translateY(10px) scale(.96); animation: winnerCardIn .55s cubic-bezier(.18,.86,.24,1) .08s forwards;
+    }
+    .winner-trophy {
+      width: 76px; height: 76px; display: grid; place-items: center; border-radius: 24px;
+      font-size: 40px; background: color-mix(in srgb, var(--winner-color) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--winner-color) 28%, transparent);
+      box-shadow: 0 14px 36px color-mix(in srgb, var(--winner-color) 18%, transparent);
+      animation: winnerTrophy 1.2s ease .45s both;
+    }
+    .winner-kicker { color: color-mix(in srgb, var(--winner-color) 76%, white); font-size: 11px; font-weight: 950; letter-spacing: .18em; }
+    .winner-title { margin-top: 1px; color: #fff; font-size: clamp(27px, 7vw, 38px); font-weight: 950; letter-spacing: -.045em; line-height: 1.02; }
+    .winner-subtitle { color: var(--soft-text); font-size: 12px; font-weight: 650; }
+    .winner-next-btn {
+      margin-top: 9px; width: min(100%, 300px); min-height: 50px; border: 0; border-radius: 15px;
+      cursor: pointer; color: #fff; font-weight: 900; font-size: 13px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      box-shadow: 0 14px 28px rgba(79,140,255,.24), inset 0 1px 0 rgba(255,255,255,.16);
+      transition: transform .16s ease, filter .2s ease;
+    }
+    .winner-next-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .winner-next-btn:active { transform: scale(.985); }
+    .winner-confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+    .winner-confetti i {
+      position: absolute; top: -12vh; width: 9px; height: 15px; border-radius: 2px;
+      background: var(--winner-color); opacity: .92;
+      transform: translate3d(0,0,0) rotate(0deg);
+      animation: confettiFall var(--dur) linear var(--delay) infinite;
+    }
+    .winner-confetti i:nth-child(3n) { width: 7px; height: 12px; border-radius: 999px; opacity: .78; }
+    .winner-confetti i:nth-child(4n) { background: #fff; }
+    .winner-confetti i:nth-child(5n) { background: color-mix(in srgb, var(--winner-color) 55%, #fff); }
+    @keyframes winnerFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes winnerCardIn { to { transform: translateY(0) scale(1); } }
+    @keyframes winnerTrophy { 0% { transform: scale(.7) rotate(-8deg); opacity: .2; } 55% { transform: scale(1.12) rotate(4deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+    @keyframes winnerRays { to { transform: rotate(360deg); } }
+    @keyframes confettiFall {
+      0% { transform: translate3d(0,-8vh,0) rotate(0deg); opacity: 0; }
+      10% { opacity: .95; }
+      100% { transform: translate3d(var(--drift),120vh,0) rotate(var(--rot)); opacity: .75; }
+    }
+
     .actions { display: grid; grid-template-columns: 1fr 52px; gap: 8px; }
     .actions.online-centered { display:flex; justify-content:center; align-items:center; }
     .actions.online-centered .restart-btn { width:min(100%, 320px); flex:0 1 320px; }
@@ -4155,6 +4214,18 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       &lt;div class="status" id="status"&gt;Comece a partida escolhendo uma casa.&lt;/div&gt;
 
+      &lt;div class="winner-overlay" id="winnerOverlay" aria-hidden="true"&gt;
+        &lt;div class="winner-rays" aria-hidden="true"&gt;&lt;/div&gt;
+        &lt;div class="winner-confetti" id="winnerConfetti" aria-hidden="true"&gt;&lt;/div&gt;
+        &lt;div class="winner-card" role="dialog" aria-modal="true" aria-labelledby="winnerTitle"&gt;
+          &lt;div class="winner-trophy" aria-hidden="true"&gt;🏆&lt;/div&gt;
+          &lt;div class="winner-kicker"&gt;VITÓRIA!&lt;/div&gt;
+          &lt;div class="winner-title" id="winnerTitle"&gt;Fabricio ganhou!&lt;/div&gt;
+          &lt;div class="winner-subtitle" id="winnerSubtitle"&gt;Rodada encerrada&lt;/div&gt;
+          &lt;button class="winner-next-btn" id="winnerNextBtn"&gt;Próxima rodada&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
       &lt;div class="actions"&gt;
         &lt;button class="action-btn restart-btn" id="restartBtn"&gt;Nova partida&lt;/button&gt;
         &lt;button class="action-btn reset-score-btn" id="resetScoreBtn" title="Zerar placar" aria-label="Zerar placar"&gt;↻&lt;/button&gt;
@@ -4390,6 +4461,11 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const resetScoreBtn = document.getElementById('resetScoreBtn');
       const roundBadge = document.getElementById('roundBadge');
       const thinkingLoader = document.getElementById('thinkingLoader');
+      const winnerOverlay = document.getElementById('winnerOverlay');
+      const winnerTitle = document.getElementById('winnerTitle');
+      const winnerSubtitle = document.getElementById('winnerSubtitle');
+      const winnerNextBtn = document.getElementById('winnerNextBtn');
+      const winnerConfetti = document.getElementById('winnerConfetti');
       const enterOnlineBtn = document.getElementById('enterOnlineBtn');
       const onlineCreatorActions = document.getElementById('onlineCreatorActions');
       const winningLine = document.getElementById('winningLine');
@@ -4488,7 +4564,9 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         lastServerMoveNumber: -1,
         lastServerRevision: -1,
         lastStateAt: 0,
-        joinedFromLink: false
+        joinedFromLink: false,
+        lastCelebratedRevision: -1,
+        winnerTimer: null
       };
 
       function uid(prefix='pp') {
@@ -4702,6 +4780,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       function enterLocalMode() {
+        closeWinnerCelebration();
         stopOnlinePolling(); online.active=false; online.state=null; online.role='none';
         scoreXLabel.textContent='Jogador X'; scoreOLabel.textContent='Jogador O';
         scores={X:0,O:0,draw:0}; round=1; currentPlayer='X'; gameOver=false; renderBoard(Array(9).fill('')); hideWinningLine(); updateScores(); updateRound();
@@ -4910,7 +4989,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         if (online.active &amp;&amp; online.room &amp;&amp; online.role !== 'spectator' &amp;&amp; online.token &amp;&amp; apiConfigured()) {
           try { await jsonpRequest('leave', {room:online.room,key:online.key,playerId:online.playerId,token:online.token}); } catch (_) {}
         }
-        stopOnlinePolling(); online={...online,active:false,role:'none',room:'',key:'',token:'',state:null,pendingMove:null,lastServerMoveNumber:-1,lastServerRevision:-1,lastStateAt:0};
+        stopOnlinePolling(); online={...online,active:false,role:'none',room:'',key:'',token:'',state:null,pendingMove:null,lastServerMoveNumber:-1,lastServerRevision:-1,lastStateAt:0,lastCelebratedRevision:-1};
+        closeWinnerCelebration();
         onlineRoomCard.classList.remove('open'); leaveOnlineBtn.style.display='none'; updateLocalControls();
         if (!silent) setOnlineLobbyStatus('Sala encerrada','Você voltou ao modo online sem uma partida ativa.');
       }
@@ -4963,6 +5043,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         }
 
         const prevMove = online.lastServerMoveNumber;
+        const previousState = online.state;
+        const wasFinished = previousState?.status === 'finished';
         online.state=state;
         online.lastServerMoveNumber=incomingMove;
         if (hasRevision) online.lastServerRevision=incomingRevision;
@@ -4981,6 +5063,12 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
           drawWinningLine(state.winner.combination,state.winner.player);
         }
 
+        if (state.status !== 'finished') closeWinnerCelebration();
+        if (state.status === 'finished' &amp;&amp; !wasFinished &amp;&amp; Number(state.revision) !== Number(online.lastCelebratedRevision)) {
+          online.lastCelebratedRevision = Number(state.revision);
+          if (gameMode === 'online' &amp;&amp; online.role !== 'spectator' &amp;&amp; state.winner?.player !== 'draw') scheduleWinnerCelebration(state);
+        }
+
         if (pending) {
           const before=Number(pending.moveNumberBefore ?? -1);
           const cellHasOurMove=Array.isArray(state.board) &amp;&amp; pending.index != null &amp;&amp; state.board[pending.index] === (online.role==='x'?'X':'O');
@@ -4990,6 +5078,63 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         updateOnlinePresentation(state,prevMove);
         updateLocalControls();
       }
+      function closeWinnerCelebration() {
+        if (online.winnerTimer) { clearTimeout(online.winnerTimer); online.winnerTimer = null; }
+        if (!winnerOverlay) return;
+        winnerOverlay.classList.remove('show');
+        winnerOverlay.setAttribute('aria-hidden','true');
+      }
+
+      function scheduleWinnerCelebration(state) {
+        if (!state?.winner || state.winner.player === 'draw') return;
+        const target = Date.parse(String(state.celebrationAt || ''));
+        const serverNow = Date.parse(String(state.serverNow || ''));
+        let delay = 0;
+        if (Number.isFinite(target) &amp;&amp; Number.isFinite(serverNow)) {
+          const serverOffset = Date.now() - serverNow;
+          delay = target + serverOffset - Date.now();
+        }
+        delay = Math.max(0, Math.min(delay, 1800));
+        if (online.winnerTimer) clearTimeout(online.winnerTimer);
+        online.winnerTimer = setTimeout(() =&gt; {
+          online.winnerTimer = null;
+          showWinnerCelebration(state);
+        }, delay);
+      }
+
+      function showWinnerCelebration(state) {
+        if (!winnerOverlay || !state?.winner) return;
+        const player = state.winner.player;
+        if (player !== 'X' &amp;&amp; player !== 'O') return;
+        const name = player === 'X' ? (state.playerX?.name || 'Jogador X') : (state.playerO?.name || 'Jogador O');
+        root.style.setProperty('--winner-color', colors[player] || colors.X);
+        if (winnerTitle) winnerTitle.textContent = `${name} ganhou!`;
+        if (winnerSubtitle) winnerSubtitle.textContent = state.matchWinner ? '🏆 Série vencida — você pode iniciar uma nova partida.' : '✨ Rodada vencida — o vencedor começa a próxima.';
+        if (winnerNextBtn) winnerNextBtn.textContent = state.matchWinner ? 'Nova partida' : 'Próxima rodada';
+        if (winnerConfetti &amp;&amp; !winnerConfetti.children.length) {
+          const confetti = [];
+          for (let i = 0; i &lt; 58; i++) {
+            const el = document.createElement('i');
+            const left = ((i * 17.37) % 104) - 2;
+            const drift = ((i * 29) % 180) - 90;
+            const delay = -((i * 0.083) % 2.8).toFixed(2);
+            const dur = (2.9 + ((i * 37) % 26) / 10).toFixed(2);
+            const rot = `${((i * 71) % 900) - 450}deg`;
+            el.style.left = `${left}%`;
+            el.style.setProperty('--drift', `${drift}px`);
+            el.style.setProperty('--delay', `${delay}s`);
+            el.style.setProperty('--dur', `${dur}s`);
+            el.style.setProperty('--rot', rot);
+            confetti.push(el);
+          }
+          winnerConfetti.append(...confetti);
+        }
+        winnerOverlay.classList.remove('show');
+        void winnerOverlay.offsetWidth;
+        winnerOverlay.classList.add('show');
+        winnerOverlay.setAttribute('aria-hidden','false');
+      }
+
       function updateOnlinePresentation(state) {
         if (state.status === 'waiting') {
           setThinkingLoader(false);
@@ -5103,6 +5248,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
       async function nextRoundOnline() {
         if (!online.active || !online.state || !online.token) return;
+        closeWinnerCelebration();
         restartBtn.disabled=true;
         const expectedRevision = Number(online.state.revision ?? online.lastServerRevision ?? 0);
         setThinkingLoader(false);
@@ -5186,6 +5332,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       cells.forEach(cell=&gt;cell.addEventListener('click',()=&gt;gameMode==='local'?playLocal(Number(cell.dataset.index)):onlineMove(Number(cell.dataset.index))));
       restartBtn.addEventListener('click',handleRestartAction);
+      winnerNextBtn?.addEventListener('click',nextRoundOnline);
+      winnerOverlay?.addEventListener('click',e=&gt;{ if(e.target===winnerOverlay) closeWinnerCelebration(); });
       resetScoreBtn.addEventListener('click',()=&gt;{if(gameMode==='local'&amp;&amp;window.confirm('Deseja realmente zerar o placar?'))resetEverything();});
 
       onlineCloseBtn.addEventListener('click',closeOnlineLobby);
