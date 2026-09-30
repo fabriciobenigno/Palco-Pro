@@ -4483,6 +4483,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         pollBusy: false,
         pendingMove: null,
         lastServerMoveNumber: -1,
+        lastServerRevision: -1,
         lastStateAt: 0,
         joinedFromLink: false
       };
@@ -4713,7 +4714,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         }
         resetScoreBtn.style.display='none';
         if (!online.active) restartBtn.textContent='Abrir online';
-        else if (online.state?.status === 'finished') restartBtn.textContent='Revanche';
+        else if (online.state?.status === 'finished') {
+          restartBtn.style.display='block';
+          restartBtn.textContent=online.state?.matchWinner ? 'Nova partida' : 'Próxima rodada';
+        }
         else restartBtn.textContent='Sair da sala';
       }
 
@@ -4900,7 +4904,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         if (online.active &amp;&amp; online.room &amp;&amp; online.role !== 'spectator' &amp;&amp; online.token &amp;&amp; apiConfigured()) {
           try { await jsonpRequest('leave', {room:online.room,key:online.key,playerId:online.playerId,token:online.token}); } catch (_) {}
         }
-        stopOnlinePolling(); online={...online,active:false,role:'none',room:'',key:'',token:'',state:null,pendingMove:null,lastServerMoveNumber:-1,lastStateAt:0};
+        stopOnlinePolling(); online={...online,active:false,role:'none',room:'',key:'',token:'',state:null,pendingMove:null,lastServerMoveNumber:-1,lastServerRevision:-1,lastStateAt:0};
         onlineRoomCard.classList.remove('open'); leaveOnlineBtn.style.display='none'; updateLocalControls();
         if (!silent) setOnlineLobbyStatus('Sala encerrada','Você voltou ao modo online sem uma partida ativa.');
       }
@@ -4930,23 +4934,32 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       function applyServerState(state, options={}) {
         if (!state) return;
         const incomingMove = Number(state.moveNumber ?? 0);
+        const incomingRevision = Number(state.revision ?? 0);
         const pending = online.pendingMove;
+        const hasRevision = Number.isFinite(incomingRevision) && incomingRevision >= 0;
+        const lastRevision = Number(online.lastServerRevision ?? -1);
+        const lastMove = Number(online.lastServerMoveNumber ?? -1);
 
-        /* Nunca retroceder o estado visual: respostas HTTP/JSONP podem chegar
-           fora de ordem quando polling e uma jogada estão acontecendo juntos. */
-        if (!options.force &amp;&amp; incomingMove &lt; Number(online.lastServerMoveNumber ?? -1)) {
+        /* A revisão é a ordem global da sala e NÃO volta para zero na revanche. */
+        if (!options.force && hasRevision && lastRevision >= 0 && incomingRevision < lastRevision) {
           return;
         }
 
-        /* Não deixe uma resposta antiga do polling sobrescrever a jogada local
-           otimista enquanto a requisição desta jogada ainda está pendente. */
-        if (!options.force &amp;&amp; pending &amp;&amp; incomingMove &lt;= Number(pending.moveNumberBefore ?? -1)) {
+        /* Compatibilidade com salas antigas ainda sem o campo revision. */
+        if (!options.force && !hasRevision && incomingMove < lastMove) {
+          return;
+        }
+
+        /* Não deixe um estado antigo do polling apagar a jogada otimista. */
+        if (!options.force && pending && incomingMove <= Number(pending.moveNumberBefore ?? -1)
+            && (!hasRevision || incomingRevision <= lastRevision)) {
           return;
         }
 
         const prevMove = online.lastServerMoveNumber;
         online.state=state;
         online.lastServerMoveNumber=incomingMove;
+        if (hasRevision) online.lastServerRevision=incomingRevision;
         renderBoard(state.board);
         currentPlayer=state.currentPlayer || 'X'; gameOver=state.status==='finished'; round=Number(state.round||1);
         scores={X:Number(state.scoreX||0),O:Number(state.scoreO||0),draw:Number(state.scoreDraw||0)};
@@ -4956,24 +4969,29 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         roundBadge.textContent=`Rodada ${round} • ${scores.X} × ${scores.O}`;
         hideWinningLine();
         if (state.winner &amp;&amp; Array.isArray(state.winner.combination) &amp;&amp; state.winner.combination.length) drawWinningLine(state.winner.combination,state.winner.player);
-        if (pending &amp;&amp; incomingMove &gt; Number(pending.moveNumberBefore ?? -1)) online.pendingMove=null;
+        if (pending && incomingMove > Number(pending.moveNumberBefore ?? -1)) online.pendingMove=null;
         updateOnlinePresentation(state, prevMove);
         updateLocalControls();
       }
 
       function updateOnlinePresentation(state) {
         if (state.status === 'waiting') {
+          setThinkingLoader(false);
           status.textContent='⏳ Aguardando adversário…'; status.className='status';
           turnSymbol.textContent='…'; turnSymbol.style.background='rgba(255,255,255,.14)'; turnText.textContent='Envie o link da sala para alguém.'; return;
         }
         if (state.status === 'closed') {
+          setThinkingLoader(false);
           status.textContent='🚪 Esta sala foi encerrada.'; status.className='status';
           turnSymbol.textContent='—'; turnSymbol.style.background='rgba(255,255,255,.16)'; turnText.textContent='Sala encerrada';
           return;
         }
         if (state.status === 'finished') {
+          setThinkingLoader(false);
+          restartBtn.style.display='block';
+          restartBtn.disabled=false;
           const winner=state.winner?.player;
-          const seriesText = state.matchWinner ? ` Série encerrada: ${state.matchWinner==='X'?'X venceu':'O venceu'}.` : ' Toque em Revanche para continuar.';
+          const seriesText = state.matchWinner ? ' Toque em Nova partida para começar uma nova série.' : ' Toque em Próxima rodada para continuar.';
           status.textContent=state.winner?.player==='draw' ? '🤝 Empate nesta rodada.' : `🏆 ${state.winner.player==='X'?state.playerX?.name||'Jogador X':state.playerO?.name||'Jogador O'} venceu.${seriesText}`;
           status.className='status win'; turnSymbol.textContent='✓'; turnSymbol.style.background=winner&amp;&amp;colors[winner]?colors[winner]:'rgba(255,255,255,.16)'; turnText.textContent=state.matchWinner?'Série encerrada':'Rodada encerrada'; return;
         }
@@ -5028,11 +5046,34 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       async function nextRoundOnline() {
         if (!online.active || !online.state || !online.token) return;
         restartBtn.disabled=true;
+        const expectedRevision = Number(online.state.revision ?? online.lastServerRevision ?? 0);
+        setThinkingLoader(false);
+        status.textContent='🔄 Preparando nova partida…';
+        status.className='status';
         try {
-          const r=await jsonpRequest('nextRound',{room:online.room,key:online.key,playerId:online.playerId,token:online.token});
-          if (r?.state) applyServerState(r.state);
-        } catch (err) { status.textContent=err.message; }
-        finally { restartBtn.disabled=false; }
+          const r=await jsonpRequest('nextRound',{
+            room:online.room,
+            key:online.key,
+            playerId:online.playerId,
+            token:online.token,
+            revision:String(Number.isFinite(expectedRevision) ? expectedRevision : 0)
+          });
+          if (r?.state) applyServerState(r.state, {force:true});
+        } catch (err) {
+          /* Se o outro jogador já acionou a revanche, sincroniza com o estado
+             atual em vez de exibir um falso "partida não terminou". */
+          try {
+            const current = await jsonpRequest('state',{room:online.room,key:online.key,playerId:online.playerId,token:online.token});
+            if (current?.state) applyServerState(current.state, {force:true});
+            else throw err;
+          } catch (_) {
+            status.textContent=err.message;
+            status.className='status';
+          }
+        } finally {
+          restartBtn.disabled=false;
+          updateLocalControls();
+        }
       }
 
       function extractLinkParams() {
