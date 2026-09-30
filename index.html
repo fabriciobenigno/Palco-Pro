@@ -3380,12 +3380,17 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       inset: 0;
       z-index: 100;
       display: none;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 18px;
+      padding: max(18px, env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px));
       background: rgba(0,0,0,.55);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
     }
 
     .modal-backdrop.open { display: flex; animation: fadeIn .18s ease; }
@@ -3393,6 +3398,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
     .settings-modal {
       width: min(100%, 390px);
+      max-height: calc(100dvh - 36px);
       padding: 22px;
       border-radius: 24px;
       border: 1px solid rgba(255,255,255,.12);
@@ -3400,6 +3406,12 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       box-shadow: 0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.05);
       transform: translateY(8px) scale(.98);
       animation: modalIn .2s ease forwards;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      margin: 0 auto;
     }
 
     @keyframes modalIn { to { transform: translateY(0) scale(1); } }
@@ -4870,7 +4882,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         draftColors[player]=value; updatePreview();
       }));
 
-      modeLocal.addEventListener('change',setModeUI); modeOnline.addEventListener('change',setModeUI);
+      modeLocal.addEventListener('change',()=&gt;{ gameMode='local'; setModeUI(); });
+      modeOnline.addEventListener('change',()=&gt;{ gameMode='online'; setModeUI(); });
+      modeOptionLocal.addEventListener('click',()=&gt;{ gameMode='local'; setModeUI(); });
+      modeOptionOnline.addEventListener('click',()=&gt;{ gameMode='online'; setModeUI(); });
       settingsBackdrop.addEventListener('click',e=&gt;{if(e.target===settingsBackdrop)closeSettings();});
       document.addEventListener('keydown',e=&gt;{if(e.key==='Escape'&amp;&amp;settingsBackdrop.classList.contains('open'))closeSettings(); if(e.key==='Escape'&amp;&amp;onlineBackdrop.classList.contains('open'))closeOnlineLobby();});
 
