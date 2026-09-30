@@ -4518,6 +4518,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const ONLINE_STATE_TIMEOUT_MS = 9000;
       const ONLINE_REQUEST_TIMEOUT_MS = 10000;
       const PUBLIC_GAME_URL = ''; // vazio = tenta usar o endereço atual do Palco Pro/iframe
+      // Página pública específica dos convites do Jogo da Velha.
+      // Ela usa uma imagem OG própria para compartilhamento e depois abre o
+      // mesmo Index do Palco Pro com os parâmetros da sala.
+      const GAME_INVITE_URL = 'https://fabriciobenigno.github.io/Palco-Pro/jogo.html';
 
       const WINNING_COMBINATIONS = [
         [0,1,2], [3,4,5], [6,7,8],
@@ -4836,15 +4840,15 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       function currentPublicUrl(room='', key='') {
         try {
-          let base = PUBLIC_GAME_URL.trim();
-          if (!base) {
-            try { base = window.parent?.location?.href || window.location.href; } catch (_) { base = window.location.href; }
-          }
-          const u = new URL(base);
-          ['room','key','jogo'].forEach(k =&gt; u.searchParams.delete(k));
-          u.searchParams.set('jogo','velha'); u.searchParams.set('room',room); u.searchParams.set('key',key);
+          const base = GAME_INVITE_URL.trim();
+          const u = new URL(base || window.location.href);
+          ['room','key','jogo'].forEach(k => u.searchParams.delete(k));
+          u.searchParams.set('room', String(room || '').toUpperCase());
+          u.searchParams.set('key', String(key || ''));
           return u.toString();
-        } catch (_) { return `?jogo=velha&amp;room=${encodeURIComponent(room)}&amp;key=${encodeURIComponent(key)}`; }
+        } catch (_) {
+          return `https://fabriciobenigno.github.io/Palco-Pro/jogo.html?room=${encodeURIComponent(room)}&key=${encodeURIComponent(key)}`;
+        }
       }
 
       function setOnlineFieldVisible(node, visible) {
