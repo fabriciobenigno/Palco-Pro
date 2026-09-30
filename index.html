@@ -3958,6 +3958,148 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       .online-reactions { grid-template-columns:repeat(4,1fr); }
     }
 
+  
+    /* =========================================================
+       V2 — ACABAMENTO DO JOGO ONLINE E RESPONSIVIDADE
+       ========================================================= */
+    .thinking-loader {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      width: 28px;
+      height: 20px;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+    .thinking-loader.show { display: inline-flex; }
+    .thinking-loader i {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: .28;
+      transform: translateY(0) scale(.82);
+      animation: thinkingPulse 1s ease-in-out infinite;
+    }
+    .thinking-loader i:nth-child(2) { animation-delay: .14s; }
+    .thinking-loader i:nth-child(3) { animation-delay: .28s; }
+    @keyframes thinkingPulse {
+      0%, 60%, 100% { opacity: .26; transform: translateY(0) scale(.82); }
+      30% { opacity: 1; transform: translateY(-3px) scale(1.08); }
+    }
+    .online-panel {
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .online-panel .online-actions.creator-actions { margin-top: 12px !important; }
+    .online-room-card {
+      background:
+        radial-gradient(circle at 100% 0%, rgba(124,176,255,.11), transparent 42%),
+        linear-gradient(180deg, rgba(79,140,255,.075), rgba(255,255,255,.025));
+      border-color: rgba(124,176,255,.24);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 16px 38px rgba(0,0,0,.16);
+    }
+    .online-code strong { letter-spacing: .18em; }
+    .online-share {
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.055);
+      font-size: 10px;
+      line-height: 1.45;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .online-btn.primary {
+      box-shadow: 0 12px 28px rgba(79,140,255,.16), inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    /* Segurança: em telas muito baixas, libera uma rolagem interna discreta
+       em vez de cortar informações da interface. Em aparelhos normais tudo
+       continua cabendo sem rolagem. */
+    .game-card {
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .game-card::-webkit-scrollbar { display: none; }
+
+    @media (max-width: 759px) {
+      body {
+        padding-left: 7px !important;
+        padding-right: 7px !important;
+      }
+      .game-card {
+        padding: 9px 10px 11px !important;
+        border-radius: 22px;
+      }
+      .topbar { margin-bottom: 7px !important; }
+      .brand-icon { width: 37px !important; height: 37px !important; }
+      .brand-title { font-size: 13px !important; }
+      .round-badge { font-size: 8px !important; padding: 6px 8px !important; }
+      .hero { margin-bottom: 6px !important; }
+      .hero h1 { font-size: clamp(24px, 7.4vw, 31px) !important; }
+      .hero p { display: none !important; }
+      .turn-box { margin-bottom: 6px !important; }
+      .turn-pill { min-height: 32px !important; padding: 5px 10px 5px 6px !important; font-size: 10px !important; }
+      .turn-symbol { width: 21px !important; height: 21px !important; }
+      .board-wrap {
+        width: min(330px, calc(100vw - 24px), 37dvh) !important;
+        margin-bottom: 7px !important;
+      }
+      .scoreboard { gap: 5px !important; margin-bottom: 6px !important; }
+      .score { min-height: 45px !important; padding: 5px 4px !important; border-radius: 13px !important; }
+      .score-label { font-size: 7px !important; }
+      .score-value { font-size: 18px !important; margin-top: 2px !important; }
+      .status { min-height: 29px !important; margin-bottom: 5px !important; padding: 5px 8px !important; font-size: 8.8px !important; }
+      .actions { grid-template-columns: 1fr 42px !important; gap: 6px !important; }
+      .action-btn { min-height: 41px !important; border-radius: 13px !important; }
+      .reset-score-btn { width: 42px !important; }
+      .online-reactions { grid-template-columns: repeat(8, minmax(0,1fr)) !important; gap: 4px !important; margin: 6px 0 0 !important; }
+      .reaction-btn { min-height: 31px !important; font-size: 14px !important; border-radius: 10px !important; }
+      .footer { display: none !important; }
+    }
+
+    @media (max-width: 380px) {
+      .board-wrap { width: min(306px, calc(100vw - 24px), 34dvh) !important; }
+      .reaction-btn { min-height: 29px !important; font-size: 13px !important; }
+    }
+
+    @media (max-width: 759px) and (max-height: 700px) {
+      .game-card { padding-top: 7px !important; padding-bottom: 8px !important; }
+      .topbar { margin-bottom: 5px !important; }
+      .hero { margin-bottom: 4px !important; }
+      .hero h1 { font-size: 23px !important; }
+      .turn-box { margin-bottom: 5px !important; }
+      .board-wrap { width: min(300px, calc(100vw - 24px), 31dvh) !important; margin-bottom: 5px !important; }
+      .score { min-height: 40px !important; }
+      .status { min-height: 27px !important; font-size: 8.3px !important; }
+      .action-btn { min-height: 38px !important; }
+      .reaction-btn { min-height: 27px !important; }
+    }
+
+    @media (min-width: 760px) {
+      .game-card {
+        height: calc(100svh - 24px);
+        max-height: calc(100svh - 24px);
+      }
+      .board-wrap {
+        width: min(390px, calc(100svh - 285px), calc(100vw - 410px)) !important;
+      }
+    }
+
+    @media (min-width: 760px) and (max-height: 760px) {
+      .game-card {
+        height: calc(100svh - 14px);
+        max-height: calc(100svh - 14px);
+      }
+      .board-wrap { width: min(320px, calc(100svh - 205px), calc(100vw - 350px)) !important; }
+    }
+
   &lt;/style&gt;
 &lt;/head&gt;
 
@@ -3987,7 +4129,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       &lt;div class="turn-box"&gt;
         &lt;div class="turn-pill"&gt;
           &lt;span class="turn-symbol" id="turnSymbol"&gt;X&lt;/span&gt;
-          &lt;span id="turnText"&gt;Vez do jogador X&lt;/span&gt;
+          &lt;span id="turnText"&gt;Vez do jogador X&lt;/span&gt;&lt;span class="thinking-loader" id="thinkingLoader" aria-hidden="true"&gt;&lt;i&gt;&lt;/i&gt;&lt;i&gt;&lt;/i&gt;&lt;i&gt;&lt;/i&gt;&lt;/span&gt;
         &lt;/div&gt;
       &lt;/div&gt;
 
@@ -4131,7 +4273,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       &lt;div class="modal-footer"&gt;
         &lt;button class="default-settings" id="defaultSettingsBtn"&gt;Padrão clássico&lt;/button&gt;
-        &lt;button class="save-settings" id="saveSettingsBtn"&gt;Aplicar cores&lt;/button&gt;
+        &lt;button class="save-settings" id="saveSettingsBtn"&gt;Aplicar&lt;/button&gt;
         &lt;button class="return-palco-btn" id="returnPalcoProBtn" type="button"&gt;← Voltar para o Palco Pro&lt;/button&gt;
       &lt;/div&gt;
     &lt;/section&gt;
@@ -4175,7 +4317,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         &lt;input class="online-input" id="onlineRoomCodeInput" type="text" maxlength="8" autocomplete="off" placeholder="Ex.: A7K4M2Q9" /&gt;
       &lt;/div&gt;
       &lt;div class="online-join-row"&gt;
-        &lt;button class="online-btn" id="joinOnlineBtn" type="button"&gt;🎮 Entrar para jogar&lt;/button&gt;
+        &lt;button class="online-btn" id="joinOnlineBtn" type="button"&gt;🎮 Jogar&lt;/button&gt;
         &lt;button class="online-btn" id="watchOnlineBtn" type="button"&gt;👀 Assistir&lt;/button&gt;
       &lt;/div&gt;
 
@@ -4186,6 +4328,10 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         &lt;/div&gt;
         &lt;div class="online-share" id="onlineShareText"&gt;&lt;/div&gt;
         &lt;div class="online-note"&gt;O link inclui uma chave privada da sala. Não publique o link em locais públicos se a partida for destinada a uma pessoa específica.&lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class="online-actions creator-actions" id="onlineCreatorActions" style="margin-top:10px;display:none;"&gt;
+        &lt;button class="online-btn primary" id="enterOnlineBtn" type="button"&gt;🎮 Entrar no jogo&lt;/button&gt;
       &lt;/div&gt;
 
       &lt;div class="online-actions" style="margin-top:10px;"&gt;
@@ -4271,7 +4417,9 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const restartBtn = document.getElementById('restartBtn');
       const resetScoreBtn = document.getElementById('resetScoreBtn');
       const roundBadge = document.getElementById('roundBadge');
-
+      const thinkingLoader = document.getElementById('thinkingLoader');
+      const enterOnlineBtn = document.getElementById('enterOnlineBtn');
+      const onlineCreatorActions = document.getElementById('onlineCreatorActions');
       const winningLine = document.getElementById('winningLine');
       const winningLineGlow = document.getElementById('winningLineGlow');
 
@@ -4309,6 +4457,11 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       const onlineShareText = document.getElementById('onlineShareText');
       const onlineReactions = document.getElementById('onlineReactions');
       const reactionPop = document.getElementById('reactionPop');
+      const onlineJoinRow = document.querySelector('.online-join-row');
+      const onlineDivider = document.querySelector('.online-divider');
+      const onlineJoinSectionTitle = document.querySelector('.online-section-title');
+      const onlineNameField = onlineNameInput?.closest('.online-field');
+      const onlineRoomField = onlineRoomCodeInput?.closest('.online-field');
 
       /* ---------------------------------------------------------------
          CONFIGURAÇÃO PRINCIPAL — APENAS UMA URL PRECISA SER PREENCHIDA.
@@ -4463,6 +4616,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         turnSymbol.style.background = `linear-gradient(145deg, ${activeColor}, color-mix(in srgb, ${activeColor} 72%, #ffffff))`;
         turnSymbol.style.boxShadow = `0 7px 19px color-mix(in srgb, ${activeColor} 30%, transparent)`;
         turnText.style.color = colorMix(activeColor, '#ffffff', 0.32);
+        setThinkingLoader(false);
         turnText.textContent = `Vez do jogador ${currentPlayer}`;
       }
 
@@ -4641,19 +4795,67 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         } catch (_) { return `?jogo=velha&amp;room=${encodeURIComponent(room)}&amp;key=${encodeURIComponent(key)}`; }
       }
 
+      function setOnlineFieldVisible(node, visible) {
+        if (!node) return;
+        node.style.display = visible ? '' : 'none';
+      }
+
+      function prepareLobbyForMode(mode) {
+        const fromLink = mode === 'guest-link';
+        const hasRoom = !!(online.active &amp;&amp; online.room);
+
+        onlineRoomCard.classList.toggle('open', hasRoom);
+        leaveOnlineBtn.style.display = hasRoom ? 'block' : 'none';
+        onlineCreatorActions.style.display = 'none';
+
+        setOnlineFieldVisible(onlineNameField, true);
+        setOnlineFieldVisible(createOnlineBtn, !fromLink &amp;&amp; !hasRoom);
+        setOnlineFieldVisible(onlineRoomField, !fromLink &amp;&amp; !hasRoom);
+        setOnlineFieldVisible(onlineJoinSectionTitle || null, !fromLink &amp;&amp; !hasRoom);
+        setOnlineFieldVisible(onlineJoinRow || null, !fromLink &amp;&amp; !hasRoom);
+        setOnlineFieldVisible(onlineDivider || null, !fromLink &amp;&amp; !hasRoom);
+
+        if (joinOnlineBtn) joinOnlineBtn.textContent = fromLink ? '🎮 Jogar' : '🎮 Jogar';
+        if (watchOnlineBtn) watchOnlineBtn.style.display = fromLink ? 'none' : '';
+        if (onlineJoinRow) onlineJoinRow.style.gridTemplateColumns = fromLink ? '1fr' : '';
+
+        if (hasRoom &amp;&amp; online.role === 'x') {
+          setOnlineFieldVisible(onlineNameField, false);
+          setOnlineFieldVisible(createOnlineBtn, false);
+          setOnlineFieldVisible(onlineRoomField, false);
+          setOnlineFieldVisible(onlineJoinSectionTitle || null, false);
+          setOnlineFieldVisible(onlineJoinRow || null, false);
+          setOnlineFieldVisible(onlineDivider || null, false);
+          onlineCreatorActions.style.display = 'grid';
+          return;
+        }
+
+        if (fromLink) {
+          setOnlineFieldVisible(onlineRoomField, false);
+          setOnlineFieldVisible(createOnlineBtn, false);
+          setOnlineFieldVisible(onlineJoinSectionTitle || null, false);
+          setOnlineFieldVisible(onlineJoinRow || null, true);
+          if (joinOnlineBtn) joinOnlineBtn.style.display = 'block';
+          setOnlineFieldVisible(onlineDivider || null, false);
+          onlineRoomCard.classList.remove('open');
+          leaveOnlineBtn.style.display = 'none';
+        }
+      }
+
       async function createRoom() {
         const name = String(onlineNameInput.value || '').trim().slice(0,30);
         if (!name) { setOnlineLobbyStatus('Digite seu nome', 'Digite um nome curto para aparecer para o adversário.'); onlineNameInput.focus(); return; }
-        if (!apiConfigured()) { setOnlineLobbyStatus('Backend não configurado', 'Abra o arquivo e substitua ONLINE_API_URL pela URL /exec do Web App do Apps Script.'); return; }
+        if (!apiConfigured()) { setOnlineLobbyStatus('Backend não configurado', 'Substitua ONLINE_API_URL pela URL /exec do Web App do Apps Script.'); return; }
         savePlayerName(name);
-        createOnlineBtn.disabled=true; setOnlineLobbyStatus('Criando sala…','Gerando uma sala privada para você.');
+        createOnlineBtn.disabled=true;
+        setOnlineLobbyStatus('Criando sala…','Preparando sua sala privada.');
         try {
           const r = await jsonpRequest('createRoom', {playerId:online.playerId, name});
           online.active=true; online.role='x'; online.room=r.room; online.key=r.key; online.token=r.token; online.name=name; online.joinedFromLink=false;
-          showOnlineRoom(r.room,r.key,'Jogador X');
+          showOnlineRoom(r.room,r.key,'Você é o Jogador X');
           applyServerState(r.state);
-          setOnlineLobbyStatus('Sala criada','Envie o link para o segundo jogador.');
-          startOnlinePolling();
+          setOnlineLobbyStatus('Sala criada','Compartilhe o código ou o link. Quando estiver pronto, entre no jogo.');
+          prepareLobbyForMode('created');
           updateLocalControls();
         } catch (err) { setOnlineLobbyStatus('Não foi possível criar','' + err.message); }
         finally { createOnlineBtn.disabled=false; }
@@ -4662,21 +4864,29 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       async function joinRoom(asSpectator=false) {
         const name = String(onlineNameInput.value || '').trim().slice(0,30);
         const room = String(onlineRoomCodeInput.value || '').trim().toUpperCase();
-        if (room &amp;&amp; !online.key) online.key = room;
-        if (!room) { setOnlineLobbyStatus('Informe o código','Digite o código da sala recebido.'); onlineRoomCodeInput.focus(); return; }
-        if (!asSpectator &amp;&amp; !name) { setOnlineLobbyStatus('Digite seu nome','O nome é usado somente para identificar X/O na partida.'); onlineNameInput.focus(); return; }
+        const fromLink = !!online.joinedFromLink;
+        if (!fromLink &amp;&amp; room &amp;&amp; !online.key) online.key = room;
+        if (!fromLink &amp;&amp; !room) { setOnlineLobbyStatus('Informe o código','Digite o código da sala recebido.'); onlineRoomCodeInput.focus(); return; }
+        if (!asSpectator &amp;&amp; !name) { setOnlineLobbyStatus('Digite seu nome','Seu nome aparecerá na partida.'); onlineNameInput.focus(); return; }
         if (!apiConfigured()) { setOnlineLobbyStatus('Backend não configurado','Substitua ONLINE_API_URL pela URL /exec do Web App do Apps Script.'); return; }
         if (name) savePlayerName(name);
         const btn = asSpectator ? watchOnlineBtn : joinOnlineBtn;
-        btn.disabled=true; setOnlineLobbyStatus(asSpectator ? 'Entrando como espectador…' : 'Entrando…','Verificando a sala e sua vaga.');
+        btn.disabled=true;
+        setOnlineLobbyStatus(asSpectator ? 'Entrando como espectador…' : 'Entrando na partida…','Conectando você à sala.');
         try {
-          const r = await jsonpRequest('joinRoom', {room, key:online.key || '', playerId:online.playerId, name:name || 'Espectador', role:asSpectator ? 'spectator' : 'player'});
-          online.active=true; online.role=r.role; online.room=r.room; online.key=r.key; online.token=r.token || ''; online.name=name || 'Espectador'; online.joinedFromLink=true;
-          showOnlineRoom(r.room,r.key,r.role==='x'?'Jogador X':r.role==='o'?'Jogador O':'Espectador');
+          const r = await jsonpRequest('joinRoom', {room: fromLink ? onlineRoomCodeInput.value : room, key:online.key || '', playerId:online.playerId, name:name || 'Espectador', role:asSpectator ? 'spectator' : 'player'});
+          online.active=true; online.role=r.role; online.room=r.room; online.key=r.key; online.token=r.token || ''; online.name=name || 'Espectador';
+          online.joinedFromLink=false;
           applyServerState(r.state);
-          setOnlineLobbyStatus(r.role==='spectator'?'Modo espectador':'Você entrou na sala', r.role==='spectator'?'Você apenas acompanhará as jogadas.':'A partida será sincronizada automaticamente.');
-          startOnlinePolling(); updateLocalControls();
-          setTimeout(closeOnlineLobby, 650);
+          startOnlinePolling();
+          updateLocalControls();
+          if (r.role === 'spectator') {
+            showOnlineRoom(r.room,r.key,'Espectador');
+            setOnlineLobbyStatus('Modo espectador','Você está acompanhando a partida.');
+            setTimeout(closeOnlineLobby, 650);
+          } else {
+            closeOnlineLobby();
+          }
         } catch (err) { setOnlineLobbyStatus('Não foi possível entrar', err.message); }
         finally { btn.disabled=false; }
       }
@@ -4684,16 +4894,41 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       function setOnlineLobbyStatus(title, text) { onlineMainStatusTitle.textContent=title; onlineMainStatusText.textContent=text; }
 
       function showOnlineRoom(room,key,role) {
-        onlineRoomCard.classList.add('open'); onlineRoomCodeText.textContent=room; onlineRoleText.textContent=role;
-        onlineShareText.textContent=currentPublicUrl(room,key); leaveOnlineBtn.style.display='block';
+        onlineRoomCard.classList.add('open');
+        onlineRoomCodeText.textContent=room;
+        onlineRoleText.textContent=role;
+        onlineShareText.textContent=currentPublicUrl(room,key);
+        leaveOnlineBtn.style.display='block';
+      }
+
+      function enterCreatedOnlineRoom() {
+        if (!online.active || online.role !== 'x' || !online.room) return;
+        closeOnlineLobby();
+        startOnlinePolling();
+        updateLocalControls();
+        setOnlineLobbyStatus('Aguardando adversário','Envie o link da sala para quem vai jogar com você.');
       }
 
       function openOnlineLobby() {
-        onlineNameInput.value=online.name || loadPlayerName(); online.playerId=getPlayerId();
-        onlineBackdrop.classList.add('open'); onlineBackdrop.setAttribute('aria-hidden','false');
-        if (online.active &amp;&amp; online.room) { showOnlineRoom(online.room,online.key,online.role==='x'?'Jogador X':online.role==='o'?'Jogador O':'Espectador'); setOnlineLobbyStatus('Você já está em uma sala','A partida continua sendo atualizada em segundo plano.'); }
-        else setOnlineLobbyStatus('Pronto para jogar','Crie uma sala ou informe um código recebido.');
-        setTimeout(() =&gt; (onlineNameInput.value ? onlineRoomCodeInput : onlineNameInput).focus(), 30);
+        onlineNameInput.value=online.name || loadPlayerName();
+        online.playerId=getPlayerId();
+        onlineBackdrop.classList.add('open');
+        onlineBackdrop.setAttribute('aria-hidden','false');
+
+        if (online.active &amp;&amp; online.room) {
+          showOnlineRoom(online.room,online.key,online.role==='x'?'Você é o Jogador X':online.role==='o'?'Você é o Jogador O':'Espectador');
+          setOnlineLobbyStatus('Sala ativa','A partida continua sincronizando automaticamente.');
+          prepareLobbyForMode('created');
+        } else if (online.joinedFromLink) {
+          prepareLobbyForMode('guest-link');
+          onlineRoomCodeInput.value = onlineRoomCodeInput.value || '';
+          setOnlineLobbyStatus('Você recebeu um convite','Digite seu nome e toque em Jogar.');
+        } else {
+          prepareLobbyForMode('new');
+          setOnlineLobbyStatus('Pronto para jogar','Crie uma sala ou informe o código recebido.');
+        }
+
+        setTimeout(() =&gt; online.joinedFromLink ? onlineNameInput.focus() : (onlineNameInput.value ? onlineRoomCodeInput : onlineNameInput).focus(), 30);
       }
 
       function closeOnlineLobby() { onlineBackdrop.classList.remove('open'); onlineBackdrop.setAttribute('aria-hidden','true'); }
@@ -4729,23 +4964,37 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         } finally { online.pollBusy=false; }
       }
 
-      function applyServerState(state) {
+      function applyServerState(state, options={}) {
         if (!state) return;
+        const incomingMove = Number(state.moveNumber ?? 0);
+        const pending = online.pendingMove;
+
+        /* Nunca retroceder o estado visual: respostas HTTP/JSONP podem chegar
+           fora de ordem quando polling e uma jogada estão acontecendo juntos. */
+        if (!options.force &amp;&amp; incomingMove &lt; Number(online.lastServerMoveNumber ?? -1)) {
+          return;
+        }
+
+        /* Não deixe uma resposta antiga do polling sobrescrever a jogada local
+           otimista enquanto a requisição desta jogada ainda está pendente. */
+        if (!options.force &amp;&amp; pending &amp;&amp; incomingMove &lt;= Number(pending.moveNumberBefore ?? -1)) {
+          return;
+        }
+
         const prevMove = online.lastServerMoveNumber;
-        online.state=state; online.lastServerMoveNumber=Number(state.moveNumber ?? -1);
+        online.state=state;
+        online.lastServerMoveNumber=incomingMove;
         renderBoard(state.board);
         currentPlayer=state.currentPlayer || 'X'; gameOver=state.status==='finished'; round=Number(state.round||1);
         scores={X:Number(state.scoreX||0),O:Number(state.scoreO||0),draw:Number(state.scoreDraw||0)};
         scoreXLabel.textContent=state.playerX?.name ? `❌ ${state.playerX.name}` : 'Jogador X';
         scoreOLabel.textContent=state.playerO?.name ? `⭕ ${state.playerO.name}` : 'Jogador O';
-        updateScores(); roundBadge.textContent=`Rodada ${round} • ${scores.X} × ${scores.O}`;
+        updateScores();
+        roundBadge.textContent=`Rodada ${round} • ${scores.X} × ${scores.O}`;
         hideWinningLine();
         if (state.winner &amp;&amp; Array.isArray(state.winner.combination) &amp;&amp; state.winner.combination.length) drawWinningLine(state.winner.combination,state.winner.player);
+        if (pending &amp;&amp; incomingMove &gt; Number(pending.moveNumberBefore ?? -1)) online.pendingMove=null;
         updateOnlinePresentation(state, prevMove);
-        if (online.pendingMove !== null) {
-          const p=online.pendingMove;
-          if (Number(state.moveNumber||0) &gt; Number(p.moveNumberBefore||-1)) online.pendingMove=null;
-        }
         if (state.reaction &amp;&amp; Number(state.reaction.ts||0)&gt;online.lastReactionTs &amp;&amp; state.reaction.playerId!==online.playerId) { online.lastReactionTs=Number(state.reaction.ts||0); showReaction(state.reaction.emoji); }
         updateLocalControls();
       }
@@ -4773,8 +5022,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         status.className='status';
       }
 
+      function setThinkingLoader(show) {
+        if (!thinkingLoader) return;
+        thinkingLoader.classList.toggle('show', !!show);
+      }
+
       function updateOnlineTurnText() {
-        const state=online.state; if (!state) return;
+        const state=online.state; if (!state) { setThinkingLoader(false); return; }
         const active=state.currentPlayer || 'X';
         const myTurn=online.role===active.toLowerCase();
         const activeColor=colors[active] || colors.X;
@@ -4782,28 +5036,11 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         turnSymbol.style.background=`linear-gradient(145deg, ${activeColor}, color-mix(in srgb, ${activeColor} 72%, #ffffff))`;
         turnSymbol.style.boxShadow=`0 7px 19px color-mix(in srgb, ${activeColor} 30%, transparent)`;
         turnText.style.color=colorMix(activeColor,'#ffffff',0.32);
-        if (online.role==='spectator') { turnText.textContent=`Vez do jogador ${active}`; return; }
-        if (myTurn) { turnText.textContent=`Sua vez (${active})`; return; }
+        if (online.role==='spectator') { setThinkingLoader(false); turnText.textContent=`Vez do jogador ${active}`; return; }
+        if (myTurn) { setThinkingLoader(false); turnText.textContent=`Sua vez (${active})`; return; }
         const name=active==='X' ? (state.playerX?.name || 'Jogador X') : (state.playerO?.name || 'Jogador O');
+        setThinkingLoader(true);
         turnText.textContent=`${name} está pensando`;
-        ensureThinkingDots();
-      }
-
-      let thinkingFrame=0;
-      function ensureThinkingDots() {
-        // O texto usa CSS/JS simples para manter a mesma sensação em qualquer navegador.
-        if (thinkingFrame) return;
-        const tick=()=&gt;{
-          thinkingFrame=setTimeout(()=&gt;{
-            thinkingFrame=0;
-            if (gameMode==='online' &amp;&amp; online.state &amp;&amp; online.state.status==='playing' &amp;&amp; online.role!==String(online.state.currentPlayer||'').toLowerCase()) {
-              const base=(online.state.currentPlayer==='X'?(online.state.playerX?.name||'Jogador X'):(online.state.playerO?.name||'Jogador O'));
-              const dots='.'.repeat((Math.floor(Date.now()/450)%3)+1);
-              turnText.textContent=`${base} está pensando${dots}`; tick();
-            }
-          },450);
-        };
-        tick();
       }
 
       async function onlineMove(index) {
@@ -4815,7 +5052,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         online.pendingMove={index,board:beforeBoard,moveNumberBefore:beforeMove}; updateOnlinePresentation({...s,board}, beforeMove); status.textContent='Jogada enviada…';
         try {
           const r=await jsonpRequest('move',{room:online.room,key:online.key,playerId:online.playerId,token:online.token,index:String(index),moveNumber:String(beforeMove)});
-          if (r?.state) applyServerState(r.state); online.pendingMove=null;
+          if (r?.state) {
+            const confirmedMove = Number(r.state.moveNumber || 0);
+            if (confirmedMove &gt; beforeMove) {
+              online.pendingMove=null;
+              applyServerState(r.state, {force:true});
+            }
+          }
         } catch (err) {
           renderBoard(beforeBoard); online.pendingMove=null; status.textContent=err.message; status.className='status';
         }
@@ -4897,12 +5140,13 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       onlineCloseBtn.addEventListener('click',closeOnlineLobby);
       createOnlineBtn.addEventListener('click',createRoom);
+      enterOnlineBtn?.addEventListener('click',enterCreatedOnlineRoom);
       joinOnlineBtn.addEventListener('click',()=&gt;joinRoom(false));
       watchOnlineBtn.addEventListener('click',()=&gt;joinRoom(true));
       copyOnlineLinkBtn.addEventListener('click',copyOnlineLink);
       leaveOnlineBtn.addEventListener('click',()=&gt;leaveOnlineRoom(false));
       onlineNameInput.addEventListener('input',()=&gt;online.name=onlineNameInput.value.trim().slice(0,30));
-      onlineRoomCodeInput.addEventListener('input',()=&gt;{onlineRoomCodeInput.value=onlineRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); online.key=''; online.joinedFromLink=false;});
+      onlineRoomCodeInput.addEventListener('input',()=&gt;{onlineRoomCodeInput.value=onlineRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8); if (!online.joinedFromLink) online.key='';});
       onlineRoomCodeInput.addEventListener('keydown',e=&gt;{if(e.key==='Enter')joinRoom(false);});
       onlineReactions.querySelectorAll('.reaction-btn').forEach(btn=&gt;btn.addEventListener('click',()=&gt;sendReaction(btn.dataset.reaction)));
       onlineBackdrop.addEventListener('click',e=&gt;{if(e.target===onlineBackdrop)closeOnlineLobby();});
@@ -4910,7 +5154,7 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       /* Estado inicial: LOCAL, deliberadamente não persistido. */
       online.playerId=getPlayerId(); online.name=loadPlayerName(); onlineNameInput.value=online.name;
-      setModeUI(); enterLocalMode(); applyColors(); updateScores(); updateRound(); hideWinningLine(); updatePreview();
+      setModeUI(); enterLocalMode(); applyColors(); updateScores(); updateRound(); hideWinningLine(); updatePreview(); setThinkingLoader(false);
       localInitialized=true;
       handleIncomingLink();
     })();
