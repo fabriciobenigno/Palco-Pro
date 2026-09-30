@@ -3343,6 +3343,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
     }
 
     .actions { display: grid; grid-template-columns: 1fr 52px; gap: 8px; }
+    .actions.online-centered { display:flex; justify-content:center; align-items:center; }
+    .actions.online-centered .restart-btn { width:min(100%, 320px); flex:0 1 320px; }
 
     .action-btn {
       min-height: 50px;
@@ -3913,7 +3915,8 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       background:rgba(255,255,255,.05); color:#fff; outline:none; font-size:14px;
     }
     .online-input:focus { border-color:var(--accent-border); box-shadow:0 0 0 3px rgba(79,140,255,.08); }
-    .online-actions { display:grid; gap:8px; margin-top:12px; }
+    .online-actions { display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:12px; }
+    .online-actions &gt; .online-btn { width:min(100%, 320px); }
     .online-btn {
       min-height:46px; padding:11px 13px; border-radius:14px; border:1px solid rgba(255,255,255,.08);
       background:rgba(255,255,255,.045); color:#fff; font-weight:850; cursor:pointer; transition:.18s ease;
@@ -4707,15 +4710,18 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       function updateLocalControls() {
+        const actionBar = restartBtn?.closest('.actions');
+        if (actionBar) actionBar.classList.toggle('online-centered', gameMode === 'online');
         if (gameMode === 'local') {
           restartBtn.textContent='Nova partida';
+          restartBtn.style.display='block';
           resetScoreBtn.style.display='block';
           return;
         }
         resetScoreBtn.style.display='none';
+        restartBtn.style.display='block';
         if (!online.active) restartBtn.textContent='Abrir online';
         else if (online.state?.status === 'finished') {
-          restartBtn.style.display='block';
           restartBtn.textContent=online.state?.matchWinner ? 'Nova partida' : 'Próxima rodada';
         }
         else restartBtn.textContent='Sair da sala';
@@ -4933,26 +4939,26 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
 
       function applyServerState(state, options={}) {
         if (!state) return;
+
         const incomingMove = Number(state.moveNumber ?? 0);
-        const incomingRevision = Number(state.revision ?? 0);
-        const pending = online.pendingMove;
-        const hasRevision = Number.isFinite(incomingRevision) && incomingRevision >= 0;
+        const incomingRevision = Number(state.revision);
+        const hasRevision = Number.isFinite(incomingRevision) &amp;&amp; incomingRevision &gt;= 0;
         const lastRevision = Number(online.lastServerRevision ?? -1);
         const lastMove = Number(online.lastServerMoveNumber ?? -1);
+        const pending = online.pendingMove;
 
-        /* A revisão é a ordem global da sala e NÃO volta para zero na revanche. */
-        if (!options.force && hasRevision && lastRevision >= 0 && incomingRevision < lastRevision) {
+        /* O servidor é a fonte de verdade. A revisão global é monotônica.
+           Qualquer resposta antiga de um polling já iniciado é descartada. */
+        if (hasRevision &amp;&amp; lastRevision &gt;= 0) {
+          if (incomingRevision &lt; lastRevision) return;
+          if (incomingRevision === lastRevision &amp;&amp; !options.force) return;
+        } else if (!hasRevision &amp;&amp; lastMove &gt;= 0 &amp;&amp; incomingMove &lt; lastMove) {
           return;
         }
 
-        /* Compatibilidade com salas antigas ainda sem o campo revision. */
-        if (!options.force && !hasRevision && incomingMove < lastMove) {
-          return;
-        }
-
-        /* Não deixe um estado antigo do polling apagar a jogada otimista. */
-        if (!options.force && pending && incomingMove <= Number(pending.moveNumberBefore ?? -1)
-            && (!hasRevision || incomingRevision <= lastRevision)) {
+        /* Uma jogada local pendente nunca pode ser apagada por um snapshot
+           que não trouxe nenhuma mudança real do servidor. */
+        if (pending &amp;&amp; hasRevision &amp;&amp; lastRevision &gt;= 0 &amp;&amp; incomingRevision &lt;= lastRevision &amp;&amp; !options.force) {
           return;
         }
 
@@ -4960,20 +4966,30 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
         online.state=state;
         online.lastServerMoveNumber=incomingMove;
         if (hasRevision) online.lastServerRevision=incomingRevision;
+
         renderBoard(state.board);
-        currentPlayer=state.currentPlayer || 'X'; gameOver=state.status==='finished'; round=Number(state.round||1);
+        currentPlayer=state.currentPlayer || 'X';
+        gameOver=state.status==='finished';
+        round=Number(state.round||1);
         scores={X:Number(state.scoreX||0),O:Number(state.scoreO||0),draw:Number(state.scoreDraw||0)};
         scoreXLabel.textContent=state.playerX?.name ? `❌ ${state.playerX.name}` : 'Jogador X';
         scoreOLabel.textContent=state.playerO?.name ? `⭕ ${state.playerO.name}` : 'Jogador O';
         updateScores();
         roundBadge.textContent=`Rodada ${round} • ${scores.X} × ${scores.O}`;
         hideWinningLine();
-        if (state.winner &amp;&amp; Array.isArray(state.winner.combination) &amp;&amp; state.winner.combination.length) drawWinningLine(state.winner.combination,state.winner.player);
-        if (pending && incomingMove > Number(pending.moveNumberBefore ?? -1)) online.pendingMove=null;
-        updateOnlinePresentation(state, prevMove);
+        if (state.winner &amp;&amp; Array.isArray(state.winner.combination) &amp;&amp; state.winner.combination.length) {
+          drawWinningLine(state.winner.combination,state.winner.player);
+        }
+
+        if (pending) {
+          const before=Number(pending.moveNumberBefore ?? -1);
+          const cellHasOurMove=Array.isArray(state.board) &amp;&amp; pending.index != null &amp;&amp; state.board[pending.index] === (online.role==='x'?'X':'O');
+          if (incomingMove &gt; before || cellHasOurMove) online.pendingMove=null;
+        }
+
+        updateOnlinePresentation(state,prevMove);
         updateLocalControls();
       }
-
       function updateOnlinePresentation(state) {
         if (state.status === 'waiting') {
           setThinkingLoader(false);
@@ -5023,26 +5039,68 @@ Escolha entre letra e PDF e personalize sua experiência de leitura em “Ajuste
       }
 
       async function onlineMove(index) {
-        const s=online.state; if (!s || s.status!=='playing' || online.role==='spectator') return;
+        const s=online.state;
+        if (!s || s.status!=='playing' || online.role==='spectator') return;
         if (online.role !== String(s.currentPlayer||'').toLowerCase()) return;
         if (board[index] || online.pendingMove !== null) return;
-        const beforeBoard=board.slice(); const beforeMove=Number(s.moveNumber||0);
-        board[index]=s.currentPlayer; renderBoard(board); cells[index].classList.add('pop'); setTimeout(()=&gt;cells[index].classList.remove('pop'),200);
-        online.pendingMove={index,board:beforeBoard,moveNumberBefore:beforeMove}; updateOnlinePresentation({...s,board}, beforeMove); status.textContent='Jogada enviada…';
+
+        const beforeBoard=board.slice();
+        const beforeMove=Number(s.moveNumber||0);
+        const beforeRevision=Number(s.revision ?? online.lastServerRevision ?? -1);
+        const mark=s.currentPlayer;
+
+        board[index]=mark;
+        renderBoard(board);
+        cells[index].classList.add('pop');
+        setTimeout(()=&gt;cells[index].classList.remove('pop'),200);
+        online.pendingMove={index,board:beforeBoard,moveNumberBefore:beforeMove,revisionBefore:beforeRevision,mark};
+        updateOnlinePresentation({...s,board},beforeMove);
+        status.textContent='Jogada enviada…';
+
         try {
-          const r=await jsonpRequest('move',{room:online.room,key:online.key,playerId:online.playerId,token:online.token,index:String(index),moveNumber:String(beforeMove)});
+          const r=await jsonpRequest('move',{
+            room:online.room,
+            key:online.key,
+            playerId:online.playerId,
+            token:online.token,
+            index:String(index),
+            moveNumber:String(beforeMove)
+          });
+
           if (r?.state) {
-            const confirmedMove = Number(r.state.moveNumber || 0);
-            if (confirmedMove &gt; beforeMove) {
-              online.pendingMove=null;
-              applyServerState(r.state, {force:true});
+            const confirmedRevision=Number(r.state.revision);
+            const currentRevision=Number(online.lastServerRevision ?? -1);
+            const confirmedMove=Number(r.state.moveNumber || 0);
+            if (Number.isFinite(confirmedRevision) &amp;&amp; confirmedRevision &gt; currentRevision &amp;&amp; confirmedMove &gt; beforeMove) {
+              applyServerState(r.state);
             }
           }
         } catch (err) {
-          renderBoard(beforeBoard); online.pendingMove=null; status.textContent=err.message; status.className='status';
+          /* Se a requisição de confirmação falhar, consulta a sala antes de
+             desfazer qualquer coisa. Assim um timeout de rede não faz a jogada
+             aparecer e desaparecer. */
+          try {
+            const current=await jsonpRequest('state',{room:online.room,key:online.key,playerId:online.playerId,token:online.token});
+            if (current?.state) {
+              applyServerState(current.state);
+              const serverBoard=current.state.board;
+              const accepted=Array.isArray(serverBoard) &amp;&amp; serverBoard[index]===mark;
+              if (accepted) return;
+              /* O servidor respondeu e a casa não contém nossa marca: neste
+                 caso a jogada foi efetivamente rejeitada. */
+              online.pendingMove=null;
+              renderBoard(beforeBoard);
+            }
+          } catch (_) {
+            /* Sem confirmação de rede, mantemos o feedback local e deixamos o
+               próximo polling reconciliar com o servidor. */
+            return;
+          }
+          status.textContent=err.message;
+          status.className='status';
+          updateLocalControls();
         }
       }
-
       async function nextRoundOnline() {
         if (!online.active || !online.state || !online.token) return;
         restartBtn.disabled=true;
