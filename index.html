@@ -5672,26 +5672,30 @@ button{
 (function(){
   "use strict";
 
+  const PEDIDO_API_URL = 'https://script.google.com/macros/s/AKfycbweGCvcOlO76O2CRVQTQUp5Unu2yOB5cKKvs1iFFf8RQpRI1jObEvfh4D4y-8gW2Ibr/exec';
   const actions = document.getElementById("actions");
   const yesBtn = document.getElementById("yesBtn");
   const noBtn = document.getElementById("noBtn");
   const inlineMessage = document.getElementById("inlineMessage");
+  const question = document.querySelector(".question");
+  const returnBtn = document.getElementById("palcoProReturnBtn");
 
   const finalNoModal = document.getElementById("finalNoModal");
   const finalNoClose = document.getElementById("finalNoClose");
-
   const confirmModal = document.getElementById("confirmModal");
   const confirmNo = document.getElementById("confirmNo");
   const confirmYes = document.getElementById("confirmYes");
-
   const sureModal = document.getElementById("sureModal");
   const sureClose = document.getElementById("sureClose");
-
   const finalScreen = document.getElementById("finalScreen");
   const hearts = document.getElementById("hearts");
 
-  let noCount = 0;
+  let noCount = 0;       // Conta as nove etapas até o NÃO parar de fugir.
+  let noAttempts = 0;    // Conta todos os cliques reais no botão NÃO principal.
   let moveLock = false;
+  let reportSent = false;
+  const interactionLog = [];
+  const sessionId = createSessionId();
 
   const phrases = [
     "Esse NÃO foi ousado… mas eu continuo aqui. 😂",
@@ -5702,13 +5706,25 @@ button{
     "Esse NÃO já virou atleta de tanto fugir. 🏃‍♂️😂",
     "Eu ainda estou mantendo a calma por aqui. 😅❤️",
     "Você realmente está fazendo o botão NÃO passar por isso tudo. 😂",
-    "Eu queria muito que você escolhesse o sim, mais já que insiste em dizer não, :( . Já foram 9 tentativas e na decima, infelizmente o não não irá mais fugir de você e vou aceitar o seu não e respeittar sua decisão"
+    "Eu queria muito que você escolhesse o sim, mas já que insiste em dizer não, chegou a hora de parar de fugir. Vou respeitar sua decisão. ❤️"
   ];
 
+  function createSessionId(){
+    try {
+      if (window.crypto &amp;&amp; typeof window.crypto.randomUUID === "function") {
+        return window.crypto.randomUUID();
+      }
+    } catch(e) {}
+    return "pedido-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+  }
+
+  function recordAction(action){
+    interactionLog.push({ action: action, at: new Date().toISOString() });
+    if(interactionLog.length &gt; 50) interactionLog.shift();
+  }
+
   function vibrate(ms){
-    try{
-      if(navigator.vibrate) navigator.vibrate(ms);
-    }catch(e){}
+    try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){}
   }
 
   function showInlineMessage(text){
@@ -5732,31 +5748,12 @@ button{
   }
 
   function resetNoToActions(){
-    // O ponto importante: o botão é fisicamente devolvido ao flexbox.
-    // Isso evita qualquer estado "azul sem clique" causado por position:fixed.
     noBtn.classList.remove("flying");
     noBtn.classList.remove("final");
-
-    noBtn.style.position = "";
-    noBtn.style.left = "";
-    noBtn.style.top = "";
-    noBtn.style.right = "";
-    noBtn.style.bottom = "";
-    noBtn.style.inset = "";
-    noBtn.style.transform = "";
-    noBtn.style.margin = "";
-    noBtn.style.display = "";
-    noBtn.style.visibility = "";
-    noBtn.style.opacity = "";
-    noBtn.style.width = "";
-    noBtn.style.minWidth = "";
-    noBtn.style.height = "";
-
-    if(noBtn.parentElement !== actions){
-      actions.appendChild(noBtn);
-    }
-
-    // força o navegador a recalcular o flexbox antes de liberar o botão.
+    ["position","left","top","right","bottom","inset","transform","margin","display","visibility","opacity","width","minWidth","height"].forEach(function(prop){
+      noBtn.style[prop] = "";
+    });
+    if(noBtn.parentElement !== actions) actions.appendChild(noBtn);
     void actions.offsetWidth;
   }
 
@@ -5768,81 +5765,143 @@ button{
     noBtn.style.opacity = "1";
   }
 
+  function restoreNoButton(){
+    if(noCount &gt;= 9) makeNoBlueAndFinal();
+    else resetNoToActions();
+  }
+
+  function inflateRect(rect, gap){
+    return {
+      left: rect.left - gap,
+      top: rect.top - gap,
+      right: rect.right + gap,
+      bottom: rect.bottom + gap
+    };
+  }
+
+  function overlaps(a, b){
+    return a.left &lt; b.right &amp;&amp; a.right &gt; b.left &amp;&amp; a.top &lt; b.bottom &amp;&amp; a.bottom &gt; b.top;
+  }
+
+  function getProtectedAreas(){
+    const areas = [];
+    const add = function(el, gap){
+      if(!el) return;
+      const rect = el.getBoundingClientRect();
+      if(rect.width &gt; 0 &amp;&amp; rect.height &gt; 0) areas.push(inflateRect(rect, gap));
+    };
+
+    // O botão fugitivo nunca cobre a pergunta, o SIM, as frases ou o retorno.
+    add(question, 16);
+    add(actions, 12);
+    add(yesBtn, 18);
+    if(inlineMessage.classList.contains("show")) add(inlineMessage, 18);
+    add(returnBtn, 10);
+    return areas;
+  }
+
   function moveNo(){
     moveLock = true;
 
-    noBtn.classList.add("flying");
+    const rect = noBtn.getBoundingClientRect();
+    const w = rect.width || 134;
+    const h = rect.height || 62;
+    const pad = 12;
+    const topMin = Math.max(68, pad + (window.visualViewport ? window.visualViewport.offsetTop : 0));
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const topMax = Math.max(topMin, viewportHeight - h - pad);
+    const leftMax = Math.max(pad, window.innerWidth - w - pad);
+    const protectedAreas = getProtectedAreas();
+    let chosen = null;
 
-    const w = noBtn.getBoundingClientRect().width;
-    const h = noBtn.getBoundingClientRect().height;
-
-    const marginX = 12;
-    const topMin = Math.max(82, parseInt(getComputedStyle(document.documentElement).paddingTop || "0",10));
-    const topMax = Math.max(topMin + 20, window.innerHeight - h - 18);
-    const leftMax = Math.max(marginX, window.innerWidth - w - marginX);
-
-    const yesRect = yesBtn.getBoundingClientRect();
-
-    let x = marginX;
-    let y = Math.min(topMax, Math.max(topMin, window.innerHeight * .70));
-    let found = false;
-
-    for(let i=0;i&lt;100;i++){
-      const cx = marginX + Math.random() * Math.max(1,leftMax - marginX);
-      const cy = topMin + Math.random() * Math.max(1,topMax - topMin);
-
-      const right = cx + w;
-      const bottom = cy + h;
-
-      const overlapsYes =
-        cx &lt; yesRect.right + 28 &amp;&amp;
-        right &gt; yesRect.left - 28 &amp;&amp;
-        cy &lt; yesRect.bottom + 28 &amp;&amp;
-        bottom &gt; yesRect.top - 28;
-
-      if(!overlapsYes){
-        x = cx;
-        y = cy;
-        found = true;
+    // Tenta várias posições e aceita somente espaços que não encostem nas áreas protegidas.
+    for(let i = 0; i &lt; 240; i++){
+      const x = pad + Math.random() * Math.max(1, leftMax - pad);
+      const y = topMin + Math.random() * Math.max(1, topMax - topMin);
+      const candidate = { left:x, top:y, right:x+w, bottom:y+h };
+      if(!protectedAreas.some(function(area){ return overlaps(candidate, area); })){
+        chosen = candidate;
         break;
       }
     }
 
-    if(!found){
-      x = marginX;
-      y = Math.min(topMax, Math.max(topMin, window.innerHeight * .75));
+    // Se a tela estiver sem espaço livre, o botão fica no seu lugar normal.
+    // É preferível não fugir a esconder qualquer texto.
+    if(!chosen){
+      resetNoToActions();
+      moveLock = false;
+      return;
     }
 
-    noBtn.style.left = Math.round(x) + "px";
-    noBtn.style.top = Math.round(y) + "px";
+    noBtn.classList.add("flying");
+    noBtn.style.left = Math.round(chosen.left) + "px";
+    noBtn.style.top = Math.round(chosen.top) + "px";
 
-    setTimeout(function(){
-      moveLock = false;
-    }, 260);
+    setTimeout(function(){ moveLock = false; }, 260);
+  }
+
+  function sendFinalReport(result){
+    if(reportSent) return;
+    reportSent = true;
+
+    const payload = {
+      action: "registrarResultadoPedido",
+      sessionId: sessionId,
+      resultado: result,
+      dataFinal: new Date().toISOString(),
+      cliquesNao: noAttempts,
+      eventos: interactionLog.slice(0, 50)
+    };
+    const body = JSON.stringify(payload);
+
+    // Mantém a tela independente da rede. O Apps Script impede e-mails duplicados
+    // usando o identificador único desta sessão.
+    try{
+      fetch(PEDIDO_API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: body,
+        keepalive: true
+      }).catch(function(error){
+        console.error("Falha ao enviar o relatório do pedido:", error);
+        try{
+          if(navigator.sendBeacon){
+            navigator.sendBeacon(PEDIDO_API_URL, new Blob([body], {type:"text/plain;charset=utf-8"}));
+          }
+        }catch(beaconError){ console.error("Falha no envio alternativo do relatório:", beaconError); }
+      });
+    }catch(error){
+      console.error("Falha ao iniciar o envio do relatório:", error);
+      try{
+        if(navigator.sendBeacon){
+          navigator.sendBeacon(PEDIDO_API_URL, new Blob([body], {type:"text/plain;charset=utf-8"}));
+        }
+      }catch(beaconError){ console.error("Falha no envio alternativo do relatório:", beaconError); }
+    }
   }
 
   function handleNo(){
-    // Depois da 9ª, o botão já está azul. O 10º toque abre SOMENTE este painel.
+    if(moveLock) return;
+    noAttempts += 1;
+    recordAction("CLICOU_NAO");
+    vibrate(28);
+
+    // Após nove tentativas, o botão já está azul. O clique seguinte abre a decisão final.
     if(noCount === 9){
+      recordAction("ABRIU_CONFIRMACAO_FINAL_NAO");
       openModal(finalNoModal);
       vibrate(45);
       return;
     }
 
-    if(moveLock) return;
-
     noCount += 1;
-    vibrate(28);
-
     if(noCount &lt;= 8){
       showInlineMessage(phrases[noCount - 1]);
       moveNo();
       return;
     }
 
-    // 9ª tentativa:
-    // mostra a mensagem especial abaixo dos botões,
-    // devolve o botão ao flexbox original e deixa azul.
     showInlineMessage(phrases[8]);
     moveLock = false;
     makeNoBlueAndFinal();
@@ -5866,55 +5925,79 @@ button{
     }
   }
 
-  // SIM: primeira confirmação.
+  // SIM: só é considerado definitivo depois das duas confirmações.
   yesBtn.addEventListener("click",function(e){
     e.preventDefault();
     e.stopPropagation();
+    recordAction("CLICOU_SIM");
+    restoreNoButton();
     clearInlineMessage();
     openModal(confirmModal);
     vibrate(18);
   });
 
-  // NÃO da confirmação do SIM não conta como tentativa.
+  // Esta resposta cancela a confirmação do SIM, mas não fecha o pedido.
   confirmNo.addEventListener("click",function(){
+    recordAction("CANCELOU_CONFIRMACAO_SIM");
     closeModal(confirmModal);
   });
 
   confirmYes.addEventListener("click",function(){
+    recordAction("CONFIRMOU_SIM");
     closeModal(confirmModal);
     openModal(sureModal);
     spawnHearts(42);
     vibrate(24);
   });
 
+  // O SIM final só é registrado quando a pessoa conclui a última etapa.
   sureClose.addEventListener("click",function(){
+    recordAction("CONCLUIU_SIM");
     closeModal(sureModal);
+    sendFinalReport("SIM");
     finalScreen.classList.add("show");
     spawnHearts(64);
     vibrate(45);
   });
 
-  // Único tratamento do botão NÃO principal.
   noBtn.addEventListener("click",function(e){
     e.preventDefault();
     e.stopPropagation();
     handleNo();
   });
 
+  // O NÃO final só é enviado quando a pessoa confirma que entendeu a decisão.
   finalNoClose.addEventListener("click",function(){
+    recordAction("CONFIRMOU_NAO_FINAL");
+    const finalTitle = finalScreen.querySelector(".final-title");
+    const finalCopy = finalScreen.querySelector(".final-copy");
+    if(finalTitle) finalTitle.textContent = "Tudo bem. ❤️";
+    if(finalCopy) finalCopy.textContent = "Obrigado por ouvir meu pedido. Respeito sua decisão e seguiremos sendo amigos. ❤️";
     closeModal(finalNoModal);
+    sendFinalReport("NAO");
+    finalScreen.classList.add("show");
   });
 
   finalNoModal.addEventListener("click",function(e){
-    if(e.target === finalNoModal) closeModal(finalNoModal);
+    if(e.target === finalNoModal){
+      recordAction("CANCELOU_CONFIRMACAO_FINAL_NAO");
+      closeModal(finalNoModal);
+    }
   });
 
   confirmModal.addEventListener("click",function(e){
-    if(e.target === confirmModal) closeModal(confirmModal);
+    if(e.target === confirmModal){
+      recordAction("FECHOU_CONFIRMACAO_SIM");
+      closeModal(confirmModal);
+    }
   });
 
+  // Fechar esta segunda confirmação não equivale a aceitar: a pessoa pode mudar de ideia.
   sureModal.addEventListener("click",function(e){
-    if(e.target === sureModal) closeModal(sureModal);
+    if(e.target === sureModal){
+      recordAction("CANCELOU_ETAPA_FINAL_SIM");
+      closeModal(sureModal);
+    }
   });
 
   window.addEventListener("resize",function(){
@@ -5922,9 +6005,7 @@ button{
       makeNoBlueAndFinal();
       return;
     }
-    if(noBtn.classList.contains("flying")){
-      moveNo();
-    }
+    if(noBtn.classList.contains("flying")) moveNo();
   });
 
   document.addEventListener("gesturestart",e=&gt;e.preventDefault(),{passive:false});
